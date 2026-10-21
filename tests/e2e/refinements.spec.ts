@@ -105,7 +105,7 @@ test("all scenario reasons, low-confidence guidance gate, and attachment-specifi
   await expect(
     page
       .locator(".demo-twin")
-      .getByText("Are you feeling okay?", { exact: true }),
+      .getByText("How are you feeling?", { exact: true }),
   ).toBeVisible();
   await page.goto("/#/caregiver/settings");
   const config = page.locator(".wearable-config");

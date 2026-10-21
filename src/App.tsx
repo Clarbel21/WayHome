@@ -1,3 +1,9 @@
+import {
+  CheckInHistory,
+  CheckInRuntime,
+  CheckInDemo,
+  FamilyResponse,
+} from "./components/CheckInSupport";
 import { RouteFocus } from "./components/RouteFocus";
 import { lazy, Suspense, useState } from "react";
 import {
@@ -465,6 +471,12 @@ function Alerts({ compact = false }: { compact?: boolean }) {
   const list = compact ? s.alerts.slice(0, 3) : s.alerts;
   return (
     <div className="alerts">
+      {!compact && (
+        <>
+          <FamilyResponse />
+          <CheckInHistory />
+        </>
+      )}
       {!list.length ? (
         <div className="empty">
           <ShieldCheck size={28} />
@@ -758,6 +770,7 @@ function SettingsPage() {
         title="A circle of care"
         description="Sample profiles and preferences are saved automatically on this browser."
       />
+      <CheckInDemo />
       <CompanionPersonalization />
       <WearableConfiguration />
       <div className="settings-grid">
@@ -878,6 +891,7 @@ function DemoControls() {
           </Link>
         }
       />
+      <CheckInDemo />
       <div className="demo-layout">
         <div>
           <div className="scenario-grid">
@@ -1352,6 +1366,7 @@ export default function App() {
   return (
     <HashRouter>
       <RouteFocus />
+      <CheckInRuntime />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/companion" element={<Companion />} />

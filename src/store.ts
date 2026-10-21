@@ -131,7 +131,7 @@ export const status: Record<Mode, string> = {
 };
 export const messages = (name: string): Record<Mode, string> => ({
   NORMAL: `Hi! I'm ${name}. I'm here with you.`,
-  CHECK_IN: "Are you feeling okay?",
+  CHECK_IN: "How are you feeling?",
   GUIDED_RETURN: "Let's find our way together.",
   REORIENTATION: "It's okay. I'm here with you.",
   CAREGIVER_HANDOVER: "Let's contact someone you trust.",
@@ -153,7 +153,25 @@ export function transition(current: Mode, event: Event): Mode {
   };
   return targets[event];
 }
+export interface CheckIn {
+  id: string;
+  stage: "question" | "help_options" | "answered" | "unresolved";
+  repeats: number;
+  deadline: number | null;
+  response?: "okay" | "help";
+  respondedAt?: number;
+  unresolvedAt?: number;
+}
+export interface FamilyRequest {
+  id: string;
+  status: "waiting" | "acknowledged" | "responded";
+  requestedAt: number;
+  acknowledgedAt?: number;
+  respondedAt?: number;
+}
 interface Settings {
+  checkInTimeoutSeconds: number;
+  checkInNotify: boolean;
   companionName: string;
   wearer: string;
   caregiver: string;
@@ -164,6 +182,16 @@ interface Settings {
   reducedMotion: boolean;
 }
 interface State {
+  checkIn: CheckIn | null;
+  checkInHistory: CheckIn[];
+  familyRequest: FamilyRequest | null;
+  interactionNote: string;
+  answerCheckIn: (answer: "okay" | "help") => void;
+  chooseAssistance: (
+    choice: "home" | "family" | "confused" | "unrecognized",
+  ) => void;
+  checkInTimeout: (id: string, now?: number) => void;
+  respondFamily: (id: string, response: "acknowledge" | "respond") => void;
   mode: Mode;
   connected: boolean;
   worn: boolean; // Derived compatibility gate; never a guaranteed wear claim.
@@ -210,6 +238,10 @@ interface State {
   settingsUpdate: (patch: Partial<Settings>) => void;
 }
 const defaults = () => ({
+  checkIn: null as CheckIn | null,
+  checkInHistory: [] as CheckIn[],
+  familyRequest: null as FamilyRequest | null,
+  interactionNote: "",
   mode: "NORMAL" as Mode,
   connected: true,
   worn: true,
@@ -245,6 +277,8 @@ export const useStore = create<State>()(
       ...defaults(),
       landmarks: initialLandmarks,
       settings: {
+        checkInTimeoutSeconds: 30,
+        checkInNotify: true,
         companionName: DEFAULT_COMPANION_NAME,
         wearer: "Alex Chen",
         caregiver: "Jamie Chen",
@@ -254,6 +288,159 @@ export const useStore = create<State>()(
         largeText: false,
         reducedMotion: false,
       },
+      answerCheckIn: (answer) => {
+        const s = get();
+        if (
+          s.mode === "EMERGENCY_SIMULATED" ||
+          (s.incident && s.incident.stage !== "resolved")
+        )
+          return;
+        const record: CheckIn = {
+          ...(s.checkIn ?? { id: crypto.randomUUID(), repeats: 0 }),
+          stage: answer === "help" ? "help_options" : "answered",
+          deadline: null,
+          response: answer,
+          respondedAt: Date.now(),
+        };
+        set({
+          checkIn: record,
+          checkInHistory: [record, ...s.checkInHistory].slice(0, 100),
+        });
+        if (answer === "okay") {
+          s.event("OKAY");
+          set({
+            interactionNote:
+              get().mode === "NORMAL"
+                ? "Thank you for telling me. I'm here with you."
+                : "Thank you for telling me. Your caregiver still needs to review the safety concern.",
+          });
+        } else {
+          set({ interactionNote: "Let's take one step together." });
+        }
+      },
+      chooseAssistance: (choice) => {
+        const s = get();
+        if (
+          s.mode === "EMERGENCY_SIMULATED" ||
+          (s.incident && s.incident.stage !== "resolved")
+        )
+          return;
+        set({
+          checkIn: s.checkIn
+            ? { ...s.checkIn, deadline: null, stage: "answered" }
+            : null,
+        });
+        if (choice === "family") {
+          s.event("HELP");
+        } else if (choice === "home") {
+          s.event("GUIDE");
+          set({
+            interactionNote:
+              get().mode === "GUIDED_RETURN"
+                ? "These are simulated directions. Look for one familiar place at a time."
+                : "Guidance is paused. Location or device readings need caregiver review. I can't confirm the route.",
+          });
+        } else {
+          s.event(
+            "LOST",
+            choice === "unrecognized"
+              ? "Landmark not recognized — guidance stopped"
+              : "Wearer asked for calm support",
+          );
+          set({
+            interactionNote:
+              choice === "unrecognized"
+                ? "That's okay. We'll stop these directions. Your family can help."
+                : "It's okay to feel unsure. Take your time. I'm here with you.",
+          });
+        }
+      },
+      checkInTimeout: (id, now = Date.now()) => {
+        const s = get(),
+          c = s.checkIn;
+        if (
+          !c ||
+          c.id !== id ||
+          c.stage !== "question" ||
+          c.deadline === null ||
+          now < c.deadline ||
+          s.mode !== "CHECK_IN" ||
+          (s.incident && s.incident.stage !== "resolved")
+        )
+          return;
+        if (c.repeats === 0) {
+          set({
+            checkIn: {
+              ...c,
+              repeats: 1,
+              deadline: now + s.settings.checkInTimeoutSeconds * 1000,
+            },
+            interactionNote:
+              "I'm here with you. When you're ready, tell me how you feel.",
+          });
+        } else {
+          const unresolved: CheckIn = {
+            ...c,
+            stage: "unresolved",
+            unresolvedAt: now,
+            deadline: null,
+          };
+          set({
+            checkIn: unresolved,
+            checkInHistory: [unresolved, ...s.checkInHistory].slice(0, 100),
+            alerts: [
+              {
+                id: crypto.randomUUID(),
+                title:
+                  "Unresolved check-in — no response after one gentle repeat",
+                time: now,
+                read: false,
+                urgent: false,
+              },
+              ...s.alerts,
+            ].slice(0, 100),
+            interactionNote: "You can answer whenever you're ready.",
+          });
+          if (s.settings.checkInNotify)
+            get().event(
+              "HELP",
+              "Simulated caregiver notification — unresolved check-in",
+            );
+        }
+      },
+      respondFamily: (id, response) => {
+        const s = get(),
+          request = s.familyRequest;
+        if (
+          !request ||
+          request.id !== id ||
+          request.status === "responded" ||
+          (response === "respond" && request.status !== "acknowledged")
+        )
+          return;
+        set({
+          familyRequest: {
+            ...request,
+            status: response === "acknowledge" ? "acknowledged" : "responded",
+            ...(response === "acknowledge"
+              ? { acknowledgedAt: Date.now() }
+              : { respondedAt: Date.now() }),
+          },
+          alerts: [
+            {
+              id: crypto.randomUUID(),
+              title:
+                response === "acknowledge"
+                  ? "Caregiver acknowledged family request — simulation"
+                  : "Caregiver responded — simulation; no real call made",
+              time: Date.now(),
+              read: false,
+              urgent: false,
+            },
+            ...s.alerts,
+          ].slice(0, 100),
+        });
+      },
       event: (event, reason) => {
         const current = get();
         const incidentId =
@@ -261,6 +448,33 @@ export const useStore = create<State>()(
             ? current.incident.id
             : crypto.randomUUID();
         set((s) => ({
+          ...(event === "CHECK" && s.mode !== "EMERGENCY_SIMULATED"
+            ? {
+                checkIn: {
+                  id: crypto.randomUUID(),
+                  stage: "question" as const,
+                  repeats: 0,
+                  deadline:
+                    Date.now() + s.settings.checkInTimeoutSeconds * 1000,
+                },
+                interactionNote: "",
+              }
+            : {}),
+          ...(["SOS", "POLICE", "WALK", "GUIDE", "LOST", "HELP"].includes(event)
+            ? {
+                checkIn: s.checkIn ? { ...s.checkIn, deadline: null } : null,
+                interactionNote: "",
+              }
+            : {}),
+          ...(event === "HELP" && s.mode !== "EMERGENCY_SIMULATED"
+            ? {
+                familyRequest: {
+                  id: crypto.randomUUID(),
+                  status: "waiting" as const,
+                  requestedAt: Date.now(),
+                },
+              }
+            : {}),
           ...(!["OKAY", "WALK"].includes(event)
             ? { reviewedIncident: null }
             : {}),
@@ -276,8 +490,13 @@ export const useStore = create<State>()(
             s.incident && s.incident.stage !== "resolved"
               ? "EMERGENCY_SIMULATED"
               : transition(s.mode, event) === "NORMAL"
-                ? verificationBlockers(s).length
-                  ? scenarioMode(s.signals) || "CHECK_IN"
+                ? verificationBlockers(s).length ||
+                  s.checkIn?.stage === "unresolved" ||
+                  (s.familyRequest && s.familyRequest.status !== "responded")
+                  ? scenarioMode(s.signals) ||
+                    (s.familyRequest && s.familyRequest.status !== "responded"
+                      ? "CAREGIVER_HANDOVER"
+                      : "CHECK_IN")
                   : "NORMAL"
                 : event === "GUIDE" &&
                     (s.signals.gpsConfidence < 0.6 ||

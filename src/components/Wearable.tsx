@@ -1,13 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  Battery,
-  Wifi,
-  Phone,
-  ArrowRight,
-  Heart,
-  House,
-  ShieldAlert,
-} from "lucide-react";
+import { Battery, Wifi, Phone, Heart, House, ShieldAlert } from "lucide-react";
 import { messages, useStore } from "../store";
 import { attachmentNames, wearLabels } from "../services/safety";
 import { LandmarkPhoto } from "./LandmarkPhoto";
@@ -62,8 +54,13 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           <div className="wearable-name">{s.settings.companionName}</div>
           <Sprout small={compact} />
           <div className="speech" aria-live="polite">
-            {messages(s.settings.companionName)[s.mode]}
+            {s.mode === "CHECK_IN" && s.checkIn?.stage === "help_options"
+              ? "How can I help?"
+              : messages(s.settings.companionName)[s.mode]}
           </div>
+          {s.interactionNote && s.mode !== "EMERGENCY_SIMULATED" && (
+            <p role="status">{s.interactionNote}</p>
+          )}
           {s.mode === "GUIDED_RETURN" &&
             (landmark ? (
               <div className="watch-landmark">
@@ -83,13 +80,19 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
                   }
                   onClick={s.nextLandmark}
                 >
-                  {s.guideIndex === approved.length - 1
-                    ? "I'm home"
-                    : "I see it · Next step"}
-                  <ArrowRight size={16} />
+                  I see it
                 </button>
-                <button className="text-button" onClick={() => s.event("LOST")}>
-                  I'm confused
+                <button
+                  className="watch-action"
+                  onClick={() => s.chooseAssistance("unrecognized")}
+                >
+                  I don't see it
+                </button>
+                <button
+                  className="watch-action"
+                  onClick={() => s.chooseAssistance("family")}
+                >
+                  Call my family
                 </button>
               </div>
             ) : (
@@ -106,12 +109,14 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           {s.mode === "REORIENTATION" && (
             <div className="watch-landmark">
               {approved[0] && <LandmarkPhoto landmark={approved[0]} />}
-              <p>Let's find a place you recognize.</p>
-              <button className="watch-action" onClick={() => s.event("GUIDE")}>
-                Find a familiar place <House size={16} />
-              </button>
-              <button className="text-button" onClick={() => s.event("HELP")}>
-                Call {s.settings.caregiver}
+              <p>
+                Take your time. You don't need to remember anything right now.
+              </p>
+              <button
+                className="watch-action"
+                onClick={() => s.chooseAssistance("family")}
+              >
+                Contact my family
               </button>
             </div>
           )}
@@ -119,10 +124,25 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             <div className="watch-landmark">
               <div className="avatar">{s.settings.caregiver.slice(0, 1)}</div>
               <strong>{s.settings.caregiver}</strong>
-              <p>Caregiver notification sent — simulation</p>
-              <button className="watch-action" onClick={() => s.event("HELP")}>
-                <Phone size={16} /> Send another request
-              </button>
+              <p>
+                {s.familyRequest?.status === "responded"
+                  ? `${s.settings.caregiver} has responded in this demo. They are here to help.`
+                  : "Waiting for caregiver response"}
+              </p>
+              <small>
+                Caregiver notification sent — simulation. No real call was made.
+              </small>
+              {s.familyRequest?.status === "acknowledged" && (
+                <p>Your caregiver has seen your request.</p>
+              )}
+              {s.familyRequest?.status === "responded" && (
+                <button
+                  className="watch-action"
+                  onClick={() => s.answerCheckIn("okay")}
+                >
+                  Continue after response
+                </button>
+              )}
             </div>
           )}
           {s.mode === "EMERGENCY_SIMULATED" && (
@@ -135,24 +155,54 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
               <small>No real calls or emergency messages are sent.</small>
             </div>
           )}
-          {["NORMAL", "CHECK_IN"].includes(s.mode) && (
+          {s.mode === "CHECK_IN" && s.checkIn?.stage === "help_options" && (
             <div className="watch-controls">
-              <button className="watch-action" onClick={() => s.event("OKAY")}>
+              <button
+                className="watch-action"
+                onClick={() => s.chooseAssistance("home")}
+              >
+                Help me get home
+              </button>
+              <button
+                className="watch-action"
+                onClick={() => s.chooseAssistance("family")}
+              >
+                Contact my family
+              </button>
+              <button
+                className="watch-action"
+                onClick={() => s.chooseAssistance("confused")}
+              >
+                I'm confused
+              </button>
+            </div>
+          )}
+          {(s.mode === "NORMAL" ||
+            (s.mode === "CHECK_IN" && s.checkIn?.stage !== "help_options")) && (
+            <div className="watch-controls">
+              <button
+                className="watch-action"
+                onClick={() => s.answerCheckIn("okay")}
+              >
                 <Heart size={17} />
                 I'm okay
               </button>
               <button
                 onClick={() =>
-                  s.event(s.mode === "CHECK_IN" ? "LOST" : "GUIDE")
+                  s.mode === "CHECK_IN"
+                    ? s.answerCheckIn("help")
+                    : s.chooseAssistance("home")
                 }
               >
                 <House size={17} />
                 {s.mode === "CHECK_IN" ? "I need help" : "Help me get home"}
               </button>
-              <button onClick={() => s.event("HELP")}>
-                <Phone size={17} />
-                Call my caregiver
-              </button>
+              {s.mode === "NORMAL" && (
+                <button onClick={() => s.chooseAssistance("family")}>
+                  <Phone size={17} />
+                  Contact my family
+                </button>
+              )}
             </div>
           )}
           {s.mode === "EMERGENCY_SIMULATED" && <ResolveSOSButton />}

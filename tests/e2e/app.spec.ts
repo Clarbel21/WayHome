@@ -122,8 +122,8 @@ test("wearer recognition returns home, empty approval offers help, and a short S
     page.getByText("Community garden", { exact: true }),
   ).toBeVisible();
   for (let i = 0; i < 3; i++)
-    await page.getByRole("button", { name: "I see it · Next step" }).click();
-  await page.getByRole("button", { name: "I'm home", exact: true }).click();
+    await page.getByRole("button", { name: "I see it" }).click();
+  await page.getByRole("button", { name: "I see it", exact: true }).click();
   await expect(
     page.getByText("Hi! I'm Sprout. I'm here with you."),
   ).toBeVisible();
