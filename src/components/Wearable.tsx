@@ -9,24 +9,11 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { messages, useStore } from "../store";
+import { attachmentNames, wearLabels } from "../services/safety";
+import { LandmarkPhoto } from "./LandmarkPhoto";
 import { SOSButton } from "./SOSButton";
 import { Sprout } from "./Sprout";
-export function Photo({ src, alt }: { src: string; alt: string }) {
-  return (
-    <img
-      src={
-        src.startsWith("/images/")
-          ? `${import.meta.env.BASE_URL}${src.slice(1)}`
-          : src
-      }
-      alt={alt}
-      onError={(e) => {
-        e.currentTarget.onerror = null;
-        e.currentTarget.src = `${import.meta.env.BASE_URL}images/home.svg`;
-      }}
-    />
-  );
-}
+export { Photo } from "./Photo";
 export function Wearable({ compact = false }: { compact?: boolean }) {
   const s = useStore();
   const [now, setNow] = useState(new Date());
@@ -46,7 +33,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     }
   }, [s.mode, s.settings.voice, s.settings.companionName]);
   return (
-    <div className={`watch-area ${compact ? "compact" : ""}`}>
+    <div className={`watch-area ${s.attachment} ${compact ? "compact" : ""}`}>
       <div className="watch-strap top" />
       <div className="watch">
         <div className="watch-crown" />
@@ -67,6 +54,10 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           <div className="watch-label">
             WAYHOME <span>• {s.connected ? "Connected" : "Disconnected"}</span>
           </div>
+          <div className="wearable-module">
+            {attachmentNames[s.attachment]} · {wearLabels[s.wearStatus]}{" "}
+            (inferred)
+          </div>
           <div className="wearable-name">{s.settings.companionName}</div>
           <Sprout small={compact} />
           <div className="speech" aria-live="polite">
@@ -75,18 +66,20 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           {s.mode === "GUIDED_RETURN" &&
             (landmark ? (
               <div className="watch-landmark">
-                <Photo src={landmark.photo} alt={landmark.name} />
+                <LandmarkPhoto landmark={landmark} />
                 <strong>{landmark.name}</strong>
                 <p>{landmark.instruction}</p>
-                {(!s.connected || !s.worn) && (
+                {(!s.connected || !s.worn || s.signals.gpsConfidence < 0.6) && (
                   <p role="status">
-                    Guidance paused. Your caregiver can help reconnect the
-                    wearable.
+                    Guidance paused. Ask your caregiver to review attachment and
+                    location readings.
                   </p>
                 )}
                 <button
                   className="watch-action"
-                  disabled={!s.connected || !s.worn}
+                  disabled={
+                    !s.connected || !s.worn || s.signals.gpsConfidence < 0.6
+                  }
                   onClick={s.nextLandmark}
                 >
                   {s.guideIndex === approved.length - 1
@@ -111,9 +104,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             ))}
           {s.mode === "REORIENTATION" && (
             <div className="watch-landmark">
-              {approved[0] && (
-                <Photo src={approved[0].photo} alt={approved[0].name} />
-              )}
+              {approved[0] && <LandmarkPhoto landmark={approved[0]} />}
               <p>Let's find a place you recognize.</p>
               <button className="watch-action" onClick={() => s.event("GUIDE")}>
                 Find a familiar place <House size={16} />

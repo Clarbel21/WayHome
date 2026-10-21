@@ -1,5 +1,22 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import {
+  withScenarioPriority,
+  clearSignals,
+  unknownInputs,
+  inferWear,
+  wearPreset,
+  evaluateSignals,
+  scenarioMode,
+  scenarioPresets,
+  verificationBlockers,
+  type Attachment,
+  type WearStatus,
+  type WearInputs,
+  type SafetySignals,
+  type Scenario,
+  type Incident,
+} from "./services/safety";
 export type Mode =
   | "NORMAL"
   | "CHECK_IN"
@@ -23,6 +40,8 @@ export interface Landmark {
   name: string;
   instruction: string;
   photo: string;
+  photoId?: string;
+  sourceMemoryId?: string;
   approved: boolean;
 }
 export const DEFAULT_COMPANION_NAME = "Sprout";
@@ -39,6 +58,9 @@ export interface EmergencySnapshot {
   safetyStatus: string;
   reason: string;
   kind: "sos" | "police";
+  incidentId?: string;
+  resolvedAt?: number;
+  resolvedBy?: string;
   acknowledgedAt?: number;
   acknowledgedBy?: string;
 }
@@ -100,7 +122,7 @@ export const initialLandmarks: Landmark[] = [
   },
 ];
 export const status: Record<Mode, string> = {
-  NORMAL: "Safe",
+  NORMAL: "No active alerts",
   CHECK_IN: "Check-in Needed",
   GUIDED_RETURN: "Guidance Active",
   REORIENTATION: "Check-in Needed",
@@ -144,7 +166,23 @@ interface Settings {
 interface State {
   mode: Mode;
   connected: boolean;
-  worn: boolean;
+  worn: boolean; // Derived compatibility gate; never a guaranteed wear claim.
+  attachment: Attachment;
+  wearStatus: WearStatus;
+  wearInputs: WearInputs;
+  wearObservedAt: number | null;
+  signals: SafetySignals;
+  incident: Incident | null;
+  setAttachment: (attachment: Attachment) => void;
+  observeWear: (inputs: WearInputs) => void;
+  setConnection: (connected: boolean) => void;
+  setSignals: (patch: Partial<SafetySignals>) => void;
+  simulateScenario: (scenario: Scenario) => void;
+  verifyIncident: (
+    id: string,
+    revision: number,
+    personConfirmed: boolean,
+  ) => boolean;
   battery: number;
   position: number;
   guideIndex: number;
@@ -154,7 +192,7 @@ interface State {
   settings: Settings;
   event: (event: Event, reason?: string) => void;
   acknowledgeEmergency: (id: string) => void;
-  resetEmergency: () => void;
+  resetEmergency: (note?: string) => void;
   saveCompanionName: (name: string) => boolean;
   move: () => void;
   nextLandmark: () => void;
@@ -169,6 +207,12 @@ const defaults = () => ({
   mode: "NORMAL" as Mode,
   connected: true,
   worn: true,
+  attachment: "wristwatch" as Attachment,
+  wearStatus: "likely_worn" as WearStatus,
+  wearInputs: wearPreset("wristwatch", "likely_worn"),
+  wearObservedAt: Date.now(),
+  signals: { ...clearSignals },
+  incident: null as Incident | null,
   battery: 86,
   position: 0,
   guideIndex: 0,
@@ -184,7 +228,8 @@ const titles: Record<Event, string> = {
   HELP: "Wearer requested caregiver assistance",
   SOS: "Simulated SOS · help request received",
   POLICE: "Simulated police notification · no police were contacted",
-  REMOVE: "Wearable removed · assistance requested",
+  REMOVE:
+    "Wearable removal indicated · simulated inference, caregiver review requested",
   DISCONNECT: "Device disconnected",
 };
 export const useStore = create<State>()(
@@ -202,11 +247,39 @@ export const useStore = create<State>()(
         largeText: false,
         reducedMotion: false,
       },
-      event: (event, reason) =>
+      event: (event, reason) => {
+        const current = get();
+        const incidentId =
+          current.incident && current.incident.stage !== "resolved"
+            ? current.incident.id
+            : crypto.randomUUID();
         set((s) => ({
-          mode: transition(s.mode, event),
+          mode: withScenarioPriority(
+            s.incident && s.incident.stage !== "resolved"
+              ? "EMERGENCY_SIMULATED"
+              : transition(s.mode, event) === "NORMAL"
+                ? verificationBlockers(s).length
+                  ? scenarioMode(s.signals) || "CHECK_IN"
+                  : "NORMAL"
+                : event === "GUIDE" &&
+                    (s.signals.gpsConfidence < 0.6 ||
+                      !s.connected ||
+                      s.wearStatus !== "likely_worn")
+                  ? "CHECK_IN"
+                  : transition(s.mode, event),
+            s.signals,
+          ),
+          ...(["SOS", "POLICE"].includes(event)
+            ? {
+                incident: {
+                  id: incidentId,
+                  revision: (s.incident?.revision || 0) + 1,
+                  stage: "active" as const,
+                },
+              }
+            : {}),
           ...(event === "WALK" && s.mode !== "EMERGENCY_SIMULATED"
-            ? { connected: true, worn: true, position: 0, guideIndex: 0 }
+            ? { position: 0, guideIndex: 0 }
             : {}),
           ...(event === "LOST" && s.mode !== "EMERGENCY_SIMULATED"
             ? { position: 2 }
@@ -217,8 +290,23 @@ export const useStore = create<State>()(
           ...(event === "OKAY" && s.mode !== "EMERGENCY_SIMULATED"
             ? { lastCheck: Date.now() }
             : {}),
-          ...(event === "REMOVE" ? { worn: false } : {}),
-          ...(event === "DISCONNECT" ? { connected: false } : {}),
+          ...(event === "REMOVE"
+            ? {
+                wearInputs: wearPreset(s.attachment, "not_worn"),
+                wearStatus: (s.connected
+                  ? "not_worn"
+                  : "unknown") as WearStatus,
+                worn: false,
+                wearObservedAt: Date.now(),
+              }
+            : {}),
+          ...(event === "DISCONNECT"
+            ? {
+                connected: false,
+                wearStatus: "unknown" as WearStatus,
+                worn: false,
+              }
+            : {}),
           alerts: [
             {
               id: crypto.randomUUID(),
@@ -240,6 +328,7 @@ export const useStore = create<State>()(
               ...(["SOS", "POLICE"].includes(event)
                 ? {
                     emergency: {
+                      incidentId,
                       wearer: s.settings.wearer,
                       location: simulatedLocation(s.position),
                       time: Date.now(),
@@ -259,7 +348,8 @@ export const useStore = create<State>()(
             },
             ...s.alerts,
           ].slice(0, 100),
-        })),
+        }));
+      },
       acknowledgeEmergency: (id) =>
         set((s) => ({
           alerts: s.alerts.map((a) =>
@@ -276,17 +366,92 @@ export const useStore = create<State>()(
               : a,
           ),
         })),
-      resetEmergency: () =>
-        set((s) => ({
+      resetEmergency: (note = "Caregiver requests incident resolution") =>
+        set((s) => {
+          if (!s.incident || s.incident.stage === "resolved" || !note.trim())
+            return {};
+          return {
+            mode: "EMERGENCY_SIMULATED",
+            incident: {
+              ...s.incident,
+              stage: "awaiting_verification",
+              note: note.trim().slice(0, 240),
+              requestedAt: Date.now(),
+            },
+            alerts: [
+              {
+                id: crypto.randomUUID(),
+                title:
+                  "Incident resolution requested — verification required; safety not confirmed",
+                time: Date.now(),
+                read: false,
+                urgent: true,
+              },
+              ...s.alerts,
+            ].slice(0, 100),
+          };
+        }),
+      verifyIncident: (id, revision, personConfirmed) => {
+        const s = get();
+        if (
+          !personConfirmed ||
+          !s.incident ||
+          s.incident.id !== id ||
+          s.incident.revision !== revision ||
+          s.incident.stage !== "awaiting_verification" ||
+          verificationBlockers(s).length
+        )
+          return false;
+        const time = Date.now();
+        set({
           mode: "NORMAL",
-          connected: true,
-          worn: true,
-          guideIndex: 0,
-          lastCheck: Date.now(),
+          incident: {
+            ...s.incident,
+            stage: "resolved",
+            verifiedAt: time,
+            verifiedBy: s.settings.caregiver,
+          },
           alerts: [
             {
               id: crypto.randomUUID(),
-              title: "Emergency simulation reset by caregiver",
+              title:
+                "Incident resolved after explicit caregiver verification — no guarantee of safety",
+              time,
+              read: false,
+              urgent: false,
+            },
+            ...s.alerts.map((a) =>
+              a.emergency?.incidentId === id
+                ? {
+                    ...a,
+                    emergency: {
+                      ...a.emergency,
+                      resolvedAt: time,
+                      resolvedBy: s.settings.caregiver,
+                    },
+                  }
+                : a,
+            ),
+          ].slice(0, 100),
+        });
+        return true;
+      },
+      setAttachment: (attachment) =>
+        set((s) => ({
+          attachment,
+          wearInputs: { ...unknownInputs },
+          wearStatus: "unknown",
+          worn: false,
+          wearObservedAt: null,
+          mode:
+            s.mode === "EMERGENCY_SIMULATED"
+              ? "EMERGENCY_SIMULATED"
+              : "CHECK_IN",
+          alerts: [
+            {
+              id: crypto.randomUUID(),
+              title:
+                "Attachment changed — wear status unknown until new simulated observations",
               time: Date.now(),
               read: false,
               urgent: false,
@@ -294,6 +459,110 @@ export const useStore = create<State>()(
             ...s.alerts,
           ].slice(0, 100),
         })),
+      observeWear: (inputs) =>
+        set((s) => {
+          const wearStatus = inferWear(s.attachment, inputs, s.connected);
+          return {
+            wearInputs: { ...inputs },
+            wearStatus,
+            worn: wearStatus === "likely_worn",
+            wearObservedAt: Date.now(),
+            mode:
+              s.mode === "EMERGENCY_SIMULATED"
+                ? s.mode
+                : wearStatus !== "likely_worn"
+                  ? "CHECK_IN"
+                  : s.mode,
+            alerts: [
+              {
+                id: crypto.randomUUID(),
+                title: `Simulated attachment observations: ${wearStatus.replaceAll("_", " ")} — inference, not confirmation`,
+                time: Date.now(),
+                read: false,
+                urgent: wearStatus === "not_worn",
+              },
+              ...s.alerts,
+            ].slice(0, 100),
+          };
+        }),
+      setConnection: (connected) => {
+        if (!connected) {
+          get().event("DISCONNECT");
+          return;
+        }
+        if (get().connected) return;
+        set((s) => ({
+          connected: true,
+          wearInputs: { ...unknownInputs },
+          wearStatus: "unknown",
+          worn: false,
+          wearObservedAt: null,
+          alerts: [
+            {
+              id: crypto.randomUUID(),
+              title:
+                "Simulated connection restored — fresh wear observations still required",
+              time: Date.now(),
+              read: false,
+              urgent: false,
+            },
+            ...s.alerts,
+          ].slice(0, 100),
+        }));
+      },
+      setSignals: (patch) =>
+        set((s) => {
+          const signals = { ...s.signals, ...patch };
+          signals.gpsConfidence = Math.max(
+            0,
+            Math.min(
+              1,
+              Number.isFinite(signals.gpsConfidence)
+                ? signals.gpsConfidence
+                : 0,
+            ),
+          );
+          for (const key of [
+            "deviationMeters",
+            "inactiveMinutes",
+            "missedCheckIns",
+          ] as const)
+            signals[key] = Math.max(
+              0,
+              Number.isFinite(signals[key]) ? signals[key] : 0,
+            );
+          const findings = evaluateSignals(signals);
+          return {
+            signals,
+            mode:
+              s.mode === "EMERGENCY_SIMULATED"
+                ? s.mode
+                : scenarioMode(signals) || s.mode,
+            alerts: [
+              ...(findings.length
+                ? findings.map((f) => ({
+                    id: crypto.randomUUID(),
+                    title: f.reason,
+                    time: Date.now(),
+                    read: false,
+                    urgent: f.key === "missed",
+                  }))
+                : [
+                    {
+                      id: crypto.randomUUID(),
+                      title:
+                        "Scenario observations updated — caregiver review still required",
+                      time: Date.now(),
+                      read: false,
+                      urgent: false,
+                    },
+                  ]),
+              ...s.alerts,
+            ].slice(0, 100),
+          };
+        }),
+      simulateScenario: (scenario) =>
+        get().setSignals(scenarioPresets[scenario]),
       saveCompanionName: (value) => {
         const name = validCompanionName(value);
         if (!name) return false;
@@ -302,7 +571,10 @@ export const useStore = create<State>()(
       },
       move: () =>
         set((s) =>
-          !s.connected || !s.worn || s.mode === "EMERGENCY_SIMULATED"
+          !s.connected ||
+          s.wearStatus !== "likely_worn" ||
+          s.signals.gpsConfidence < 0.6 ||
+          s.mode === "EMERGENCY_SIMULATED"
             ? {}
             : {
                 position: Math.min(6, s.position + 1),
@@ -315,7 +587,8 @@ export const useStore = create<State>()(
         if (
           s.mode !== "GUIDED_RETURN" ||
           !s.connected ||
-          !s.worn ||
+          s.wearStatus !== "likely_worn" ||
+          s.signals.gpsConfidence < 0.6 ||
           !approved.length
         )
           return;
@@ -329,7 +602,19 @@ export const useStore = create<State>()(
           });
       },
       resetRoute: () => set({ position: 0, guideIndex: 0 }),
-      reset: () => set(defaults()),
+      reset: () => {
+        const s = get();
+        if (
+          s.mode === "EMERGENCY_SIMULATED" ||
+          (s.incident && s.incident.stage !== "resolved")
+        )
+          return;
+        set({
+          ...defaults(),
+          attachment: s.attachment,
+          wearInputs: wearPreset(s.attachment, "likely_worn"),
+        });
+      },
       read: (id) =>
         set((s) => ({
           alerts: s.alerts.map((a) =>
@@ -356,9 +641,55 @@ export const useStore = create<State>()(
       version: 1,
       merge: (persisted, current) => {
         const saved = persisted as Partial<State> | undefined;
+        if (!saved) return current;
+        const incident =
+          saved.incident ??
+          (saved.mode === "EMERGENCY_SIMULATED"
+            ? { id: crypto.randomUUID(), revision: 1, stage: "active" as const }
+            : null);
         return {
           ...current,
           ...saved,
+          mode:
+            saved?.incident && saved.incident.stage !== "resolved"
+              ? "EMERGENCY_SIMULATED"
+              : saved?.mode === "EMERGENCY_SIMULATED"
+                ? "EMERGENCY_SIMULATED"
+                : saved?.mode === "NORMAL" &&
+                    (!saved.wearInputs ||
+                      inferWear(
+                        saved.attachment ?? "wristwatch",
+                        saved.wearInputs,
+                        saved.connected ?? true,
+                      ) !== "likely_worn")
+                  ? "CHECK_IN"
+                  : (saved?.mode ?? current.mode),
+          signals: { ...clearSignals, ...saved?.signals },
+          incident,
+          alerts: (saved.alerts ?? current.alerts).map((a) =>
+            incident &&
+            incident.stage !== "resolved" &&
+            a.emergency &&
+            !a.emergency.incidentId &&
+            !a.emergency.resolvedAt
+              ? { ...a, emergency: { ...a.emergency, incidentId: incident.id } }
+              : a,
+          ),
+          wearInputs: saved?.wearInputs ?? { ...unknownInputs },
+          wearStatus: saved?.wearInputs
+            ? inferWear(
+                saved.attachment ?? "wristwatch",
+                saved.wearInputs,
+                saved.connected ?? true,
+              )
+            : "unknown",
+          worn: saved?.wearInputs
+            ? inferWear(
+                saved.attachment ?? "wristwatch",
+                saved.wearInputs,
+                saved.connected ?? true,
+              ) === "likely_worn"
+            : false,
           settings: {
             ...current.settings,
             ...saved?.settings,

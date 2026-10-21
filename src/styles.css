@@ -2963,3 +2963,163 @@ input[type="checkbox"] {
   border-radius: 2px;
   z-index: -1;
 }
+.wearable-config,
+.safety-scenarios {
+  margin: 22px 0;
+}
+.wearable-config > p,
+.safety-scenarios > p {
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 12px 0;
+}
+.wearable-config > label {
+  margin-top: 20px;
+}
+.wearable-config select,
+.safety-scenarios input {
+  padding: 10px;
+  background: #f8f8f0;
+  color: var(--forest);
+  border: 1px solid #dce2d2;
+  border-radius: 8px;
+  width: 100%;
+}
+.wearable-config .settings-grid {
+  margin: 18px 0;
+}
+.wearable-config .settings-grid label {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+}
+.wear-presets {
+  margin: 15px 0;
+}
+.safety-scenarios .button {
+  white-space: normal;
+  text-align: center;
+}
+.safety-findings,
+.incident-verification ul {
+  font-size: 12px;
+  color: #735f40;
+  line-height: 1.8;
+  padding-left: 20px;
+  margin: 18px 0;
+}
+.incident-verification {
+  border: 1px solid #e0d9c3;
+  background: #f6f1e4;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+}
+.incident-verification .check-label {
+  margin: 18px 0;
+  align-items: flex-start;
+}
+.emergency-panel textarea {
+  width: 100%;
+  border: 1px solid #dce2d2;
+  border-radius: 8px;
+  padding: 10px;
+  background: #f8f8f0;
+  color: var(--forest);
+  margin-top: 8px;
+}
+.emergency-panel > label {
+  display: block;
+  margin-top: 18px;
+  font-size: 13px;
+}
+.wearable-module {
+  text-align: center;
+  font-size: 9px;
+  color: #5f7256;
+  line-height: 1.4;
+  margin: 7px 0;
+}
+.watch-area.pendant .watch-strap.top {
+  background: transparent;
+  border: 5px solid #879c75;
+  border-bottom: 0;
+  border-radius: 55% 55% 0 0;
+  box-shadow: none;
+  height: 70px;
+  top: -20px;
+  width: 160px;
+  left: calc(50% - 80px);
+}
+.watch-area.pendant .watch-strap.bottom {
+  display: none;
+}
+.watch-area.pendant .watch {
+  border-radius: 65px;
+}
+.watch-area.pendant .watch-screen {
+  border-radius: 55px;
+}
+.watch-area.clip .watch-strap.top {
+  width: 105px;
+  left: calc(50% - 52px);
+  height: 55px;
+  background: #99a38c;
+  border: 4px solid #68795f;
+  border-radius: 12px;
+}
+.watch-area.clip .watch-strap.bottom {
+  height: 30px;
+  border-radius: 8px;
+  width: 105px;
+  left: calc(50% - 52px);
+}
+.memory-suggestion {
+  padding: 16px 20px;
+  border: 1px solid #d7e2c9;
+  border-radius: 13px;
+  background: #f0f3e6;
+  margin: 20px 0;
+}
+.memory-suggestion p {
+  font-size: 15px;
+}
+.memory-suggestion strong {
+  display: block;
+  font-size: 17px;
+  font-weight: 500;
+}
+.memory-suggestion small {
+  display: block;
+  font-size: 12px;
+  margin-top: 10px;
+  color: #5e7254;
+}
+.landmark-content .help-text {
+  font-size: 11px;
+  line-height: 1.8;
+}
+.incident-verification .button {
+  white-space: normal;
+}
+.wearable-config .button {
+  white-space: normal;
+}
+@media (max-width: 600px) {
+  .wearable-config .button-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .incident-verification {
+    padding: 15px;
+  }
+  .incident-verification .check-label {
+    font-size: 13px;
+  }
+  .wearable-module {
+    font-size: 9px;
+  }
+  .memory-suggestion {
+    padding: 12px 15px;
+  }
+}

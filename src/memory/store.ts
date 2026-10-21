@@ -102,7 +102,13 @@ export const sampleEntries: MemoryEntry[] = [
 ];
 export function safetyReady() {
   const s = useStore.getState();
-  return s.mode === "NORMAL" && s.connected && s.worn;
+  return (
+    s.mode === "NORMAL" &&
+    (!s.incident || s.incident.stage === "resolved") &&
+    s.connected &&
+    s.wearStatus === "likely_worn" &&
+    s.signals.gpsConfidence >= 0.6
+  );
 }
 interface MemoryState {
   entries: MemoryEntry[];

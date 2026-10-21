@@ -1,3 +1,4 @@
+import { resolveIncident } from "./support";
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 function recording() {
@@ -247,7 +248,7 @@ test("library approval, image/audio persistence, previews, edit/delete, metadata
   ).toBe(true);
   await expect(page.locator("audio")).toHaveCount(0);
   await page.goto("/#/caregiver/emergency");
-  await page.getByRole("button", { name: "Reset emergency state" }).click();
+  await resolveIncident(page);
   await page.goto("/#/caregiver/library");
   let downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Back up with media" }).click();
@@ -327,7 +328,7 @@ test("cross-tab safety interrupts and preserves routine; renaming, skipping and 
     page.getByText("Simulated SOS · help request received"),
   ).toBeVisible();
   await page.goto("/#/caregiver/emergency");
-  await page.getByRole("button", { name: "Reset emergency state" }).click();
+  await resolveIncident(page);
   await expect(
     wearer.getByRole("button", { name: "Resume activity" }),
   ).toBeVisible();
@@ -358,7 +359,7 @@ test("sample presentation, mobile keyboard play, and immediate in-game SOS", asy
   await page.getByRole("button", { name: "Back", exact: true }).click();
   await expect(page.getByText(/S5 stays active/)).toBeVisible();
   await page.goto("/#/caregiver/emergency");
-  await page.getByRole("button", { name: "Reset emergency state" }).click();
+  await resolveIncident(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await openHome(page, true);
   await page.getByRole("button", { name: "Resume activity" }).click();

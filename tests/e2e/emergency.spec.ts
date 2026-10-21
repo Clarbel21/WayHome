@@ -1,3 +1,4 @@
+import { resolveIncident } from "./support";
 import { test, expect } from "@playwright/test";
 
 test("Buddy persists across modes; police confirmation, acknowledgment and reset stay local", async ({
@@ -89,7 +90,7 @@ test("Buddy persists across modes; police confirmation, acknowledgment and reset
   await expect(
     page.getByText(/Caregiver acknowledged by Jamie Chen/),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Reset emergency state" }).click();
+  await resolveIncident(page);
   await expect(
     companion.getByText("Hi! I'm Buddy. I'm here with you."),
   ).toBeVisible();
@@ -98,7 +99,9 @@ test("Buddy persists across modes; police confirmation, acknowledgment and reset
     page.getByText("Simulated police notification · no police were contacted"),
   ).toBeVisible();
   await expect(
-    page.getByText("Emergency simulation reset by caregiver"),
+    page.getByText(
+      "Incident resolved after explicit caregiver verification — no guarantee of safety",
+    ),
   ).toBeVisible();
   expect(external).toEqual([]);
   expect(await page.locator('a[href^="tel:"]').count()).toBe(0);
@@ -176,8 +179,8 @@ test("mobile emergency controls and confirmation work with keyboard", async ({
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await page.getByRole("button", { name: "Reset emergency state" }).click();
+  await resolveIncident(page);
   await expect(
-    page.getByRole("button", { name: "Reset emergency state" }),
+    page.getByRole("button", { name: "Request incident resolution" }),
   ).toBeDisabled();
 });

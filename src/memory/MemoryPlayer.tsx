@@ -20,6 +20,7 @@ import {
   type MemoryEntry,
 } from "./store";
 import { useMediaURL } from "./media";
+import { suggestActivity } from "./suggestions";
 import { GardenVisualization } from "./GardenVisualization";
 export function MemoryImage({
   entry,
@@ -373,6 +374,7 @@ export function MemoryGardenExperience({
   const options = m.preferences.preferred.length
     ? m.preferences.preferred
     : kinds;
+  const suggestion = suggestActivity(m.entries, m.preferences, m.history);
   const visible = options.slice(categoryPage * 3, categoryPage * 3 + 3);
   useEffect(() => {
     if (categoryPage * 3 >= options.length) setCategoryPage(0);
@@ -461,6 +463,16 @@ export function MemoryGardenExperience({
           <GardenVisualization />
           <h1>A memory, a feeling, a little joy.</h1>
           <p>What would you like to explore with {s.settings.companionName}?</p>
+          {suggestion && (
+            <div className="memory-suggestion">
+              <span className="eyebrow">AN OPTIONAL IDEA</span>
+              <p>{suggestion.reason}</p>
+              <strong>Optional idea: {activityNames[suggestion.kind]}</strong>
+              <small>
+                Choose an activity below. Nothing starts automatically.
+              </small>
+            </div>
+          )}
           <div className="memory-choices">
             {visible.map((kind) => (
               <button
@@ -468,7 +480,14 @@ export function MemoryGardenExperience({
                 key={kind}
                 onClick={() => {
                   setEmpty("");
-                  if (!m.start(kind))
+                  if (
+                    !m.start(
+                      kind,
+                      kind === suggestion?.kind
+                        ? suggestion.entryId
+                        : undefined,
+                    )
+                  )
                     setEmpty(
                       "No approved memories in this activity yet. Your caregiver can add one in Memory Library.",
                     );

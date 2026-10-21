@@ -38,6 +38,10 @@ import {
 import { motion } from "framer-motion";
 import { useStore, status, samples, type Event, type Landmark } from "./store";
 import { Wearable, Photo } from "./components/Wearable";
+import { LandmarkPhoto } from "./components/LandmarkPhoto";
+import { WearableConfiguration } from "./components/WearableConfiguration";
+import { SafetyScenarios } from "./components/SafetyScenarios";
+import { wearLabels } from "./services/safety";
 import { MemoryGardenHome } from "./memory/MemoryPlayer";
 import {
   CaregiverMemoryLibrary,
@@ -288,9 +292,9 @@ function Overview() {
           </h2>
           <p>
             {!s.connected
-              ? "The simulated device is offline. Last known location is shown."
+              ? "The simulated device is offline. Location and wear status are uncertain."
               : !s.worn
-                ? "Wear detection reports that the device has been removed."
+                ? `Wear inference: ${wearLabels[s.wearStatus]}. Please check the wearer and attachment.`
                 : s.mode === "NORMAL"
                   ? ` ${s.settings.companionName} is by their side. We'll keep you in the loop.`
                   : `${s.settings.companionName} and your dashboard are responding together.`}
@@ -324,7 +328,7 @@ function Overview() {
           icon={<Wifi />}
           label="Connection"
           value={s.connected ? "Connected" : "Offline"}
-          detail={s.worn ? "Wearable is being worn" : "Wearable removed"}
+          detail={`${wearLabels[s.wearStatus]} · inferred, not guaranteed`}
         />
       </div>
       <div className="overview-grid">
@@ -463,7 +467,7 @@ function Alerts({ compact = false }: { compact?: boolean }) {
       {!list.length ? (
         <div className="empty">
           <ShieldCheck size={28} />
-          <strong>All quiet, all connected.</strong>
+          <strong>No alert history yet.</strong>
           <p>
             Check-ins and help requests will appear here as you explore the
             demo.
@@ -527,7 +531,7 @@ function Landmarks() {
       setError("Please add a name and a simple instruction.");
       return;
     }
-    if (!/^(https?:\/\/|\/images\/)/.test(editing.photo)) {
+    if (!editing.photoId && !/^(https?:\/\/|\/images\/)/.test(editing.photo)) {
       setError("Choose a built-in image or enter an http(s) photo URL.");
       return;
     }
@@ -567,13 +571,20 @@ function Landmarks() {
       <div className="landmark-grid">
         {s.landmarks.map((l) => (
           <section className="card landmark-card" key={l.id}>
-            <Photo src={l.photo} alt={l.name} />
+            <LandmarkPhoto landmark={l} />
             <div className="landmark-content">
               <span className={`badge ${l.approved ? "safe" : "attention"}`}>
                 {l.approved ? "Approved for guidance" : "Not approved"}
               </span>
               <h2>{l.name}</h2>
               <p>{l.instruction}</p>
+              {l.sourceMemoryId && (
+                <p className="help-text">
+                  Independent memory-place proposal. Reminiscence approval does
+                  not permit navigation. Review this instruction and photo
+                  before approving.
+                </p>
+              )}
               <label className="check-label">
                 <input
                   type="checkbox"
@@ -582,7 +593,9 @@ function Landmarks() {
                     s.saveLandmark({ ...l, approved: e.target.checked })
                   }
                 />
-                Show during guided return
+                {l.sourceMemoryId
+                  ? "Separately approve for navigation"
+                  : "Show during guided return"}
               </label>
               <div className="button-row">
                 <button
@@ -683,7 +696,11 @@ function Landmarks() {
                 value={samples.includes(editing.photo) ? editing.photo : ""}
                 onChange={(e) => {
                   if (e.target.value)
-                    setEditing({ ...editing, photo: e.target.value });
+                    setEditing({
+                      ...editing,
+                      photo: e.target.value,
+                      photoId: undefined,
+                    });
                 }}
               >
                 <option value="">Custom photo URL</option>
@@ -699,7 +716,11 @@ function Landmarks() {
               <input
                 value={editing.photo}
                 onChange={(e) =>
-                  setEditing({ ...editing, photo: e.target.value })
+                  setEditing({
+                    ...editing,
+                    photo: e.target.value,
+                    photoId: undefined,
+                  })
                 }
               />
             </label>
@@ -737,6 +758,7 @@ function SettingsPage() {
         description="Sample profiles and preferences are saved automatically on this browser."
       />
       <CompanionPersonalization />
+      <WearableConfiguration />
       <div className="settings-grid">
         <section className="card settings-card">
           <h2>People & connections</h2>
@@ -821,14 +843,20 @@ function SettingsPage() {
           <Link className="button" to="/demo">
             Open demo controls <ArrowRight size={16} />
           </Link>
-          <button className="button light" onClick={s.reset}>
+          <button
+            className="button light"
+            disabled={s.mode === "EMERGENCY_SIMULATED"}
+            onClick={s.reset}
+          >
             <RotateCcw size={16} />
             Reset simulation
           </button>
         </div>
         <p className="help-text">
-          Reset clears simulation events and alerts. Your profile and landmarks
-          stay saved.
+          Full demo reset creates a healthy fictional starting fixture and
+          clears alerts. It is unavailable during S5: use incident resolution
+          and verification first. Your profile, attachment and landmarks stay
+          saved.
         </p>
       </section>
     </>
@@ -873,15 +901,28 @@ function DemoControls() {
             <Leaf size={17} />
             Memory Garden Demo
           </Link>
-          <button className="button light reset-button" onClick={s.reset}>
+          <button
+            className="button light reset-button"
+            disabled={s.mode === "EMERGENCY_SIMULATED"}
+            onClick={s.reset}
+          >
             <RotateCcw size={16} />
             Reset Demo
           </button>
+          <SafetyScenarios />
+          <WearableConfiguration />
+          {s.mode === "EMERGENCY_SIMULATED" && (
+            <p className="memory-notice">
+              S5 stays active. Resolve and verify the incident in Emergency
+              Assistance before resetting the demo.
+            </p>
+          )}
           <section className="card scenario-summary">
             <Badge />
             <p>
               Device: {s.connected ? "connected" : "offline"} ·{" "}
-              {s.worn ? "being worn" : "removed"} · Position {s.position}/6
+              {`${wearLabels[s.wearStatus]} (inferred)`} · Position {s.position}
+              /6
             </p>
             <Link to="/caregiver/alerts" className="text-button">
               {s.alerts.filter((a) => !a.read).length} unread alerts{" "}
@@ -1056,6 +1097,11 @@ function Guided() {
             <RotateCcw size={15} />
             Reset presentation
           </button>
+          {s.mode === "EMERGENCY_SIMULATED" && (
+            <Link className="text-button" to="/caregiver/emergency">
+              Resolve and verify S5 before restarting the walk →
+            </Link>
+          )}
           <Link className="text-button" to="/caregiver">
             See caregiver dashboard <ArrowRight size={15} />
           </Link>

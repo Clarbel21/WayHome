@@ -88,3 +88,13 @@ The baseline above is retained as a historical audit. The four missing cognitive
 ### Remaining limits
 
 Duration, reminder frequency and music notes are saved preferences, not automatic notifications, timers or adaptive recommendations. Engagement retains the newest 300 events (30 shown). Garden imagery displays the latest 24 keepsakes while retaining all growth. Backups cover the library and optional media, not preferences/history/garden progress. Browser storage can be cleared or evicted. Same-origin tabs use last-write-wins metadata, not guaranteed concurrent safety transport. Assistive-technology/user testing and clinical validation are still outside this prototype’s evidence.
+
+## Subsequent update — incident verification and modular safety
+
+This update supersedes the earlier reset behavior described above: requesting incident resolution never changes connection/wear inputs or fabricates a wearer check-in. S5 remains active until explicit person confirmation and device/scenario verification succeed. A new SOS invalidates pending verification. Full Reset Demo is blocked while S5 is unresolved, so it cannot bypass that lifecycle. Status wording uses “No active alerts,” not a guarantee of safety.
+
+Four deterministic simulated conditions (deviation, inactivity, missed check-ins, low GPS confidence) now have visible rule reasons, support-state precedence and conservative GPS gating. Wristwatch/pendant/clothing clip configurations expose attachment-specific synthetic observations and likely worn / possibly removed / not worn / unknown inferences. Legacy binary wear migrates to unknown pending fresh observation. A changed attachment or restored connection requires new wear inputs.
+
+Memory Garden now explains optional suggestions based on explicit preferences and interaction history; no automatic start, cognitive score or difficulty change is introduced. Approved memory-place photographs can become independent pending landmark proposals, with a separate instruction and explicit navigation approval. Browser coverage verifies that deleting the source memory does not delete the copied navigation photo.
+
+See `IMPLEMENTATION_DECISIONS.md` for decisions made before editing and final evidence: **30 unit tests, 16 browser tests, production build and `/WayHome/` smoke checks passed**. See `DEMO_REFINEMENTS.md` for the five-part demonstration. The original Pages workflow/branding and existing activities, emergency simulation and demos are retained. Known browser-local/concurrency/hardware limitations remain explicit.

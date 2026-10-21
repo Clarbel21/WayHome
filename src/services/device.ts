@@ -1,9 +1,11 @@
+import { type WearInputs, type Attachment } from "./safety";
 import { useStore } from "../store";
 export type DeviceEvent =
   | { type: "gps"; progress: number }
   | { type: "sos" }
   | { type: "battery"; percent: number }
-  | { type: "wear"; worn: boolean }
+  | { type: "wear"; inputs: WearInputs }
+  | { type: "attachment"; attachment: Attachment }
   | { type: "connection"; connected: boolean };
 export interface DeviceService {
   readonly mode: "simulated" | "ble";
@@ -35,14 +37,9 @@ export class SimulatedDevice implements DeviceService {
       useStore.setState({ position: Math.max(0, Math.min(6, e.progress)) });
     if (e.type === "battery")
       useStore.setState({ battery: Math.max(0, Math.min(100, e.percent)) });
-    if (e.type === "wear") {
-      if (!e.worn) s.event("REMOVE");
-      else useStore.setState({ worn: true });
-    }
-    if (e.type === "connection") {
-      if (!e.connected) s.event("DISCONNECT");
-      else useStore.setState({ connected: true });
-    }
+    if (e.type === "attachment") s.setAttachment(e.attachment);
+    if (e.type === "wear") s.observeWear(e.inputs);
+    if (e.type === "connection") s.setConnection(e.connected);
     this.listeners.forEach((l) => l(e));
   }
 }

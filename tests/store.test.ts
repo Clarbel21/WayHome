@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { transition, useStore, initialLandmarks } from "../src/store";
 beforeEach(() => {
-  useStore.getState().reset();
+  useStore.setState(useStore.getInitialState());
   useStore.setState({ landmarks: initialLandmarks });
 });
 describe("deterministic wearable simulation", () => {
@@ -124,6 +124,9 @@ describe("emergency priority and personalization", () => {
     );
     expect(useStore.getState().mode).toBe("EMERGENCY_SIMULATED");
     s.resetEmergency();
+    expect(useStore.getState().mode).toBe("EMERGENCY_SIMULATED");
+    const pending = useStore.getState().incident!;
+    expect(s.verifyIncident(pending.id, pending.revision, true)).toBe(true);
     expect(useStore.getState().mode).toBe("NORMAL");
     expect(
       useStore.getState().alerts.find((a) => a.id === alert.id)?.emergency
@@ -146,6 +149,9 @@ describe("emergency priority and personalization", () => {
     s.nextLandmark();
     s.move();
     expect(useStore.getState().position).toBe(0);
+    s.resetEmergency();
+    const pending = useStore.getState().incident!;
+    s.verifyIncident(pending.id, pending.revision, true);
     s.reset();
     useStore.setState({ landmarks: [] });
     s.event("GUIDE");

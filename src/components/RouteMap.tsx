@@ -132,7 +132,9 @@ export function RouteMap() {
           <div ref={ref} className="leaflet-map" />
         )}
         <div className="map-caption">
-          <span className="live-dot" /> Sample route · no real GPS
+          <span className="live-dot" /> Sample route ·{" "}
+          {Math.round(s.signals.gpsConfidence * 100)}% GPS confidence · no real
+          GPS
         </div>
       </div>
       <div className="route-bottom">
@@ -153,7 +155,8 @@ export function RouteMap() {
               s.position === 6 ||
               !s.connected ||
               !s.worn ||
-              s.mode === "EMERGENCY_SIMULATED"
+              s.mode === "EMERGENCY_SIMULATED" ||
+              s.signals.gpsConfidence < 0.6
             }
             onClick={s.move}
           >

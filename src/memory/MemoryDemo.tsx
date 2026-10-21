@@ -73,7 +73,7 @@ export function MemoryGardenDemo() {
     if (!ids) return;
     if (s.mode === "EMERGENCY_SIMULATED") {
       setNotice(
-        "S5 stays active. Use Reset emergency state, then return to this demonstration.",
+        "S5 stays active. Request incident resolution and complete caregiver verification, then return to this demonstration.",
       );
       return;
     }

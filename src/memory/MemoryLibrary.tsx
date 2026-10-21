@@ -12,6 +12,7 @@ import { useStore } from "../store";
 import { putMedia, removeMedia, useMediaURL, validMedia } from "./media";
 import { createBackup, restoreBackup } from "./backup";
 import { MemoryImage } from "./MemoryPlayer";
+import { ProposeLandmark } from "./ProposeLandmark";
 import { GardenVisualization } from "./GardenVisualization";
 export function MemoryActivityHistory({
   compact = false,
@@ -395,6 +396,7 @@ export function CaregiverMemoryLibrary() {
                   <Trash2 size={17} />
                 </button>
               </div>
+              {entry.kind === "places" && <ProposeLandmark entry={entry} />}
             </div>
           </section>
         ))}

@@ -1,10 +1,23 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ShieldAlert } from "lucide-react";
 import { simulatedLocation, status, useStore } from "../store";
+import { verificationBlockers, wearLabels } from "../services/safety";
+import { WearableConfiguration } from "./WearableConfiguration";
+import { SafetyScenarios } from "./SafetyScenarios";
 import { Wearable } from "./Wearable";
 export function EmergencyAssistance() {
   const s = useStore();
+  const [confirmed, setConfirmed] = useState(false);
+  const [resolutionNote, setResolutionNote] = useState(
+    "Caregiver has reviewed the simulated incident.",
+  );
+  const [verificationMessage, setVerificationMessage] = useState("");
+  useEffect(() => {
+    setConfirmed(false);
+    setVerificationMessage("");
+  }, [s.incident?.revision]);
+  const blockers = verificationBlockers(s);
   const dialog = useRef<HTMLDialogElement>(null);
   const cancelButton = useRef<HTMLButtonElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -49,17 +62,76 @@ export function EmergencyAssistance() {
               </button>
               <button
                 className="button light"
-                disabled={s.mode !== "EMERGENCY_SIMULATED"}
-                onClick={s.resetEmergency}
+                disabled={
+                  s.mode !== "EMERGENCY_SIMULATED" || !resolutionNote.trim()
+                }
+                onClick={() => s.resetEmergency(resolutionNote)}
               >
-                Reset emergency state
+                Request incident resolution
               </button>
             </div>
             <p className="help-text">
-              Reset returns the simulation to normal and reconnects the sample
-              wearable. Alert history and acknowledgments stay saved.
+              Requesting resolution leaves S5 active. Receipt, resolution and
+              verification are separate. No connection or wear readings are
+              changed.
             </p>
+            <label>
+              Resolution note
+              <textarea
+                value={resolutionNote}
+                maxLength={240}
+                onChange={(e) => setResolutionNote(e.target.value)}
+              />
+            </label>
+            <p role="status">
+              Incident lifecycle:{" "}
+              {s.incident?.stage.replaceAll("_", " ") || "none"} · Wear
+              inference: {wearLabels[s.wearStatus]}.
+            </p>
+            {s.incident?.stage === "awaiting_verification" && (
+              <div className="incident-verification">
+                <h3>Verification required · S5 remains active</h3>
+                <p>
+                  These demo checks are not a real safety guarantee. Fix
+                  observed device/scenario issues below first.
+                </p>
+                <ul>
+                  {blockers.map((reason, i) => (
+                    <li key={i}>{reason}</li>
+                  ))}
+                </ul>
+                <label className="check-label">
+                  <input
+                    type="checkbox"
+                    checked={confirmed}
+                    onChange={(e) => setConfirmed(e.target.checked)}
+                  />
+                  I have independently checked on the wearer in this simulation
+                </label>
+                <button
+                  className="button"
+                  disabled={!confirmed || blockers.length > 0}
+                  onClick={() => {
+                    if (!s.incident) return;
+                    setVerificationMessage(
+                      s.verifyIncident(
+                        s.incident.id,
+                        s.incident.revision,
+                        confirmed,
+                      )
+                        ? "Resolution verified and recorded. Device readings were preserved."
+                        : "Verification could not complete. Review the latest incident and observations.",
+                    );
+                  }}
+                >
+                  Verify resolution and close incident
+                </button>
+              </div>
+            )}
+            <p role="status">{verificationMessage}</p>
           </section>
+          <WearableConfiguration />
+          <SafetyScenarios />
           <section
             className="card settings-card emergency-panel"
             aria-live="polite"
@@ -85,6 +157,14 @@ export function EmergencyAssistance() {
                       : "Simulated SOS"}
                   </dd>
                 </dl>
+                {latest.emergency.resolvedAt && (
+                  <p>
+                    Incident resolution verified by{" "}
+                    {latest.emergency.resolvedBy} ·{" "}
+                    {new Date(latest.emergency.resolvedAt).toLocaleString()}.
+                    This records caregiver review, not guaranteed safety.
+                  </p>
+                )}
                 {latest.emergency.acknowledgedAt ? (
                   <p>
                     Caregiver acknowledged by {latest.emergency.acknowledgedBy}{" "}
@@ -101,7 +181,8 @@ export function EmergencyAssistance() {
                 )}
                 <p className="help-text">
                   Acknowledgment records caregiver review; it does not dismiss
-                  S5. Use Reset emergency state to end the scenario.
+                  S5 and does not mean the wearer is safe. Use the separate
+                  resolution and verification process.
                 </p>
               </>
             ) : (

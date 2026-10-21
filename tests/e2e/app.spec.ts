@@ -1,3 +1,4 @@
+import { resolveIncident } from "./support";
 import { test, expect } from "@playwright/test";
 test("caregiver simulation, landmark editing, settings and persistence", async ({
   page,
@@ -71,6 +72,9 @@ test("guided presentation completes all eight steps and route works offline", as
   for (let i = 0; i < 7; i++)
     await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(page.getByText("Help request sent — simulation")).toBeVisible();
+  await page.goto("/#/caregiver/emergency");
+  await resolveIncident(page);
+  await page.goto("/#/guided");
   await page.getByRole("button", { name: "Reset presentation" }).click();
   await expect(page.getByRole("button", { name: "Begin story" })).toBeVisible();
   await page.route("**/*.tile.openstreetmap.org/**", (route) => route.abort());

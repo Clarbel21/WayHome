@@ -3,7 +3,7 @@ import { useStore } from "../src/store";
 import { sampleEntries, useMemory } from "../src/memory/store";
 import { parseBackup } from "../src/memory/backup";
 beforeEach(() => {
-  useStore.getState().reset();
+  useStore.setState(useStore.getInitialState());
   useMemory.setState({
     entries: sampleEntries,
     session: null,
@@ -73,6 +73,9 @@ describe("Memory Garden is optional and safety-gated", () => {
     expect(useMemory.getState().growth).toHaveLength(0);
     expect(m.start("faces")).toBe(false);
     s.resetEmergency();
+    expect(useStore.getState().mode).toBe("EMERGENCY_SIMULATED");
+    const pending = useStore.getState().incident!;
+    expect(s.verifyIncident(pending.id, pending.revision, true)).toBe(true);
     m.resume();
     expect(useMemory.getState().session?.order).toEqual([1]);
     expect(useMemory.getState().session?.paused).toBe(false);
