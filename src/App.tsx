@@ -1,0 +1,1238 @@
+import { lazy, Suspense, useState } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  NavLink,
+  Link,
+  useLocation,
+} from "react-router-dom";
+import {
+  Activity,
+  ArrowRight,
+  Bell,
+  Battery,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  CircleHelp,
+  Compass,
+  Heart,
+  Home,
+  LayoutDashboard,
+  Leaf,
+  MapPin,
+  Menu,
+  Monitor,
+  Plus,
+  Radio,
+  RotateCcw,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+  Watch,
+  Wifi,
+  X,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { useStore, status, samples, type Event, type Landmark } from "./store";
+import { Wearable, Photo } from "./components/Wearable";
+import { Sprout } from "./components/Sprout";
+const LazyRouteMap = lazy(() =>
+  import("./components/RouteMap").then((m) => ({ default: m.RouteMap })),
+);
+function RouteMap() {
+  return (
+    <Suspense
+      fallback={
+        <div className="empty" role="status">
+          Preparing the neighborhood…
+        </div>
+      }
+    >
+      <LazyRouteMap />
+    </Suspense>
+  );
+}
+const actions: { label: string; event: Event; description: string }[] = [
+  {
+    label: "Start Normal Walk",
+    event: "WALK",
+    description: "A calm start in the neighborhood",
+  },
+  {
+    label: "Trigger Gentle Check-in",
+    event: "CHECK",
+    description: "Sprout checks how the wearer feels",
+  },
+  {
+    label: "Simulate Disorientation",
+    event: "LOST",
+    description: "Offer reassurance and a familiar place",
+  },
+  {
+    label: "Start Guided Return",
+    event: "GUIDE",
+    description: "One simple instruction at a time",
+  },
+  {
+    label: "Simulate Successful Reorientation",
+    event: "OKAY",
+    description: "Confirm the wearer feels okay",
+  },
+  {
+    label: "Request Caregiver Help",
+    event: "HELP",
+    description: "Send a simulated caregiver notification",
+  },
+  {
+    label: "Trigger Simulated SOS",
+    event: "SOS",
+    description: "Demonstrate an urgent help request",
+  },
+  {
+    label: "Simulate Wearable Removal",
+    event: "REMOVE",
+    description: "Update wear detection and alert",
+  },
+  {
+    label: "Simulate Device Disconnection",
+    event: "DISCONNECT",
+    description: "Show an offline device warning",
+  },
+];
+function Brand() {
+  return (
+    <Link to="/" className="brand">
+      <span>
+        <Leaf size={23} />
+      </span>
+      WayHome<span className="brand-dot">.</span>
+    </Link>
+  );
+}
+function Badge() {
+  const mode = useStore((s) => s.mode);
+  return (
+    <span
+      className={`badge ${mode === "EMERGENCY_SIMULATED" ? "danger" : mode === "NORMAL" ? "safe" : "attention"}`}
+    >
+      <span className="live-dot" />
+      {status[mode]}
+    </span>
+  );
+}
+function Shell({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const s = useStore();
+  const location = useLocation();
+  const links = [
+    ["/caregiver", "Overview", LayoutDashboard],
+    ["/caregiver/location", "Live location", MapPin],
+    ["/caregiver/alerts", "Alerts", Bell],
+    ["/caregiver/twin", "Digital twin", Watch],
+    ["/caregiver/landmarks", "Familiar landmarks", Compass],
+    ["/caregiver/settings", "Settings", Settings],
+    ["/demo", "Demo control center", Sparkles],
+  ] as const;
+  return (
+    <div
+      className={`app ${s.settings.largeText ? "large-text" : ""} ${s.settings.reducedMotion ? "reduce-motion" : ""}`}
+    >
+      <aside className={`sidebar ${open ? "open" : ""}`}>
+        <Brand />
+        <div className="workspace-label">CAREGIVER WORKSPACE</div>
+        <nav aria-label="Main navigation">
+          {links.map(([url, label, Icon]) => (
+            <NavLink
+              key={url}
+              to={url}
+              end={url === "/caregiver"}
+              onClick={() => setOpen(false)}
+            >
+              <Icon size={19} />
+              {label}
+              {label === "Alerts" && s.alerts.some((a) => !a.read) && (
+                <span className="nav-count">
+                  {s.alerts.filter((a) => !a.read).length}
+                </span>
+              )}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="sprout-note">
+            <Sprout small />
+            <strong>
+              A little reassurance.
+              <br />A little more independence.
+            </strong>
+            <p>Here for every step of the way.</p>
+          </div>
+          <Link className="mode-link" to="/companion">
+            <Watch size={17} />
+            Switch to Companion Mode <ArrowRight size={16} />
+          </Link>
+          <div className="profile">
+            <span className="avatar">{s.settings.caregiver[0] || "J"}</span>
+            <div>
+              <strong>{s.settings.caregiver}</strong>
+              <small>Family caregiver</small>
+            </div>
+            <ShieldCheck size={18} />
+          </div>
+        </div>
+      </aside>
+      <div className="workspace">
+        <header className="topbar">
+          <button
+            className="icon-button mobile-menu"
+            aria-label="Toggle navigation"
+            onClick={() => setOpen(!open)}
+          >
+            <Menu />
+          </button>
+          <span className="breadcrumb">
+            Your circle of care <ChevronRight size={14} />{" "}
+            <strong>
+              {links.find((l) => l[0] === location.pathname)?.[1] || "Overview"}
+            </strong>
+          </span>
+          <div className="topbar-right">
+            <span className="simulation-pill">
+              <span />
+              SIMULATION MODE
+            </span>
+            <Link
+              to="/caregiver/alerts"
+              className="notification-icon"
+              aria-label="Open alerts"
+            >
+              <Bell size={20} />
+              {s.settings.notifications && s.alerts.some((a) => !a.read) && (
+                <i />
+              )}
+            </Link>
+            <span className="avatar tiny">
+              {s.settings.caregiver[0] || "J"}
+            </span>
+          </div>
+        </header>
+        <main>{children}</main>
+        <footer>
+          Made for moments that matter.{" "}
+          <span>WayHome · Moonshot 101 · Educational prototype</span>
+        </footer>
+      </div>
+    </div>
+  );
+}
+function Heading({
+  eyebrow,
+  title,
+  description,
+  action,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="page-heading">
+      <div>
+        <div className="eyebrow">{eyebrow}</div>
+        <h1>{title}</h1>
+        <p>{description}</p>
+      </div>
+      {action}
+    </div>
+  );
+}
+function Overview() {
+  const s = useStore();
+  return (
+    <>
+      <Heading
+        eyebrow="A LITTLE PEACE OF MIND"
+        title={`Looking out for ${s.settings.wearer.split(" ")[0]}.`}
+        description="A familiar companion. A reassuring connection. You're in this together."
+        action={
+          <Link className="button light" to="/guided">
+            <Sparkles size={17} />
+            Start Guided Demo
+          </Link>
+        }
+      />
+      <div className="welcome-banner">
+        <div className="banner-icon">
+          <ShieldCheck size={29} />
+        </div>
+        <div>
+          <h2>
+            {s.mode === "NORMAL" && s.connected && s.worn
+              ? `${s.settings.wearer.split(" ")[0]} is enjoying a little independence.`
+              : "A little support is on the way."}
+          </h2>
+          <p>
+            {!s.connected
+              ? "The simulated device is offline. Last known location is shown."
+              : !s.worn
+                ? "Wear detection reports that the device has been removed."
+                : s.mode === "NORMAL"
+                  ? "Sprout is by their side. We'll keep you in the loop."
+                  : "Sprout and your dashboard are responding together."}
+          </p>
+        </div>
+        <Badge />
+      </div>
+      <div className="stats-grid">
+        <Stat
+          icon={<Heart />}
+          label="Safety status"
+          value={status[s.mode]}
+          detail="Updated with every simulation event"
+        />
+        <Stat
+          icon={<Activity />}
+          label="Last check-in"
+          value={new Date(s.lastCheck).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+          detail="Wearer confirmation"
+        />
+        <Stat
+          icon={<Battery />}
+          label="Device battery"
+          value={`${s.battery}%`}
+          detail="Simulated battery level"
+        />
+        <Stat
+          icon={<Wifi />}
+          label="Connection"
+          value={s.connected ? "Connected" : "Offline"}
+          detail={s.worn ? "Wearable is being worn" : "Wearable removed"}
+        />
+      </div>
+      <div className="overview-grid">
+        <section className="card location-card">
+          <div className="card-heading">
+            <div>
+              <h2>Around the neighborhood</h2>
+              <p>A familiar route, one step at a time.</p>
+            </div>
+            <span className="subtle-tag">
+              <span className="live-dot" />
+              SIMULATED LIVE
+            </span>
+          </div>
+          <RouteMap />
+        </section>
+        <section className="card companion-card">
+          <div className="card-heading">
+            <div>
+              <h2>A moment with Sprout</h2>
+              <p>
+                Your window into {s.settings.wearer.split(" ")[0]}'s companion.
+              </p>
+            </div>
+            <span className="green-icon">
+              <Leaf size={21} />
+            </span>
+          </div>
+          <div className="mini-companion">
+            <Sprout />
+            <span className="state-caption">
+              {s.mode.replaceAll("_", " ").toLowerCase()}
+            </span>
+            <h3>
+              {s.mode === "NORMAL"
+                ? "A good day for a little walk."
+                : status[s.mode]}
+            </h3>
+            <p>
+              See what {s.settings.wearer.split(" ")[0]} sees, in real time.
+            </p>
+          </div>
+          <Link className="card-link" to="/caregiver/twin">
+            View digital twin <ArrowRight size={17} />
+          </Link>
+        </section>
+        <section className="card">
+          <div className="card-heading">
+            <div>
+              <h2>Latest moments</h2>
+              <p>The small updates that keep you connected.</p>
+            </div>
+            <Link className="text-button" to="/caregiver/alerts">
+              View all <ArrowRight size={15} />
+            </Link>
+          </div>
+          <Alerts compact />
+        </section>
+        <section className="card gentle-card">
+          <span className="eyebrow">DESIGNED FOR REASSURANCE</span>
+          <h2>
+            Familiar places.
+            <br />
+            Confident steps.
+          </h2>
+          <p>
+            Little landmarks can make a big difference. Add the places that feel
+            like home.
+          </p>
+          <Link className="button light" to="/caregiver/landmarks">
+            Manage landmarks <ArrowRight size={16} />
+          </Link>
+        </section>
+      </div>
+      <div className="demo-strip">
+        <span className="demo-icon">
+          <Monitor size={23} />
+        </span>
+        <div>
+          <strong>See the whole journey, together.</strong>
+          <p>
+            Explore how WayHome responds with our interactive scenario
+            simulator.
+          </p>
+        </div>
+        <Link className="text-button" to="/demo">
+          Open demo controls <ArrowRight size={17} />
+        </Link>
+      </div>
+    </>
+  );
+}
+function Stat({
+  icon,
+  label,
+  value,
+  detail,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  return (
+    <section className="stat">
+      <div className="stat-label">
+        {label}
+        <span>{icon}</span>
+      </div>
+      <strong>{value}</strong>
+      <p>{detail}</p>
+    </section>
+  );
+}
+function Alerts({ compact = false }: { compact?: boolean }) {
+  const s = useStore();
+  const list = compact ? s.alerts.slice(0, 3) : s.alerts;
+  return (
+    <div className="alerts">
+      {!list.length ? (
+        <div className="empty">
+          <ShieldCheck size={28} />
+          <strong>All quiet, all connected.</strong>
+          <p>
+            Check-ins and help requests will appear here as you explore the
+            demo.
+          </p>
+        </div>
+      ) : (
+        list.map((a) => (
+          <div className={`alert-row ${!a.read ? "unread" : ""}`} key={a.id}>
+            <span className={`alert-icon ${a.urgent ? "urgent" : ""}`}>
+              {a.urgent ? <Bell size={18} /> : <Check size={18} />}
+            </span>
+            <div>
+              <strong>{a.title}</strong>
+              <small>{new Date(a.time).toLocaleString()}</small>
+            </div>
+            {!a.read ? (
+              <button className="text-button" onClick={() => s.read(a.id)}>
+                Mark read
+              </button>
+            ) : (
+              <small>Read</small>
+            )}
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+function Landmarks() {
+  const s = useStore();
+  const [editing, setEditing] = useState<Landmark | null>(null);
+  const [error, setError] = useState("");
+  function save(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!editing) return;
+    if (!editing.name.trim() || !editing.instruction.trim()) {
+      setError("Please add a name and a simple instruction.");
+      return;
+    }
+    if (!/^(https?:\/\/|\/images\/)/.test(editing.photo)) {
+      setError("Choose a built-in image or enter an http(s) photo URL.");
+      return;
+    }
+    s.saveLandmark({
+      ...editing,
+      name: editing.name.trim(),
+      instruction: editing.instruction.trim(),
+    });
+    setEditing(null);
+    setError("");
+  }
+  return (
+    <>
+      <Heading
+        eyebrow="PLACES THAT FEEL LIKE HOME"
+        title="Familiar landmarks"
+        description="A recognizable place can turn uncertainty into a confident next step."
+        action={
+          <button
+            className="button"
+            onClick={() => {
+              setEditing({
+                id: crypto.randomUUID(),
+                name: "",
+                instruction: "",
+                photo: samples[0],
+                approved: true,
+              });
+              setError("");
+            }}
+          >
+            <Plus size={18} />
+            Add landmark
+          </button>
+        }
+      />
+      <div className="landmark-grid">
+        {s.landmarks.map((l) => (
+          <section className="card landmark-card" key={l.id}>
+            <Photo src={l.photo} alt={l.name} />
+            <div className="landmark-content">
+              <span className={`badge ${l.approved ? "safe" : "attention"}`}>
+                {l.approved ? "Approved for guidance" : "Not approved"}
+              </span>
+              <h2>{l.name}</h2>
+              <p>{l.instruction}</p>
+              <label className="check-label">
+                <input
+                  type="checkbox"
+                  checked={l.approved}
+                  onChange={(e) =>
+                    s.saveLandmark({ ...l, approved: e.target.checked })
+                  }
+                />
+                Show during guided return
+              </label>
+              <div className="button-row">
+                <button
+                  className="button light"
+                  onClick={() => {
+                    setEditing({ ...l });
+                    setError("");
+                  }}
+                >
+                  Edit landmark
+                </button>
+                <button
+                  className="icon-button"
+                  aria-label={`Delete ${l.name}`}
+                  onClick={() => s.deleteLandmark(l.id)}
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            </div>
+          </section>
+        ))}
+      </div>
+      {!s.landmarks.length && (
+        <div className="card empty">
+          <Compass />
+          <h2>No familiar places yet</h2>
+          <p>Add a landmark to make guided return available.</p>
+        </div>
+      )}
+      {editing && (
+        <div className="modal-backdrop" onClick={() => setEditing(null)}>
+          <form
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="landmark-title"
+            className="modal card"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={save}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setEditing(null);
+              if (e.key === "Tab") {
+                const items = Array.from(
+                  e.currentTarget.querySelectorAll<HTMLElement>(
+                    "button,input,textarea,select",
+                  ),
+                );
+                const first = items[0],
+                  last = items[items.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                  e.preventDefault();
+                  last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                  e.preventDefault();
+                  first.focus();
+                }
+              }
+            }}
+          >
+            <div className="card-heading">
+              <h2 id="landmark-title">
+                {s.landmarks.some((l) => l.id === editing.id) ? "Edit" : "Add"}{" "}
+                a familiar place
+              </h2>
+              <button
+                type="button"
+                autoFocus
+                className="icon-button"
+                aria-label="Close editor"
+                onClick={() => setEditing(null)}
+              >
+                <X />
+              </button>
+            </div>
+            <label>
+              Name
+              <input
+                required
+                value={editing.name}
+                onChange={(e) =>
+                  setEditing({ ...editing, name: e.target.value })
+                }
+              />
+            </label>
+            <label>
+              Simple navigation instruction
+              <textarea
+                required
+                value={editing.instruction}
+                onChange={(e) =>
+                  setEditing({ ...editing, instruction: e.target.value })
+                }
+              />
+            </label>
+            <label>
+              Built-in sample
+              <select
+                value={samples.includes(editing.photo) ? editing.photo : ""}
+                onChange={(e) => {
+                  if (e.target.value)
+                    setEditing({ ...editing, photo: e.target.value });
+                }}
+              >
+                <option value="">Custom photo URL</option>
+                {samples.map((p, i) => (
+                  <option key={p} value={p}>
+                    {["Home", "Bakery", "Garden", "Library"][i]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Photo URL
+              <input
+                value={editing.photo}
+                onChange={(e) =>
+                  setEditing({ ...editing, photo: e.target.value })
+                }
+              />
+            </label>
+            <label className="check-label">
+              <input
+                type="checkbox"
+                checked={editing.approved}
+                onChange={(e) =>
+                  setEditing({ ...editing, approved: e.target.checked })
+                }
+              />
+              Approved for guided return
+            </label>
+            {error && (
+              <p role="alert" className="form-error">
+                {error}
+              </p>
+            )}
+            <button className="button" type="submit">
+              Save landmark <Check size={16} />
+            </button>
+          </form>
+        </div>
+      )}
+    </>
+  );
+}
+function SettingsPage() {
+  const s = useStore();
+  return (
+    <>
+      <Heading
+        eyebrow="MAKE WAYHOME YOURS"
+        title="A circle of care"
+        description="Sample profiles and preferences are saved automatically on this browser."
+      />
+      <div className="settings-grid">
+        <section className="card settings-card">
+          <h2>People & connections</h2>
+          {(
+            [
+              ["wearer", "Wearer's display name"],
+              ["caregiver", "Caregiver's name"],
+              ["emergency", "Emergency contact name"],
+            ] as const
+          ).map(([key, label]) => (
+            <label key={key}>
+              {label}
+              <input
+                maxLength={60}
+                value={s.settings[key]}
+                onChange={(e) => s.settingsUpdate({ [key]: e.target.value })}
+                onBlur={() => {
+                  if (!s.settings[key].trim())
+                    s.settingsUpdate({
+                      [key]:
+                        key === "wearer"
+                          ? "Alex Chen"
+                          : key === "caregiver"
+                            ? "Jamie Chen"
+                            : "Morgan Chen",
+                    });
+                }}
+              />
+            </label>
+          ))}
+          <p className="help-text">
+            Sample contacts only. No phone calls or external messages are sent.
+          </p>
+        </section>
+        <section className="card settings-card">
+          <h2>Comfort & accessibility</h2>
+          {(
+            [
+              [
+                "voice",
+                "Companion voice",
+                "Read Sprout’s messages aloud using your browser.",
+              ],
+              [
+                "notifications",
+                "Notification indicators",
+                "Show the unread indicator in the dashboard header.",
+              ],
+              [
+                "largeText",
+                "Larger text",
+                "Make dashboard text easier to read.",
+              ],
+              [
+                "reducedMotion",
+                "Reduce motion",
+                "Keep Sprout and screen transitions still.",
+              ],
+            ] as const
+          ).map(([key, label, description]) => (
+            <label className="setting-toggle" key={key}>
+              <div>
+                <strong>{label}</strong>
+                <p>{description}</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={s.settings[key]}
+                onChange={(e) => s.settingsUpdate({ [key]: e.target.checked })}
+              />
+            </label>
+          ))}
+        </section>
+      </div>
+      <section className="card settings-card">
+        <h2>Presentation sandbox</h2>
+        <p>
+          All location, risk detection, battery readings, and help requests are
+          simulated.
+        </p>
+        <div className="button-row">
+          <Link className="button" to="/demo">
+            Open demo controls <ArrowRight size={16} />
+          </Link>
+          <button className="button light" onClick={s.reset}>
+            <RotateCcw size={16} />
+            Reset simulation
+          </button>
+        </div>
+        <p className="help-text">
+          Reset clears simulation events and alerts. Your profile and landmarks
+          stay saved.
+        </p>
+      </section>
+    </>
+  );
+}
+function DemoControls() {
+  const s = useStore();
+  return (
+    <>
+      <Heading
+        eyebrow="THE WAYHOME SANDBOX"
+        title="Every moment, connected."
+        description="Run a scenario and see Sprout, safety status, location, and alerts respond together."
+        action={
+          <Link className="button light" to="/guided">
+            <Sparkles size={17} />
+            Start Guided Demo
+          </Link>
+        }
+      />
+      <div className="demo-layout">
+        <div>
+          <div className="scenario-grid">
+            {actions.map((a, i) => (
+              <button
+                className={`scenario ${a.event === "SOS" ? "sos-scenario" : ""}`}
+                key={a.event}
+                onClick={() => s.event(a.event)}
+              >
+                <span className="scenario-number">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div>
+                  <strong>{a.label}</strong>
+                  <p>{a.description}</p>
+                </div>
+                <ArrowRight size={18} />
+              </button>
+            ))}
+          </div>
+          <button className="button light reset-button" onClick={s.reset}>
+            <RotateCcw size={16} />
+            Reset Demo
+          </button>
+          <section className="card scenario-summary">
+            <Badge />
+            <p>
+              Device: {s.connected ? "connected" : "offline"} ·{" "}
+              {s.worn ? "being worn" : "removed"} · Position {s.position}/6
+            </p>
+            <Link to="/caregiver/alerts" className="text-button">
+              {s.alerts.filter((a) => !a.read).length} unread alerts{" "}
+              <ArrowRight size={15} />
+            </Link>
+          </section>
+        </div>
+        <section className="card demo-twin">
+          <div className="eyebrow">LIVE DIGITAL TWIN</div>
+          <Wearable compact />
+        </section>
+      </div>
+    </>
+  );
+}
+function Companion() {
+  const s = useStore();
+  return (
+    <div
+      className={`companion-page ${s.settings.largeText ? "large-text" : ""} ${s.settings.reducedMotion ? "reduce-motion" : ""}`}
+    >
+      <header className="public-header">
+        <Brand />
+        <Link className="button light" to="/caregiver">
+          <LayoutDashboard size={17} />
+          Caregiver Mode
+        </Link>
+      </header>
+      <main className="companion-main">
+        <div className="eyebrow">A FAMILIAR FRIEND, ALWAYS NEAR</div>
+        <h1>
+          Here with you.
+          <br />
+          <em>Every step.</em>
+        </h1>
+        <p>A little reassurance, wherever the day takes you.</p>
+        <Wearable />
+        <div className="companion-foot">
+          <ShieldCheck size={17} /> Educational simulation · no real emergency
+          calls
+        </div>
+        <Link to="/demo" className="text-button">
+          Explore demo controls <ArrowRight size={16} />
+        </Link>
+      </main>
+    </div>
+  );
+}
+const steps = [
+  {
+    title: "A little independence",
+    body: "Alex is enjoying a neighborhood walk. Sprout is happy, the device is connected, and the caregiver has a reassuring overview.",
+    event: "WALK",
+  },
+  {
+    title: "A gentle check-in",
+    body: "A simulated unusual route event prompts Sprout to ask “Are you feeling okay?” without overwhelming Alex.",
+    event: "CHECK",
+  },
+  {
+    title: "A moment of uncertainty",
+    body: "Alex selects “I need help.” Sprout offers a calm, reassuring response and updates the caregiver.",
+    event: "LOST",
+  },
+  {
+    title: "Let’s find something familiar",
+    body: "Sprout says “That’s okay. Let’s find a place you recognize.” Familiar places support reorientation.",
+    event: "LOST",
+  },
+  {
+    title: "A place Alex knows",
+    body: "An approved landmark and one simple instruction appear. No complicated directions or crowded screens.",
+    event: "GUIDE",
+  },
+  {
+    title: "One confident step",
+    body: "Alex recognizes the place. Select “I see it · Next step” on the wearable to move through the familiar landmarks.",
+    event: "GUIDE",
+  },
+  {
+    title: "Connected through the journey",
+    body: "Alex confirms feeling okay. The caregiver sees the updated safety status and a timestamped check-in.",
+    event: "OKAY",
+  },
+  {
+    title: "An alternate path to support",
+    body: "For this alternate scenario, a simulated SOS updates the wearable and adds an urgent caregiver alert. No real emergency services are contacted.",
+    event: "SOS",
+  },
+] as const;
+function Guided() {
+  const s = useStore();
+  const [index, setIndex] = useState(0);
+  const [started, setStarted] = useState(false);
+  function go(i: number) {
+    setIndex(i);
+    setStarted(true);
+    s.event(steps[i].event);
+  }
+  return (
+    <>
+      <Heading
+        eyebrow="A 2–3 MINUTE WALK THROUGH WAYHOME"
+        title="A journey home, together."
+        description="A presenter-led story of reassurance, recognition, and connection."
+      />
+      <div className="guided-layout">
+        <section className="card guided-story">
+          <span className="subtle-tag">
+            STEP {index + 1} OF {steps.length}
+          </span>
+          <div className="step-dots">
+            {steps.map((step, i) => (
+              <button
+                key={step.title}
+                aria-label={`Go to step ${i + 1}`}
+                aria-current={i === index ? "step" : undefined}
+                className={i <= index ? "complete" : ""}
+                onClick={() => go(i)}
+              />
+            ))}
+          </div>
+          <h2>{steps[index].title}</h2>
+          <p>{steps[index].body}</p>
+          <div className="presenter-note">
+            <CircleHelp size={20} />
+            <p>
+              Presenter tip: spend about 15–20 seconds on each step. The digital
+              twin is interactive, and all changes appear in the caregiver
+              dashboard.
+            </p>
+          </div>
+          <Badge />
+          <div className="button-row">
+            <button
+              className="button light"
+              disabled={index === 0}
+              onClick={() => go(index - 1)}
+            >
+              <ChevronLeft size={17} />
+              Back
+            </button>
+            <button
+              className="button"
+              onClick={() => go(!started ? 0 : Math.min(7, index + 1))}
+              disabled={started && index === 7}
+            >
+              {!started
+                ? "Begin story"
+                : index === 7
+                  ? "Story complete"
+                  : "Next"}
+              <ChevronRight size={17} />
+            </button>
+          </div>
+          <button
+            className="text-button"
+            onClick={() => {
+              s.reset();
+              setStarted(false);
+              setIndex(0);
+            }}
+          >
+            <RotateCcw size={15} />
+            Reset presentation
+          </button>
+          <Link className="text-button" to="/caregiver">
+            See caregiver dashboard <ArrowRight size={15} />
+          </Link>
+        </section>
+        <section className="card demo-twin">
+          <div className="eyebrow">WHAT ALEX SEES</div>
+          <Wearable compact />
+        </section>
+      </div>
+    </>
+  );
+}
+function Landing() {
+  return (
+    <div className="landing">
+      <header className="public-header">
+        <Brand />
+        <span className="simulation-pill">
+          <span />
+          EDUCATIONAL PROTOTYPE
+        </span>
+        <Link className="text-button" to="/caregiver">
+          Your circle of care <ArrowRight size={16} />
+        </Link>
+      </header>
+      <main className="landing-main">
+        <div className="landing-copy">
+          <span className="hero-pill">
+            <Leaf size={15} /> A familiar friend. A little more freedom.
+          </span>
+          <h1>
+            Finding the way.
+            <br />
+            <em>Feeling at home.</em>
+          </h1>
+          <p>
+            Meet WayHome. A gentle companion that helps people living with
+            dementia feel more confident, connected, and supported — wherever
+            the day takes them.
+          </p>
+          <div className="hero-actions">
+            <Link className="button" to="/companion">
+              <Watch size={19} />
+              Enter Companion Mode <ArrowRight size={17} />
+            </Link>
+            <Link className="button light" to="/caregiver">
+              <LayoutDashboard size={19} />
+              Enter Caregiver Dashboard
+            </Link>
+          </div>
+          <Link className="guided-link" to="/guided">
+            <span>
+              <Sparkles size={17} />
+            </span>
+            Start Guided Demo <ArrowRight size={16} />
+            <small>2–3 minute interactive story</small>
+          </Link>
+          <div className="hero-trust">
+            <div>
+              <ShieldCheck size={20} />
+              <span>
+                Designed for
+                <br />
+                <strong>peace of mind</strong>
+              </span>
+            </div>
+            <div>
+              <Heart size={20} />
+              <span>
+                Built around
+                <br />
+                <strong>human connection</strong>
+              </span>
+            </div>
+            <div>
+              <Compass size={20} />
+              <span>
+                Familiar places.
+                <br />
+                <strong>Confident steps.</strong>
+              </span>
+            </div>
+          </div>
+        </div>
+        <motion.div
+          className="landing-visual"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+        >
+          <div className="orbit orbit-one" />
+          <div className="orbit orbit-two" />
+          <div className="floating-note note-top">
+            <span className="green-icon">
+              <ShieldCheck size={22} />
+            </span>
+            <div>
+              <strong>A little reassurance.</strong>
+              <p>Right when it's needed.</p>
+            </div>
+          </div>
+          <Wearable compact />
+          <div className="floating-note note-bottom">
+            <span className="peach-icon">
+              <Home size={21} />
+            </span>
+            <div>
+              <strong>Home is a familiar feeling.</strong>
+              <p>Let's find our way together.</p>
+            </div>
+          </div>
+          <span className="visual-caption">
+            MEET SPROUT. YOUR EVERYDAY COMPANION.
+          </span>
+        </motion.div>
+      </main>
+      <section className="landing-bottom">
+        <div>
+          <span className="eyebrow">A GENTLER WAY TO FIND HOME</span>
+          <h2>Independence, with a circle of care.</h2>
+        </div>
+        <p>
+          Not just a dot on a map. A reassuring presence, familiar landmarks,
+          and a connection to someone who cares.
+        </p>
+      </section>
+      <footer>
+        WayHome · Moonshot 101{" "}
+        <span>
+          All GPS, AI behavior, risk detection, and emergency escalation are
+          simulated. Not a medical device.
+        </span>
+      </footer>
+    </div>
+  );
+}
+function CaregiverRoutes() {
+  return (
+    <Shell>
+      <Routes>
+        <Route index element={<Overview />} />
+        <Route
+          path="location"
+          element={
+            <>
+              <Heading
+                eyebrow="FAMILIAR STREETS, GENTLE GUIDANCE"
+                title="A little closer to home"
+                description="Explore the fictional walking route. Movement and location are simulated."
+              />
+              <section className="card">
+                <RouteMap />
+              </section>
+            </>
+          }
+        />
+        <Route
+          path="alerts"
+          element={
+            <>
+              <Heading
+                eyebrow="YOUR CIRCLE, CONNECTED"
+                title="Alerts & little updates"
+                description="A timeline of simulated check-ins, guidance, and requests for support."
+                action={
+                  <button
+                    className="button light"
+                    onClick={() => useStore.getState().read()}
+                  >
+                    Mark all as read <Check size={17} />
+                  </button>
+                }
+              />
+              <section className="card">
+                <Alerts />
+              </section>
+            </>
+          }
+        />
+        <Route
+          path="twin"
+          element={
+            <>
+              <Heading
+                eyebrow="A SHARED MOMENT"
+                title="Their companion. Your reassurance."
+                description="A live digital twin of the wearable, reflecting the same shared simulation state."
+                action={<Badge />}
+              />
+              <section className="card twin-stage">
+                <Wearable />
+                <Link className="button light" to="/demo">
+                  Change the scenario <ArrowRight size={16} />
+                </Link>
+              </section>
+            </>
+          }
+        />
+        <Route path="landmarks" element={<Landmarks />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Shell>
+  );
+}
+function NotFound() {
+  return (
+    <div className="empty">
+      <Compass size={40} />
+      <h1>Let's find our way back.</h1>
+      <Link className="button" to="/">
+        Return to WayHome
+      </Link>
+    </div>
+  );
+}
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/companion" element={<Companion />} />
+        <Route path="/caregiver/*" element={<CaregiverRoutes />} />
+        <Route
+          path="/demo"
+          element={
+            <Shell>
+              <DemoControls />
+            </Shell>
+          }
+        />
+        <Route
+          path="/guided"
+          element={
+            <Shell>
+              <Guided />
+            </Shell>
+          }
+        />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
