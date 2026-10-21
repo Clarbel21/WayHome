@@ -21,7 +21,7 @@ npx playwright install chromium
 npm run test:e2e    # Browser interaction, persistence, cross-tab SOS, mobile tests
 ```
 
-Static hosting must rewrite unknown paths to index.html because the app uses browser routes.
+Static hosting works without rewrite rules: the app uses hash routes (for example `/#/companion`) and relative asset paths.
 
 ## Demonstrate in 2–3 minutes
 
@@ -31,7 +31,7 @@ Static hosting must rewrite unknown paths to index.html because the app uses bro
 4. The final step demonstrates an alternate **simulated SOS**. No real emergency services are contacted.
 5. Open **Alerts** to see timestamps and mark requests read. **Reset presentation** starts the scenario again.
 
-For a side-by-side pitch, open `/companion` and `/caregiver` in **two tabs of the same browser, on the same origin**. Hold SOS on the wearable for two seconds (pointer or hold Space/Enter with focus on the button). The caregiver alert and digital twin synchronize via localStorage events. Separate browsers/devices are not connected; there is no backend. Simulated contact requests are recorded in the app only.
+For a side-by-side pitch, open `/#/companion` and `/#/caregiver` in **two tabs of the same browser, on the same origin**. Hold SOS on the wearable for two seconds (pointer or hold Space/Enter with focus on the button). The caregiver alert and digital twin synchronize via localStorage events. Separate browsers/devices are not connected; there is no backend. Simulated contact requests are recorded in the app only.
 
 The **Demo Control Center** offers all nine scenario events plus reset. Reset clears alerts, battery/movement state and connection/wear detection; it preserves edited profiles and landmarks. Starting a normal walk reconnects and re-wears the simulated device. Device disconnection retains last known location and blocks simulated movement. Route progress is discrete demo movement, not real directions.
 
@@ -56,3 +56,7 @@ The **Demo Control Center** offers all nine scenario events plus reset. Reset cl
 - `tests/`: deterministic store tests and Playwright browser flows
 
 Data stays in this browser under `wayhome-v1`. This app is a presentation prototype; it has no clinical validation or real safety monitoring. Browser speech support and available voices vary. Optional map requests go to OpenStreetMap; route coordinates represent a fictional walk and must not be used for navigation.
+
+## GitHub Pages deployment
+
+The Pages workflow builds and deploys on pushes to `main`, or manually through Actions → Deploy WayHome to GitHub Pages → Run workflow. In repository Settings → Pages, select **GitHub Actions** as the source. After a successful deployment, visit https://clarbel21.github.io/WayHome/. Routing, lazy-loaded maps, and bundled landmark images support this repository subpath.

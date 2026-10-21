@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 test("caregiver simulation, landmark editing, settings and persistence", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/#/");
   await page.getByRole("link", { name: "Enter Caregiver Dashboard" }).click();
   await expect(
     page.getByRole("heading", { name: "Looking out for Alex." }),
@@ -50,9 +50,9 @@ test("SOS hold synchronizes companion and caregiver browser tabs", async ({
   page,
   context,
 }) => {
-  await page.goto("/companion");
+  await page.goto("/#/companion");
   const caregiver = await context.newPage();
-  await caregiver.goto("/caregiver/alerts");
+  await caregiver.goto("/#/caregiver/alerts");
   const sos = page.getByRole("button", { name: "SOS Hold for 2 seconds" });
   await sos.focus();
   await page.keyboard.down("Space");
@@ -66,7 +66,7 @@ test("SOS hold synchronizes companion and caregiver browser tabs", async ({
 test("guided presentation completes all eight steps and route works offline", async ({
   page,
 }) => {
-  await page.goto("/guided");
+  await page.goto("/#/guided");
   await page.getByRole("button", { name: "Begin story" }).click();
   for (let i = 0; i < 7; i++)
     await page.getByRole("button", { name: "Next", exact: true }).click();
@@ -74,7 +74,7 @@ test("guided presentation completes all eight steps and route works offline", as
   await page.getByRole("button", { name: "Reset presentation" }).click();
   await expect(page.getByRole("button", { name: "Begin story" })).toBeVisible();
   await page.route("**/*.tile.openstreetmap.org/**", (route) => route.abort());
-  await page.goto("/caregiver/location");
+  await page.goto("/#/caregiver/location");
   await expect(
     page.getByText("Offline route · simulated neighborhood"),
   ).toBeVisible();
@@ -85,7 +85,7 @@ test("mobile layout stays within the viewport and navigation works", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await page.goto("/#/");
   await expect(
     page.getByRole("link", { name: "Enter Companion Mode" }),
   ).toBeVisible();
@@ -94,7 +94,7 @@ test("mobile layout stays within the viewport and navigation works", async ({
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
-  await page.goto("/caregiver");
+  await page.goto("/#/caregiver");
   await page.getByRole("button", { name: "Toggle navigation" }).click();
   await page
     .getByRole("link", { name: "Demo control center", exact: true })
@@ -112,7 +112,7 @@ test("mobile layout stays within the viewport and navigation works", async ({
 test("wearer recognition returns home, empty approval offers help, and a short SOS hold cancels", async ({
   page,
 }) => {
-  await page.goto("/companion");
+  await page.goto("/#/companion");
   await page.getByRole("button", { name: "Help me get home" }).click();
   await expect(
     page.getByText("Community garden", { exact: true }),
@@ -131,10 +131,10 @@ test("wearer recognition returns home, empty approval offers help, and a short S
   await expect(
     page.getByText("Help request sent — simulation"),
   ).not.toBeVisible();
-  await page.goto("/caregiver/landmarks");
+  await page.goto("/#/caregiver/landmarks");
   for (const checkbox of await page.getByRole("checkbox").all())
     await checkbox.uncheck();
-  await page.goto("/companion");
+  await page.goto("/#/companion");
   await page.getByRole("button", { name: "Help me get home" }).click();
   await expect(page.getByText("No approved landmarks yet.")).toBeVisible();
   await page.getByRole("button", { name: "Contact my caregiver" }).click();

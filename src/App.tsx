@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState } from "react";
 import {
-  BrowserRouter,
+  HashRouter,
   Routes,
   Route,
   NavLink,
@@ -1210,7 +1210,7 @@ function NotFound() {
 }
 export default function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/companion" element={<Companion />} />
@@ -1233,6 +1233,6 @@ export default function App() {
         />
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
