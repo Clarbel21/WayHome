@@ -38,6 +38,13 @@ import {
 import { motion } from "framer-motion";
 import { useStore, status, samples, type Event, type Landmark } from "./store";
 import { Wearable, Photo } from "./components/Wearable";
+import { MemoryGardenHome } from "./memory/MemoryPlayer";
+import {
+  CaregiverMemoryLibrary,
+  MemoryActivityHistory,
+} from "./memory/MemoryLibrary";
+import { MemoryGardenDemo } from "./memory/MemoryDemo";
+import { useMemory } from "./memory/store";
 import { EmergencyAssistance } from "./components/EmergencyAssistance";
 import { CompanionPersonalization } from "./components/CompanionPersonalization";
 import { Sprout } from "./components/Sprout";
@@ -136,6 +143,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     ["/caregiver/emergency", "Emergency Assistance", ShieldCheck],
     ["/caregiver/twin", "Digital twin", Watch],
     ["/caregiver/landmarks", "Familiar landmarks", Compass],
+    ["/caregiver/library", "Memory Library", Leaf],
     ["/caregiver/settings", "Settings", Settings],
     ["/demo", "Demo control center", Sparkles],
   ] as const;
@@ -391,6 +399,15 @@ function Overview() {
           </Link>
         </section>
       </div>
+      <section className="card settings-card overview-memory">
+        <div className="card-heading">
+          <h2>Moments in the Memory Garden</h2>
+          <Link className="text-button" to="/caregiver/library">
+            Memory Library →
+          </Link>
+        </div>
+        <MemoryActivityHistory compact />
+      </section>
       <div className="emergency-overview-link">
         <Link className="text-button" to="/caregiver/emergency">
           <ShieldCheck size={17} />
@@ -852,6 +869,10 @@ function DemoControls() {
               </button>
             ))}
           </div>
+          <Link className="button light memory-demo-link" to="/memory-demo">
+            <Leaf size={17} />
+            Memory Garden Demo
+          </Link>
           <button className="button light reset-button" onClick={s.reset}>
             <RotateCcw size={16} />
             Reset Demo
@@ -898,6 +919,10 @@ function Companion() {
         </h1>
         <p>A little reassurance, wherever the day takes you.</p>
         <Wearable />
+        <Link className="button explore-memories" to="/memories">
+          <Leaf size={23} />
+          Explore Memories
+        </Link>
         <div className="companion-foot">
           <ShieldCheck size={17} /> Educational simulation · no real emergency
           calls
@@ -1169,6 +1194,7 @@ function Landing() {
   );
 }
 function CaregiverRoutes() {
+  const memorySession = useMemory((s) => s.session);
   return (
     <Shell>
       <Routes>
@@ -1222,6 +1248,15 @@ function CaregiverRoutes() {
                 action={<Badge />}
               />
               <section className="card twin-stage">
+                {memorySession && (
+                  <div className="memory-notice">
+                    Memory Garden ·{" "}
+                    {memorySession.paused
+                      ? "Paused — progress preserved"
+                      : "Activity in progress"}
+                    . <Link to="/caregiver/library">View shared moments</Link>
+                  </div>
+                )}
                 <Wearable />
                 <Link className="button light" to="/demo">
                   Change the scenario <ArrowRight size={16} />
@@ -1233,6 +1268,7 @@ function CaregiverRoutes() {
         <Route path="landmarks" element={<Landmarks />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="emergency" element={<EmergencyAssistance />} />
+        <Route path="library" element={<CaregiverMemoryLibrary />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Shell>
@@ -1255,6 +1291,15 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/companion" element={<Companion />} />
+        <Route path="/memories" element={<MemoryGardenHome />} />
+        <Route
+          path="/memory-demo"
+          element={
+            <Shell>
+              <MemoryGardenDemo />
+            </Shell>
+          }
+        />
         <Route path="/caregiver/*" element={<CaregiverRoutes />} />
         <Route
           path="/demo"

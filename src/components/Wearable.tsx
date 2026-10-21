@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Battery,
   Wifi,
@@ -9,6 +9,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { messages, useStore } from "../store";
+import { SOSButton } from "./SOSButton";
 import { Sprout } from "./Sprout";
 export function Photo({ src, alt }: { src: string; alt: string }) {
   return (
@@ -29,20 +30,12 @@ export function Photo({ src, alt }: { src: string; alt: string }) {
 export function Wearable({ compact = false }: { compact?: boolean }) {
   const s = useStore();
   const [now, setNow] = useState(new Date());
-  const [holding, setHolding] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const approved = s.landmarks.filter((l) => l.approved);
   const landmark = approved[s.guideIndex];
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(t);
   }, []);
-  useEffect(
-    () => () => {
-      if (timer.current) clearTimeout(timer.current);
-    },
-    [],
-  );
   useEffect(() => {
     if (s.settings.voice && "speechSynthesis" in window) {
       const speech = new SpeechSynthesisUtterance(
@@ -52,19 +45,6 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       return () => window.speechSynthesis.cancel();
     }
   }, [s.mode, s.settings.voice, s.settings.companionName]);
-  const cancel = () => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = null;
-    setHolding(false);
-  };
-  const hold = () => {
-    if (timer.current) return;
-    setHolding(true);
-    timer.current = setTimeout(() => {
-      s.event("SOS");
-      cancel();
-    }, 2000);
-  };
   return (
     <div className={`watch-area ${compact ? "compact" : ""}`}>
       <div className="watch-strap top" />
@@ -183,26 +163,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
               </button>
             </div>
           )}
-          <button
-            className={`sos-hold ${holding ? "holding" : ""}`}
-            onPointerDown={(e) => {
-              e.currentTarget.setPointerCapture(e.pointerId);
-              hold();
-            }}
-            onPointerUp={cancel}
-            onPointerCancel={cancel}
-            onLostPointerCapture={cancel}
-            onKeyDown={(e) => {
-              if ((e.key === " " || e.key === "Enter") && !e.repeat) {
-                e.preventDefault();
-                hold();
-              }
-            }}
-            onKeyUp={cancel}
-            onBlur={cancel}
-          >
-            SOS <span>{holding ? "Keep holding…" : "Hold for 2 seconds"}</span>
-          </button>
+          <SOSButton />
         </div>
       </div>
       <div className="watch-strap bottom" />
