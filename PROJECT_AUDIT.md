@@ -98,3 +98,7 @@ Four deterministic simulated conditions (deviation, inactivity, missed check-ins
 Memory Garden now explains optional suggestions based on explicit preferences and interaction history; no automatic start, cognitive score or difficulty change is introduced. Approved memory-place photographs can become independent pending landmark proposals, with a separate instruction and explicit navigation approval. Browser coverage verifies that deleting the source memory does not delete the copied navigation photo.
 
 See `IMPLEMENTATION_DECISIONS.md` for decisions made before editing and final evidence: **30 unit tests, 16 browser tests, production build and `/WayHome/` smoke checks passed**. See `DEMO_REFINEMENTS.md` for the five-part demonstration. The original Pages workflow/branding and existing activities, emergency simulation and demos are retained. Known browser-local/concurrency/hardware limitations remain explicit.
+
+## Companion entry navigation fix
+
+A mobile regression reproduced retained scroll position after Explore Memories: the destination remained 450 px down, obscuring its heading and potentially leaving the same wearable in view. Route changes and non-embedded activity changes now reset scroll/focus. Paused memories show explicit reasons and caregiver-review/return links. Fresh-browser entry, legacy unknown-wear recovery and SOS-protected entry have dedicated browser coverage; safety and progress remain unchanged.

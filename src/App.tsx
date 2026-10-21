@@ -1,3 +1,4 @@
+import { RouteFocus } from "./components/RouteFocus";
 import { lazy, Suspense, useState } from "react";
 import {
   HashRouter,
@@ -48,7 +49,7 @@ import {
   MemoryActivityHistory,
 } from "./memory/MemoryLibrary";
 import { MemoryGardenDemo } from "./memory/MemoryDemo";
-import { useMemory } from "./memory/store";
+import { useMemory, safetyReady } from "./memory/store";
 import { EmergencyAssistance } from "./components/EmergencyAssistance";
 import { CompanionPersonalization } from "./components/CompanionPersonalization";
 import { Sprout } from "./components/Sprout";
@@ -960,10 +961,26 @@ function Companion() {
         </h1>
         <p>A little reassurance, wherever the day takes you.</p>
         <Wearable />
-        <Link className="button explore-memories" to="/memories">
+        <Link
+          className="button explore-memories"
+          to="/memories"
+          aria-describedby={
+            !safetyReady() ? "memories-availability" : undefined
+          }
+        >
           <Leaf size={23} />
           Explore Memories
         </Link>
+        {!safetyReady() && (
+          <p
+            id="memories-availability"
+            className="companion-memory-notice"
+            role="status"
+          >
+            Memory Garden is paused. Select Explore Memories to see why and open
+            caregiver review.
+          </p>
+        )}
         <div className="companion-foot">
           <ShieldCheck size={17} /> Educational simulation · no real emergency
           calls
@@ -1334,6 +1351,7 @@ function NotFound() {
 export default function App() {
   return (
     <HashRouter>
+      <RouteFocus />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/companion" element={<Companion />} />

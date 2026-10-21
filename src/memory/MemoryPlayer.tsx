@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -371,6 +371,16 @@ export function MemoryGardenExperience({
   const [categoryPage, setCategoryPage] = useState(0);
   const [empty, setEmpty] = useState("");
   const safe = safetyReady();
+  const screen = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    if (embedded) return;
+    window.scrollTo(0, 0);
+    const heading = screen.current?.querySelector<HTMLElement>("h1,h2");
+    if (heading) {
+      heading.setAttribute("tabindex", "-1");
+      heading.focus({ preventScroll: true });
+    }
+  }, [embedded, safe, m.stage, m.session?.id]);
   const options = m.preferences.preferred.length
     ? m.preferences.preferred
     : kinds;
@@ -381,9 +391,53 @@ export function MemoryGardenExperience({
   }, [options.length, categoryPage]);
   if (!safe)
     return (
-      <section className="memory-safety" aria-live="assertive">
+      <section ref={screen} className="memory-safety" aria-live="assertive">
+        <h1>Memory Garden is paused</h1>
         <h2>Memories can wait. We're here with you.</h2>
-        <p>Your activity is paused and your garden is safe.</p>
+        <p>
+          {m.session
+            ? "Your saved activity and garden are preserved."
+            : "No activity has started yet. Your garden is unchanged."}
+        </p>
+        <div className="memory-pause-reasons" role="status">
+          <h3>Why it hasn't opened yet</h3>
+          <ul>
+            {(s.mode === "EMERGENCY_SIMULATED" ||
+              (s.incident && s.incident.stage !== "resolved")) && (
+              <li>
+                A simulated help request still needs caregiver resolution and
+                verification.
+              </li>
+            )}
+            {!s.connected && <li>The simulated device is disconnected.</li>}
+            {s.wearStatus !== "likely_worn" && (
+              <li>
+                The attachment readings need a caregiver check. Wear status is{" "}
+                {s.wearStatus.replaceAll("_", " ")}.
+              </li>
+            )}
+            {s.signals.gpsConfidence < 0.6 && (
+              <li>The simulated location is uncertain.</li>
+            )}
+            {s.mode === "GUIDED_RETURN" && <li>Guided return is active.</li>}
+            {s.mode === "REORIENTATION" && (
+              <li>A route or reorientation check is active.</li>
+            )}
+            {s.mode === "CAREGIVER_HANDOVER" && (
+              <li>A caregiver assistance request is active.</li>
+            )}
+            {s.mode === "CHECK_IN" && (
+              <li>A check-in or device review is still needed.</li>
+            )}
+          </ul>
+          <p>
+            Open caregiver review to check the demo readings, then return here.
+            Activities will not clear a safety alert automatically.
+          </p>
+          <Link className="button" to="/caregiver/emergency">
+            Open caregiver review (demo)
+          </Link>
+        </div>
         <Wearable compact={embedded} />
         {!embedded && (
           <Link className="button light" to="/companion">
@@ -393,7 +447,10 @@ export function MemoryGardenExperience({
       </section>
     );
   return (
-    <section className={`memory-experience ${embedded ? "embedded" : ""}`}>
+    <section
+      ref={screen}
+      className={`memory-experience ${embedded ? "embedded" : ""}`}
+    >
       <div className="memory-topline">
         <button
           className="text-button"

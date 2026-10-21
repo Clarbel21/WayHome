@@ -43,6 +43,16 @@ export function EmergencyAssistance() {
       </div>
       <div className="demo-layout">
         <div>
+          <div className="memory-review-return">
+            <Link className="button light" to="/memories">
+              Return to Memory Garden
+            </Link>
+            <p>
+              After reviewing the demo device readings, choose Review check-in
+              after observations below. An active SOS requires separate
+              resolution and verification.
+            </p>
+          </div>
           <section className="card settings-card emergency-panel">
             <ShieldAlert size={28} />
             <h2>SIMULATION — No police were contacted</h2>
