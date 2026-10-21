@@ -45,11 +45,13 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   );
   useEffect(() => {
     if (s.settings.voice && "speechSynthesis" in window) {
-      const speech = new SpeechSynthesisUtterance(messages[s.mode]);
+      const speech = new SpeechSynthesisUtterance(
+        messages(s.settings.companionName)[s.mode],
+      );
       window.speechSynthesis.speak(speech);
       return () => window.speechSynthesis.cancel();
     }
-  }, [s.mode, s.settings.voice]);
+  }, [s.mode, s.settings.voice, s.settings.companionName]);
   const cancel = () => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
@@ -85,9 +87,10 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           <div className="watch-label">
             WAYHOME <span>• {s.connected ? "Connected" : "Disconnected"}</span>
           </div>
+          <div className="wearable-name">{s.settings.companionName}</div>
           <Sprout small={compact} />
           <div className="speech" aria-live="polite">
-            {messages[s.mode]}
+            {messages(s.settings.companionName)[s.mode]}
           </div>
           {s.mode === "GUIDED_RETURN" &&
             (landmark ? (
@@ -95,7 +98,17 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
                 <Photo src={landmark.photo} alt={landmark.name} />
                 <strong>{landmark.name}</strong>
                 <p>{landmark.instruction}</p>
-                <button className="watch-action" onClick={s.nextLandmark}>
+                {(!s.connected || !s.worn) && (
+                  <p role="status">
+                    Guidance paused. Your caregiver can help reconnect the
+                    wearable.
+                  </p>
+                )}
+                <button
+                  className="watch-action"
+                  disabled={!s.connected || !s.worn}
+                  onClick={s.nextLandmark}
+                >
                   {s.guideIndex === approved.length - 1
                     ? "I'm home"
                     : "I see it · Next step"}

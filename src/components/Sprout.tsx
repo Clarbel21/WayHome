@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useStore } from "../store";
 export function Sprout({ small = false }: { small?: boolean }) {
+  const name = useStore((s) => s.settings.companionName);
   const mode = useStore((s) => s.mode);
   const reduced = useStore((s) => s.settings.reducedMotion);
   const worried = ["CHECK_IN", "REORIENTATION", "EMERGENCY_SIMULATED"].includes(
@@ -9,7 +10,7 @@ export function Sprout({ small = false }: { small?: boolean }) {
   return (
     <motion.svg
       role="img"
-      aria-label={`Sprout looks ${worried ? "concerned and reassuring" : "happy"}`}
+      aria-label={`${name} looks ${worried ? "concerned and reassuring" : "happy"}`}
       className={small ? "sprout small" : "sprout"}
       viewBox="0 0 240 230"
       animate={reduced ? {} : { y: [0, -7, 0], rotate: [-2, 2, -2] }}

@@ -60,3 +60,13 @@ Data stays in this browser under `wayhome-v1`. This app is a presentation protot
 ## GitHub Pages deployment
 
 The Pages workflow builds and deploys on pushes to `main`, or manually through Actions → Deploy WayHome to GitHub Pages → Run workflow. In repository Settings → Pages, select **GitHub Actions** as the source. After a successful deployment, visit https://clarbel21.github.io/WayHome/. Routing, lazy-loaded maps, and bundled landmark images support this repository subpath.
+
+## Companion personalization and emergency assistance
+
+Under **Caregiver → Settings → Companion Personalization**, enter a name (1–24 Unicode characters), then choose **Save companion name**. The greeting, digital twin, dashboard, guided script and avatar labels update immediately. **Reset to Default** restores Sprout. Existing saved profiles receive the default name without losing other settings.
+
+Under **Caregiver → Emergency Assistance**, choose **Simulate Police Notification**, review the confirmation, and supply an alert reason. Confirming creates a local emergency event with the wearer, fictional route coordinates, time, safety status and reason; no police, SMS, calls or emergency API are contacted. Cancel or Escape leaves the simulation unchanged. SOS still logs immediately from every state, including when notification indicators are disabled.
+
+S5 remains active until **Reset emergency state** or a full demo reset. Acknowledgment records who reviewed an event and when; it does not dismiss S5. **Reset emergency state** restores normal operation and simulated connection/wear status while preserving history, profiles and landmarks. Full **Reset Demo** continues to clear all simulation history as documented above.
+
+See `PROJECT_AUDIT.md` for verified coverage and remaining gaps. Cognitive activities (photo recognition game, memory garden, routine sequencing, music reminiscence) are not yet implemented; landmark recognition is navigation, not a cognitive game.

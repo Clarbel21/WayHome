@@ -149,7 +149,12 @@ export function RouteMap() {
         <div className="button-row">
           <button
             className="button small-button"
-            disabled={s.position === 6 || !s.connected || !s.worn}
+            disabled={
+              s.position === 6 ||
+              !s.connected ||
+              !s.worn ||
+              s.mode === "EMERGENCY_SIMULATED"
+            }
             onClick={s.move}
           >
             Move one step

@@ -38,6 +38,8 @@ import {
 import { motion } from "framer-motion";
 import { useStore, status, samples, type Event, type Landmark } from "./store";
 import { Wearable, Photo } from "./components/Wearable";
+import { EmergencyAssistance } from "./components/EmergencyAssistance";
+import { CompanionPersonalization } from "./components/CompanionPersonalization";
 import { Sprout } from "./components/Sprout";
 const LazyRouteMap = lazy(() =>
   import("./components/RouteMap").then((m) => ({ default: m.RouteMap })),
@@ -64,7 +66,7 @@ const actions: { label: string; event: Event; description: string }[] = [
   {
     label: "Trigger Gentle Check-in",
     event: "CHECK",
-    description: "Sprout checks how the wearer feels",
+    description: "Your companion checks how the wearer feels",
   },
   {
     label: "Simulate Disorientation",
@@ -131,6 +133,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     ["/caregiver", "Overview", LayoutDashboard],
     ["/caregiver/location", "Live location", MapPin],
     ["/caregiver/alerts", "Alerts", Bell],
+    ["/caregiver/emergency", "Emergency Assistance", ShieldCheck],
     ["/caregiver/twin", "Digital twin", Watch],
     ["/caregiver/landmarks", "Familiar landmarks", Compass],
     ["/caregiver/settings", "Settings", Settings],
@@ -281,8 +284,8 @@ function Overview() {
               : !s.worn
                 ? "Wear detection reports that the device has been removed."
                 : s.mode === "NORMAL"
-                  ? "Sprout is by their side. We'll keep you in the loop."
-                  : "Sprout and your dashboard are responding together."}
+                  ? ` ${s.settings.companionName} is by their side. We'll keep you in the loop.`
+                  : `${s.settings.companionName} and your dashboard are responding together.`}
           </p>
         </div>
         <Badge />
@@ -333,7 +336,7 @@ function Overview() {
         <section className="card companion-card">
           <div className="card-heading">
             <div>
-              <h2>A moment with Sprout</h2>
+              <h2>A moment with {s.settings.companionName}</h2>
               <p>
                 Your window into {s.settings.wearer.split(" ")[0]}'s companion.
               </p>
@@ -387,6 +390,13 @@ function Overview() {
             Manage landmarks <ArrowRight size={16} />
           </Link>
         </section>
+      </div>
+      <div className="emergency-overview-link">
+        <Link className="text-button" to="/caregiver/emergency">
+          <ShieldCheck size={17} />
+          Emergency Assistance · review or simulate an escalation{" "}
+          <ArrowRight size={15} />
+        </Link>
       </div>
       <div className="demo-strip">
         <span className="demo-icon">
@@ -451,6 +461,30 @@ function Alerts({ compact = false }: { compact?: boolean }) {
             <div>
               <strong>{a.title}</strong>
               <small>{new Date(a.time).toLocaleString()}</small>
+              {a.emergency && (
+                <div className="alert-emergency">
+                  <p>SIMULATION — No police were contacted</p>
+                  <p>
+                    {a.emergency.wearer} · {a.emergency.location}
+                  </p>
+                  <p>
+                    {a.emergency.safetyStatus} · {a.emergency.reason}
+                  </p>
+                  {a.emergency.acknowledgedAt ? (
+                    <p>
+                      Acknowledged by {a.emergency.acknowledgedBy} ·{" "}
+                      {new Date(a.emergency.acknowledgedAt).toLocaleString()}
+                    </p>
+                  ) : (
+                    <button
+                      className="text-button"
+                      onClick={() => s.acknowledgeEmergency(a.id)}
+                    >
+                      Acknowledge event
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
             {!a.read ? (
               <button className="text-button" onClick={() => s.read(a.id)}>
@@ -685,6 +719,7 @@ function SettingsPage() {
         title="A circle of care"
         description="Sample profiles and preferences are saved automatically on this browser."
       />
+      <CompanionPersonalization />
       <div className="settings-grid">
         <section className="card settings-card">
           <h2>People & connections</h2>
@@ -726,7 +761,7 @@ function SettingsPage() {
               [
                 "voice",
                 "Companion voice",
-                "Read Sprout’s messages aloud using your browser.",
+                `Read ${s.settings.companionName}’s messages aloud using your browser.`,
               ],
               [
                 "notifications",
@@ -741,7 +776,7 @@ function SettingsPage() {
               [
                 "reducedMotion",
                 "Reduce motion",
-                "Keep Sprout and screen transitions still.",
+                `Keep ${s.settings.companionName} and screen transitions still.`,
               ],
             ] as const
           ).map(([key, label, description]) => (
@@ -789,7 +824,7 @@ function DemoControls() {
       <Heading
         eyebrow="THE WAYHOME SANDBOX"
         title="Every moment, connected."
-        description="Run a scenario and see Sprout, safety status, location, and alerts respond together."
+        description={`Run a scenario and see ${s.settings.companionName}, safety status, location, and alerts respond together.`}
         action={
           <Link className="button light" to="/guided">
             <Sparkles size={17} />
@@ -877,22 +912,22 @@ function Companion() {
 const steps = [
   {
     title: "A little independence",
-    body: "Alex is enjoying a neighborhood walk. Sprout is happy, the device is connected, and the caregiver has a reassuring overview.",
+    body: "Alex is enjoying a neighborhood walk. {companion} is happy, the device is connected, and the caregiver has a reassuring overview.",
     event: "WALK",
   },
   {
     title: "A gentle check-in",
-    body: "A simulated unusual route event prompts Sprout to ask “Are you feeling okay?” without overwhelming Alex.",
+    body: "A simulated unusual route event prompts {companion} to ask “Are you feeling okay?” without overwhelming Alex.",
     event: "CHECK",
   },
   {
     title: "A moment of uncertainty",
-    body: "Alex selects “I need help.” Sprout offers a calm, reassuring response and updates the caregiver.",
+    body: "Alex selects “I need help.” {companion} offers a calm, reassuring response and updates the caregiver.",
     event: "LOST",
   },
   {
     title: "Let’s find something familiar",
-    body: "Sprout says “That’s okay. Let’s find a place you recognize.” Familiar places support reorientation.",
+    body: "{companion} says “That’s okay. Let’s find a place you recognize.” Familiar places support reorientation.",
     event: "LOST",
   },
   {
@@ -949,7 +984,11 @@ function Guided() {
             ))}
           </div>
           <h2>{steps[index].title}</h2>
-          <p>{steps[index].body}</p>
+          <p>
+            {steps[index].body
+              .replaceAll("{companion}", s.settings.companionName)
+              .replaceAll("Alex", s.settings.wearer)}
+          </p>
           <div className="presenter-note">
             <CircleHelp size={20} />
             <p>
@@ -1005,6 +1044,7 @@ function Guided() {
   );
 }
 function Landing() {
+  const companionName = useStore((s) => s.settings.companionName);
   return (
     <div className="landing">
       <header className="public-header">
@@ -1104,7 +1144,7 @@ function Landing() {
             </div>
           </div>
           <span className="visual-caption">
-            MEET SPROUT. YOUR EVERYDAY COMPANION.
+            MEET {companionName.toLocaleUpperCase()}. YOUR EVERYDAY COMPANION.
           </span>
         </motion.div>
       </main>
@@ -1192,6 +1232,7 @@ function CaregiverRoutes() {
         />
         <Route path="landmarks" element={<Landmarks />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="emergency" element={<EmergencyAssistance />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Shell>
