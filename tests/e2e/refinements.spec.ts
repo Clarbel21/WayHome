@@ -28,7 +28,7 @@ test("incident acknowledgment and reset preserve faults; fresh SOS cancels verif
     .check();
   await expect(
     page.getByRole("button", { name: "Verify resolution and close incident" }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await expect(
     page.getByText("Device is disconnected", { exact: true }),
   ).toBeVisible();

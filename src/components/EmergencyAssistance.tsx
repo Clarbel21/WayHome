@@ -104,8 +104,9 @@ export function EmergencyAssistance() {
               <div className="incident-verification">
                 <h3>Verification required · S5 remains active</h3>
                 <p>
-                  These demo checks are not a real safety guarantee. Fix
-                  observed device/scenario issues below first.
+                  Confirm the wearer has received help. Device warnings below
+                  remain recorded and continue to block navigation; they do not
+                  prevent caregiver-reviewed local memory activities.
                 </p>
                 <ul>
                   {blockers.map((reason, i) => (
@@ -122,11 +123,11 @@ export function EmergencyAssistance() {
                 </label>
                 <button
                   className="button"
-                  disabled={!confirmed || blockers.length > 0}
+                  disabled={!confirmed}
                   onClick={() => {
                     if (!s.incident) return;
                     setVerificationMessage(
-                      s.verifyIncident(
+                      s.resolveIncident(
                         s.incident.id,
                         s.incident.revision,
                         confirmed,
@@ -141,6 +142,13 @@ export function EmergencyAssistance() {
               </div>
             )}
             <p role="status">{verificationMessage}</p>
+            {s.incident?.deviceReviewPending && (
+              <p className="memory-notice">
+                SOS is resolved. Device review is still pending, but you can
+                return to Memory Garden and continue local activities with
+                caregiver support.
+              </p>
+            )}
           </section>
           <WearableConfiguration />
           <SafetyScenarios />

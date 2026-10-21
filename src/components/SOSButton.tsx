@@ -3,10 +3,13 @@ import { useStore } from "../store";
 export function SOSButton() {
   const event = useStore((s) => s.event);
   const [holding, setHolding] = useState(false);
+  const started = useRef<number | null>(null);
+  const sent = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cancel = () => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
+    started.current = null;
     setHolding(false);
   };
   useEffect(
@@ -18,10 +21,26 @@ export function SOSButton() {
   const hold = () => {
     if (timer.current) return;
     setHolding(true);
+    started.current = performance.now();
+    sent.current = false;
     timer.current = setTimeout(() => {
-      event("SOS");
+      if (!sent.current) {
+        sent.current = true;
+        event("SOS");
+      }
       cancel();
     }, 2000);
+  };
+  const release = () => {
+    if (
+      started.current !== null &&
+      !sent.current &&
+      performance.now() - started.current >= 2000
+    ) {
+      sent.current = true;
+      event("SOS");
+    }
+    cancel();
   };
   return (
     <button
@@ -30,7 +49,7 @@ export function SOSButton() {
         e.currentTarget.setPointerCapture(e.pointerId);
         hold();
       }}
-      onPointerUp={cancel}
+      onPointerUp={release}
       onPointerCancel={cancel}
       onLostPointerCapture={cancel}
       onKeyDown={(e) => {
@@ -39,7 +58,9 @@ export function SOSButton() {
           hold();
         }
       }}
-      onKeyUp={cancel}
+      onKeyUp={(e) => {
+        if (e.key === " " || e.key === "Enter") release();
+      }}
       onBlur={cancel}
     >
       SOS <span>{holding ? "Keep holding…" : "Hold for 2 seconds"}</span>

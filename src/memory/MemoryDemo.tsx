@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "../store";
-import { sampleEntries, useMemory } from "./store";
+import { sampleEntries, useMemory, safetyReady } from "./store";
 import { MemoryGardenExperience } from "./MemoryPlayer";
 const scenario = [
   [
@@ -49,7 +49,7 @@ export function MemoryGardenDemo() {
   const s = useStore();
   const [notice, setNotice] = useState("");
   function prepare() {
-    if (s.mode !== "NORMAL" || !s.connected || !s.worn) {
+    if (!safetyReady()) {
       setNotice(
         "Resolve or reset the safety simulation in Emergency Assistance before starting this sample scenario.",
       );

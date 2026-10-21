@@ -173,6 +173,12 @@ interface State {
   wearObservedAt: number | null;
   signals: SafetySignals;
   incident: Incident | null;
+  reviewedIncident: { id: string; revision: number } | null;
+  resolveIncident: (
+    id: string,
+    revision: number,
+    personConfirmed: boolean,
+  ) => boolean;
   setAttachment: (attachment: Attachment) => void;
   observeWear: (inputs: WearInputs) => void;
   setConnection: (connected: boolean) => void;
@@ -213,6 +219,7 @@ const defaults = () => ({
   wearObservedAt: Date.now(),
   signals: { ...clearSignals },
   incident: null as Incident | null,
+  reviewedIncident: null as { id: string; revision: number } | null,
   battery: 86,
   position: 0,
   guideIndex: 0,
@@ -254,6 +261,17 @@ export const useStore = create<State>()(
             ? current.incident.id
             : crypto.randomUUID();
         set((s) => ({
+          ...(!["OKAY", "WALK"].includes(event)
+            ? { reviewedIncident: null }
+            : {}),
+          ...(event === "OKAY" &&
+          !verificationBlockers(s).length &&
+          s.incident?.stage === "resolved"
+            ? {
+                incident: { ...s.incident, deviceReviewPending: false },
+                reviewedIncident: null,
+              }
+            : {}),
           mode: withScenarioPriority(
             s.incident && s.incident.stage !== "resolved"
               ? "EMERGENCY_SIMULATED"
@@ -391,6 +409,54 @@ export const useStore = create<State>()(
             ].slice(0, 100),
           };
         }),
+      resolveIncident: (id, revision, personConfirmed) => {
+        const s = get();
+        if (
+          !personConfirmed ||
+          !s.incident ||
+          s.incident.id !== id ||
+          s.incident.revision !== revision ||
+          s.incident.stage !== "awaiting_verification"
+        )
+          return false;
+        if (!verificationBlockers(s).length)
+          return s.verifyIncident(id, revision, true);
+        const time = Date.now();
+        set({
+          mode: "CHECK_IN",
+          reviewedIncident: { id, revision },
+          incident: {
+            ...s.incident,
+            stage: "resolved",
+            verifiedAt: time,
+            verifiedBy: s.settings.caregiver,
+            deviceReviewPending: true,
+          },
+          alerts: [
+            {
+              id: crypto.randomUUID(),
+              title:
+                "Incident resolved after caregiver confirmation — device review remains pending",
+              time,
+              read: false,
+              urgent: false,
+            },
+            ...s.alerts.map((a) =>
+              a.emergency?.incidentId === id
+                ? {
+                    ...a,
+                    emergency: {
+                      ...a.emergency,
+                      resolvedAt: time,
+                      resolvedBy: s.settings.caregiver,
+                    },
+                  }
+                : a,
+            ),
+          ].slice(0, 100),
+        });
+        return true;
+      },
       verifyIncident: (id, revision, personConfirmed) => {
         const s = get();
         if (
@@ -405,6 +471,7 @@ export const useStore = create<State>()(
         const time = Date.now();
         set({
           mode: "NORMAL",
+          reviewedIncident: null,
           incident: {
             ...s.incident,
             stage: "resolved",
@@ -439,6 +506,7 @@ export const useStore = create<State>()(
       setAttachment: (attachment) =>
         set((s) => ({
           attachment,
+          reviewedIncident: null,
           wearInputs: { ...unknownInputs },
           wearStatus: "unknown",
           worn: false,
@@ -463,6 +531,7 @@ export const useStore = create<State>()(
         set((s) => {
           const wearStatus = inferWear(s.attachment, inputs, s.connected);
           return {
+            reviewedIncident: null,
             wearInputs: { ...inputs },
             wearStatus,
             worn: wearStatus === "likely_worn",
@@ -493,6 +562,7 @@ export const useStore = create<State>()(
         if (get().connected) return;
         set((s) => ({
           connected: true,
+          reviewedIncident: null,
           wearInputs: { ...unknownInputs },
           wearStatus: "unknown",
           worn: false,
@@ -534,6 +604,7 @@ export const useStore = create<State>()(
           const findings = evaluateSignals(signals);
           return {
             signals,
+            reviewedIncident: null,
             mode:
               s.mode === "EMERGENCY_SIMULATED"
                 ? s.mode

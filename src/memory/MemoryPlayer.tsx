@@ -472,6 +472,12 @@ export function MemoryGardenExperience({
           </button>
         )}
       </div>
+      {s.incident?.deviceReviewPending && s.reviewedIncident && (
+        <p className="memory-notice">
+          SOS is resolved. Local memories can continue after caregiver review.
+          Device warnings remain; navigation still needs review.
+        </p>
+      )}
       <div className="memory-host">
         <Sprout small />
         <span>Here with {s.settings.companionName}</span>

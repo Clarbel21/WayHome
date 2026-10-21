@@ -102,12 +102,18 @@ export const sampleEntries: MemoryEntry[] = [
 ];
 export function safetyReady() {
   const s = useStore.getState();
+  if (s.incident && s.incident.stage !== "resolved") return false;
+  const reviewed =
+    s.mode === "CHECK_IN" &&
+    s.incident?.stage === "resolved" &&
+    s.reviewedIncident?.id === s.incident.id &&
+    s.reviewedIncident?.revision === s.incident.revision;
   return (
-    s.mode === "NORMAL" &&
-    (!s.incident || s.incident.stage === "resolved") &&
-    s.connected &&
-    s.wearStatus === "likely_worn" &&
-    s.signals.gpsConfidence >= 0.6
+    !!reviewed ||
+    (s.mode === "NORMAL" &&
+      s.connected &&
+      s.wearStatus === "likely_worn" &&
+      s.signals.gpsConfidence >= 0.6)
   );
 }
 interface MemoryState {

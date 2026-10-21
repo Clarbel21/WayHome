@@ -61,14 +61,13 @@ export function ResolveSOSButton() {
                 );
                 return;
               }
-              if (verificationBlockers(current).length) return;
               current.resetEmergency(
                 "Caregiver confirms help received and wearer checked using Resolve SOS.",
               );
               if (
                 !useStore
                   .getState()
-                  .verifyIncident(target.id, target.revision, true)
+                  .resolveIncident(target.id, target.revision, true)
               ) {
                 setError(
                   "The incident could not be closed. Review the latest request and device observations.",
@@ -95,8 +94,9 @@ export function ResolveSOSButton() {
             {blockers.length > 0 && (
               <div className="resolve-sos-blockers">
                 <p>
-                  These observations still need caregiver review before SOS can
-                  be resolved:
+                  These device warnings will stay visible after resolving SOS.
+                  You can still continue local memories after caregiver
+                  confirmation:
                 </p>
                 <ul>
                   {blockers.map((reason, i) => (
@@ -127,11 +127,7 @@ export function ResolveSOSButton() {
               >
                 Keep SOS active
               </button>
-              <button
-                type="submit"
-                className="button"
-                disabled={changed || blockers.length > 0}
-              >
+              <button type="submit" className="button" disabled={changed}>
                 Caregiver confirms — resolve SOS
               </button>
             </div>
