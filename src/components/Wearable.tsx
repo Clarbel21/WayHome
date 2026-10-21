@@ -11,6 +11,7 @@ import {
 import { messages, useStore } from "../store";
 import { attachmentNames, wearLabels } from "../services/safety";
 import { LandmarkPhoto } from "./LandmarkPhoto";
+import { ResolveSOSButton } from "./ResolveSOSButton";
 import { SOSButton } from "./SOSButton";
 import { Sprout } from "./Sprout";
 export { Photo } from "./Photo";
@@ -154,6 +155,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
               </button>
             </div>
           )}
+          {s.mode === "EMERGENCY_SIMULATED" && <ResolveSOSButton />}
           <SOSButton />
         </div>
       </div>

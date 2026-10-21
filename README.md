@@ -108,3 +108,7 @@ See `IMPLEMENTATION_DECISIONS.md` for the design decisions and `DEMO_REFINEMENTS
 ### If Explore Memories seems unresponsive
 
 Companion-to-Memory Garden navigation now returns to the top and focuses the destination heading; activity changes also reveal the new question instead of retaining the previous scroll position. A paused garden explicitly lists the active check-in/device/SOS reasons and offers **Open caregiver review (demo)**. Review the simulated observations there, complete incident verification if required, then choose **Return to Memory Garden**. Progress is preserved and safety checks are never automatically dismissed. After a Pages update, refresh the site to load the latest build.
+
+### Ending a resolved SOS
+
+The wearable and Emergency Assistance screen now include **Help received — resolve SOS** while an SOS is active. After a caregiver has checked on the wearer and help has arrived, choose the button and **Caregiver confirms — resolve SOS**. This uses the existing incident-resolution/verification checks, returns to the companion when those checks pass, and preserves the emergency history. **Keep SOS active** cancels the confirmation. Disconnected, removed/uncertain wear, or outstanding scenario readings still need review; the button does not fabricate healthy device readings. A newer SOS invalidates an older open confirmation.

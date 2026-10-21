@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ShieldAlert } from "lucide-react";
 import { simulatedLocation, status, useStore } from "../store";
 import { verificationBlockers, wearLabels } from "../services/safety";
+import { ResolveSOSButton } from "./ResolveSOSButton";
 import { WearableConfiguration } from "./WearableConfiguration";
 import { SafetyScenarios } from "./SafetyScenarios";
 import { Wearable } from "./Wearable";
@@ -59,6 +60,7 @@ export function EmergencyAssistance() {
             <p>Current wearer: {s.settings.wearer}</p>
             <p>Current safety status: {status[s.mode]}</p>
             <p>{simulatedLocation(s.position)}</p>
+            <ResolveSOSButton />
             <div className="button-row">
               <button
                 ref={trigger}

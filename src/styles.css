@@ -3171,3 +3171,46 @@ input[type="checkbox"] {
   line-height: 1.8;
   margin-top: 12px;
 }
+.resolve-sos-button {
+  margin-top: 14px;
+  background: #e7eddd;
+  color: #28483b;
+  border: 1px solid #bdcdb0;
+  min-height: 48px;
+}
+.emergency-panel > .resolve-sos-button {
+  width: auto;
+  padding: 12px 18px;
+}
+.resolve-sos-dialog {
+  text-align: left;
+}
+.resolve-sos-dialog h2 {
+  font-size: 23px;
+  line-height: 1.4;
+  text-align: left;
+}
+.resolve-sos-dialog p {
+  font-size: 14px !important;
+  line-height: 1.8;
+}
+.resolve-sos-dialog .button {
+  white-space: normal;
+  text-align: center;
+}
+.resolve-sos-dialog ul {
+  padding-left: 20px;
+  list-style: disc;
+  font-size: 13px;
+  line-height: 1.8;
+  color: #715f40;
+}
+.resolve-sos-blockers {
+  padding: 15px;
+  background: #f5efdf;
+  border-radius: 10px;
+  margin: 15px 0;
+}
+.resolve-sos-blockers > .button {
+  margin: 15px 0 0;
+}
