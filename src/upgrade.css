@@ -1656,3 +1656,96 @@
     text-align: right;
   }
 }
+
+/* ============================================================ live route home map */
+.route-home-map {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #dfe5d8;
+  background: #fffefa;
+  margin: 6px 0 10px;
+}
+.route-home-map svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .route-home-map .route-me-ring {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: route-ping 1.6s ease-out infinite;
+  }
+}
+@keyframes route-ping {
+  0% {
+    transform: scale(0.6);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+.route-home-caption {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  padding: 8px 12px 10px;
+  font-size: 12px;
+}
+.route-home-caption strong {
+  grid-column: 1 / -1;
+  font-size: 13.5px;
+  color: var(--wh-ink);
+}
+.route-home-caption small {
+  grid-column: 1 / -1;
+  color: #5d6e62;
+}
+.route-home-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #2f6b4a;
+}
+.route-home-live i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2f6b4a;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .route-home-live i {
+    animation: wos-pulse 1.6s ease-out infinite;
+  }
+}
+.watch-area .watch .watch-screen.wos .wos-direction .wos-leg-bar {
+  display: block;
+  height: 4px;
+  margin-top: 5px;
+  border-radius: 2px;
+  background: #ffffff40;
+  overflow: hidden;
+}
+.watch-area .watch .watch-screen.wos .wos-direction .wos-leg-bar > i {
+  display: block;
+  height: 100%;
+  background: #dce8d2;
+  transition: width 0.25s linear;
+}
+.care-phone .zone-ladder-compact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: #4d3305;
+  background: #fbf3e2;
+  border-radius: 12px;
+  padding: 8px 10px;
+  margin: 4px 0 10px;
+}

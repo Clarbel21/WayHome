@@ -72,3 +72,12 @@ Code: `src/zone/` (store, runtime, views). Fall detection and medicine reminders
 - Everything is simulated: no real GPS, vibration hardware, SMS, calls or emergency dispatch.
 
 Tests: `tests/zone.test.ts` (5) and `tests/e2e/safe-zone.spec.ts` (3). Totals: 84 unit, 62 browser.
+
+## Live route home (watch directions + caregiver map)
+
+- `src/zone/route.ts` defines one simulated street route home. Each landmark sits on a corner, and the watch and the phone both read from it, so they always agree.
+- **Watch:** while walking it shows a turn instruction from the route ("Go straight ahead", "Turn right at the Community garden", "Turn left at the Neighborhood bakery"), the metres left to the next landmark with a progress bar, and the landmark photo. On arrival it asks "Do you see the …?".
+- **Caregiver phone:** during guidance the first card is a live map. It shows streets, the dashed route, the walked part in green, landmark photos as pins (ticked once passed), home, and the wearer's pulsing dot moving toward home, plus "Next: Local library · 7 m" and the distance from home. The paused escalation ladder shrinks to one line.
+- Starting guidance from the watch's **Go home** tile inside the zone uses a fictional start point inside the radius, so the walk is shown without triggering a zone alert.
+
+Tests: `tests/route.test.ts` (3); safe-zone browser test checks the map and turn text. Totals: 87 unit, 62 browser.

@@ -2,6 +2,14 @@ import { Check, House } from "lucide-react";
 import { navigable, useStore } from "../store";
 import { useT } from "../i18n";
 import { RADIUS_MAX, RADIUS_MIN, legTarget, useZone } from "./store";
+import {
+  MAP_H,
+  MAP_W,
+  fullPath,
+  planRoute,
+  pointAt,
+  walkedPath,
+} from "./route";
 
 const CX = 150;
 const CY = 82;
@@ -128,6 +136,14 @@ export function ZoneLadder() {
   const t = useT();
   if (!z.active) return null;
   const guiding = s.mode === "GUIDED_RETURN" && z.guideStartM !== null;
+  if (guiding)
+    return (
+      <p className="zone-ladder-compact" role="status">
+        <Check size={14} aria-hidden="true" /> {t("zoneGuiding")} ·{" "}
+        {t("zl2", { name: s.settings.caregiver.split(" ")[0] })}{" "}
+        {z.level >= 2 ? "✓" : `+${z.notifyPrimaryMin} min`}
+      </p>
+    );
   const steps = [
     { level: 1, label: t("zl1"), when: t("zoneNow") },
     {
@@ -230,5 +246,172 @@ export function SafeZoneSettings() {
         </label>
       </div>
     </section>
+  );
+}
+
+const photoSrc = (src: string) =>
+  src.startsWith("/images/")
+    ? `${import.meta.env.BASE_URL}${src.slice(1)}`
+    : src;
+
+/** Live route home: the wearer's dot walks the planned route past each landmark. */
+export function RouteHomeMap() {
+  const z = useZone();
+  const s = useStore();
+  const t = useT();
+  const approved = s.landmarks.filter(navigable);
+  if (!approved.length || z.guideStartM === null) return null;
+  const plan = planRoute(approved.length);
+  const progress = z.guideStartM > 0 ? 1 - z.distanceM / z.guideStartM : 1;
+  const me = pointAt(plan, progress);
+  const home = plan.points[plan.points.length - 1];
+  const next = approved[s.guideIndex];
+  const remainingLeg = Math.max(
+    0,
+    z.distanceM - legTarget(z.guideStartM, s.guideIndex, approved.length),
+  );
+  // Light street grid through every route corner.
+  const xs = [...new Set(plan.points.map((p) => Math.round(p.x)))];
+  const ys = [...new Set(plan.points.map((p) => Math.round(p.y)))];
+  return (
+    <div className="route-home-map">
+      <svg
+        viewBox={`0 0 ${MAP_W} ${MAP_H}`}
+        role="img"
+        aria-label={`Route home map: ${Math.round(z.distanceM)} m from home, next landmark ${next?.name ?? "home"} (simulated)`}
+      >
+        <defs>
+          {approved.map((l) => (
+            <clipPath key={l.id} id={`lm-clip-${l.id}`}>
+              <circle r="11" />
+            </clipPath>
+          ))}
+        </defs>
+        <rect width={MAP_W} height={MAP_H} fill="#e7ecdf" />
+        {[18, 92, 166, 240].map((x) =>
+          [14, 70, 126].map((y) => (
+            <rect
+              key={`${x}-${y}`}
+              x={x}
+              y={y}
+              width="58"
+              height="44"
+              rx="6"
+              fill="#dbe4d1"
+            />
+          )),
+        )}
+        {xs.map((x) => (
+          <line
+            key={`v${x}`}
+            x1={x}
+            y1="0"
+            x2={x}
+            y2={MAP_H}
+            stroke="#fbfaf4"
+            strokeWidth="10"
+          />
+        ))}
+        {ys.map((y) => (
+          <line
+            key={`h${y}`}
+            x1="0"
+            y1={y}
+            x2={MAP_W}
+            y2={y}
+            stroke="#fbfaf4"
+            strokeWidth="10"
+          />
+        ))}
+        <polyline
+          points={fullPath(plan)}
+          fill="none"
+          stroke="#9fb293"
+          strokeWidth="3"
+          strokeDasharray="4 5"
+          strokeLinecap="round"
+        />
+        <polyline
+          points={walkedPath(plan, progress)}
+          fill="none"
+          stroke="#2f6b4a"
+          strokeWidth="5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle
+          cx={plan.points[0].x}
+          cy={plan.points[0].y}
+          r="4"
+          fill="#9a6a12"
+        />
+        {approved.map((l, i) => {
+          const p = plan.points[i + 1];
+          if (i === approved.length - 1) return null; // last leg ends at home
+          const done = i < s.guideIndex;
+          const now = i === s.guideIndex;
+          return (
+            <g key={l.id} transform={`translate(${p.x} ${p.y})`}>
+              <circle
+                r="14"
+                fill="#fff"
+                stroke={now ? "#2f6b4a" : done ? "#8fb197" : "#c9d2c2"}
+                strokeWidth={now ? 3 : 2}
+              />
+              <image
+                href={photoSrc(l.photo)}
+                x="-11"
+                y="-11"
+                width="22"
+                height="22"
+                preserveAspectRatio="xMidYMid slice"
+                clipPath={`url(#lm-clip-${l.id})`}
+                opacity={done ? 0.55 : 1}
+              />
+              {done && (
+                <circle
+                  cx="10"
+                  cy="-10"
+                  r="5.5"
+                  fill="#2f6b4a"
+                  stroke="#fff"
+                  strokeWidth="1.5"
+                />
+              )}
+            </g>
+          );
+        })}
+        <g transform={`translate(${home.x} ${home.y})`}>
+          <circle r="15" fill="#28483b" />
+          <path d="M-7 1 L0 -6 L7 1 V7 H-7Z" fill="#fff" />
+        </g>
+        <circle
+          className="route-me-ring"
+          cx={me.x}
+          cy={me.y}
+          r="13"
+          fill="#9a6a1233"
+        />
+        <circle
+          cx={me.x}
+          cy={me.y}
+          r="6.5"
+          fill="#9a6a12"
+          stroke="#fff"
+          strokeWidth="2.5"
+        />
+      </svg>
+      <div className="route-home-caption">
+        <span className="route-home-live">
+          <i aria-hidden="true" /> {t("routeLive")}
+        </span>
+        <strong>
+          {next
+            ? t("routeNext", { name: next.name, m: Math.round(remainingLeg) })
+            : t("routeArrived")}
+        </strong>
+        <small>{t("routeLeft", { m: Math.round(z.distanceM) })}</small>
+      </div>
+    </div>
   );
 }

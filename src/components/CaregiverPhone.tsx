@@ -32,7 +32,7 @@ import {
 import { status, useStore, simulatedLocation, navigable } from "../store";
 import { useLang, useT, timeAgo } from "../i18n";
 import { useZone } from "../zone/store";
-import { ZoneLadder, ZoneMap } from "../zone/ZoneViews";
+import { RouteHomeMap, ZoneLadder, ZoneMap } from "../zone/ZoneViews";
 import { evaluateSignals } from "../services/safety";
 import { Check, BatteryLow, Satellite, AlertTriangle } from "lucide-react";
 import { wearLabels } from "../services/safety";
@@ -402,12 +402,15 @@ function PhoneToday() {
         </section>
       ) : (
         <>
-          <ZoneLadder />
+          {!(s.mode === "GUIDED_RETURN" && zone.guideStartM !== null) && (
+            <ZoneLadder />
+          )}
           {waiting && <FamilyResponse />}
           <section className="phone-action-card">
             {s.mode === "GUIDED_RETURN" && approved.length > 0 ? (
               <>
                 <h3>{t("routeLabel")}</h3>
+                {zone.guideStartM !== null && <RouteHomeMap />}
                 <div className="phone-stops" aria-hidden="true">
                   {approved.map((l, i) => (
                     <span
@@ -454,6 +457,9 @@ function PhoneToday() {
             </button>
             {waiting && <p>{t("respondFirst")}</p>}
           </section>
+          {s.mode === "GUIDED_RETURN" && zone.guideStartM !== null && (
+            <ZoneLadder />
+          )}
         </>
       )}
       {(!waiting || isEmergency) && <FamilyResponse />}

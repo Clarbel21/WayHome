@@ -20,6 +20,7 @@ import {
   CornerUpLeft,
 } from "lucide-react";
 import { useZone, legTarget } from "../zone/store";
+import { planRoute } from "../zone/route";
 import { useStore, navigable } from "../store";
 import { attachmentNames, wearLabels } from "../services/safety";
 import { LandmarkPhoto } from "./LandmarkPhoto";
@@ -128,13 +129,24 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           legTarget(z.guideStartM ?? 0, s.guideIndex, approved.length),
       )
     : 0;
-  const direction = (
-    ["goStraight", "turnRight", "turnLeft", "goStraight"] as const
-  )[s.guideIndex % 4];
+  // Turn-by-turn text comes from the same route plan the caregiver map draws.
+  const turn = planRoute(approved.length).turns[s.guideIndex] ?? "straight";
+  const previous = approved[s.guideIndex - 1];
+  const directionText =
+    turn === "right" && previous
+      ? t("turnRightAt", { name: previous.name })
+      : turn === "left" && previous
+        ? t("turnLeftAt", { name: previous.name })
+        : t("goStraight");
+  const legLength =
+    zoneGuided && approved.length ? (z.guideStartM ?? 0) / approved.length : 0;
+  const legDone = legLength
+    ? Math.min(1, Math.max(0, 1 - legRemaining / legLength))
+    : 0;
   const DirectionIcon =
-    direction === "turnRight"
+    turn === "right"
       ? () => <CornerUpRight size={26} />
-      : direction === "turnLeft"
+      : turn === "left"
         ? () => <CornerUpLeft size={26} />
         : () => <ArrowUp size={26} />;
 
@@ -222,8 +234,16 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           <div className="wos-direction" aria-live="polite">
             <DirectionIcon />
             <span>
-              <b>{t(direction)}</b>
-              <small>{t("walkToward", { m: legRemaining })}</small>
+              <b>{directionText}</b>
+              <small>
+                {t("legToward", {
+                  m: Math.round(legRemaining),
+                  name: landmark.name,
+                })}
+              </small>
+              <i className="wos-leg-bar" aria-hidden="true">
+                <i style={{ width: `${Math.round(legDone * 100)}%` }} />
+              </i>
             </span>
           </div>
         )}

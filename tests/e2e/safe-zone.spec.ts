@@ -45,6 +45,9 @@ test("leaving the safe zone buzzes the watch, escalates, then guides home landma
     .getByRole("button", { name: "Go home", exact: true })
     .click();
   await expect(watch(page).getByText("Go straight ahead")).toBeVisible();
+  await expect(
+    phone(page).getByRole("img", { name: /Route home map/ }),
+  ).toBeVisible();
   await expect(phone(page).getByText(/escalation paused/)).toBeVisible();
 
   for (const name of [
@@ -59,6 +62,10 @@ test("leaving the safe zone buzzes the watch, escalates, then guides home landma
     await watch(page)
       .getByRole("button", { name: "I see it", exact: true })
       .click();
+    if (name === "Community garden")
+      await expect(
+        watch(page).getByText("Turn right at the Community garden"),
+      ).toBeVisible();
   }
   await expect(
     watch(page).getByText("Welcome home.", { exact: true }),

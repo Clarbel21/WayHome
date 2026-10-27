@@ -72,7 +72,7 @@ export function ZoneRuntime() {
       }
 
       // Crossing the radius starts the check-in and the ladder.
-      if (!z.active && distance > z.radiusM && !sos) {
+      if (!z.active && distance > z.radiusM && !sos && !guiding) {
         Object.assign(patch, {
           active: true,
           vmin: 0,
@@ -89,10 +89,20 @@ export function ZoneRuntime() {
       }
 
       // Guided return: walk toward the current landmark, then ask "Do you see it?".
+      // Guidance started from inside the zone (e.g. the watch's Go home tile): use a
+      // fictional starting point inside the radius so the walk home is still shown.
       const guideStart =
-        z.guideStartM ?? (guiding && distance > 0 ? distance : null);
+        z.guideStartM ??
+        (guiding
+          ? distance > 0
+            ? distance
+            : Math.round(z.radiusM * 0.85)
+          : null);
       if (guiding && guideStart !== null) {
         if (z.guideStartM === null) {
+          distance = guideStart;
+          patch.distanceM = guideStart;
+          patch.phase = "walking";
           patch.guideStartM = guideStart;
           patch.prompt = false;
           patch.reaskAt = null;
