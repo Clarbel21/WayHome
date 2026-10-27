@@ -55,6 +55,13 @@ export function CaregiverPhone() {
     | "settings"
   >("today");
   const scrollArea = useRef<HTMLDivElement>(null);
+  // Bring the caregiver to Today when the wearer leaves the zone or guidance starts,
+  // so the escalation ladder and live route map are actually on screen.
+  const zoneActive = useZone((z) => z.active);
+  const guiding = s.mode === "GUIDED_RETURN";
+  useEffect(() => {
+    if (zoneActive || guiding) setView("today");
+  }, [zoneActive, guiding]);
   useEffect(() => {
     scrollArea.current?.scrollTo({ top: 0 });
   }, [view]);

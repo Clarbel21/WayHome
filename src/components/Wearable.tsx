@@ -67,8 +67,8 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     return () => clearTimeout(off);
   }, [z.buzzAt]);
   const wearerFirst = s.settings.wearer.split(" ")[0];
-  const zonePrompt =
-    z.prompt && s.mode !== "EMERGENCY_SIMULATED" && s.mode !== "GUIDED_RETURN";
+  // Only ask "Heading home?" when no other safety screen owns the watch.
+  const zonePrompt = z.prompt && (s.mode === "NORMAL" || s.mode === "CHECK_IN");
   const [now, setNow] = useState(new Date());
   const approved = s.landmarks.filter(navigable);
   const landmark = approved[s.guideIndex];

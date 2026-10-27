@@ -25,6 +25,7 @@ type Moment = {
   icon: typeof Home;
   run: () => void;
   allowedInSos?: boolean;
+  needsCalm?: boolean;
   tone?: "sos";
 };
 
@@ -36,6 +37,15 @@ export function DemoStage() {
   const [last, setLast] = useState<Moment | null>(null);
   const sos = s.mode === "EMERGENCY_SIMULATED";
   const zone = useZone();
+  const incidentOpen = sos || (!!s.incident && s.incident.stage !== "resolved");
+  // Guidance moments begin from a clean scenario so leftover readings from earlier
+  // moments (route deviation, removal, weak GPS, open family request...) can't block
+  // "Take me home". Never possible during an open SOS: that must be resolved first.
+  const fresh = (start: () => void) => () => {
+    if (incidentOpen) return;
+    s.reset();
+    start();
+  };
   const moments: Moment[] = [
     {
       id: "zone-out",
@@ -45,7 +55,8 @@ export function DemoStage() {
         id: "Titik melewati radius. Jam bergetar dan bertanya “Mau pulang?”. Ponsel menampilkan tahap eskalasi.",
       },
       icon: Route,
-      run: () => zone.wanderOut(),
+      run: fresh(() => useZone.getState().wanderOut()),
+      needsCalm: true,
     },
     {
       id: "zone-lost",
@@ -55,7 +66,8 @@ export function DemoStage() {
         id: "Langsung jauh di luar zona. Ketuk “Ya, antar aku pulang” untuk panduan tempat demi tempat.",
       },
       icon: MapPinned,
-      run: () => zone.lostFar(),
+      run: fresh(() => useZone.getState().lostFar()),
+      needsCalm: true,
     },
     {
       id: "zone-ffwd",
@@ -75,7 +87,8 @@ export function DemoStage() {
         id: "Jam menunjukkan tempat pertama. Ponsel mengikuti setiap tempat.",
       },
       icon: Footprints,
-      run: () => s.event("GUIDE"),
+      run: fresh(() => useStore.getState().chooseAssistance("home")),
+      needsCalm: true,
     },
     {
       id: "deviation",
@@ -172,7 +185,14 @@ export function DemoStage() {
             type="button"
             className={`demo-chip ${m.tone ?? ""} ${m.id.startsWith("zone") ? "zone" : ""} ${last?.id === m.id ? "active" : ""}`}
             disabled={
-              (sos && !m.allowedInSos) || (m.id === "zone-ffwd" && !zone.active)
+              (sos && !m.allowedInSos) ||
+              (m.needsCalm && incidentOpen) ||
+              (m.id === "zone-ffwd" && !zone.active)
+            }
+            title={
+              m.needsCalm && incidentOpen
+                ? "Resolve and verify the SOS first (Help received on the watch)"
+                : undefined
             }
             onClick={() => {
               m.run();
@@ -204,13 +224,17 @@ export function DemoStage() {
       <p className="demo-stage-caption" aria-live="polite">
         {last
           ? last.watch[lang]
-          : sos
+          : incidentOpen && !sos
             ? lang === "id"
-              ? "SOS aktif. Konfirmasi di ponsel, lalu selesaikan di jam setelah bantuan tiba."
-              : "SOS is active. Acknowledge on the phone, then resolve on the watch once help has arrived."
-            : lang === "id"
-              ? "Klik satu momen dan lihat jam serta ponsel bereaksi bersama."
-              : "Click a moment and watch both devices respond together."}
+              ? "SOS sebelumnya belum diverifikasi. Selesaikan di Bantuan Darurat sebelum memulai perjalanan pulang."
+              : "An earlier SOS still needs verification. Finish it in Emergency Assistance before starting a walk home."
+            : sos
+              ? lang === "id"
+                ? "SOS aktif. Konfirmasi di ponsel, lalu selesaikan di jam setelah bantuan tiba."
+                : "SOS is active. Acknowledge on the phone, then resolve on the watch once help has arrived."
+              : lang === "id"
+                ? "Klik satu momen dan lihat jam serta ponsel bereaksi bersama."
+                : "Click a moment and watch both devices respond together."}
       </p>
     </div>
   );

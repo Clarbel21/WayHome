@@ -166,7 +166,12 @@ export function ZoneRuntime() {
       if ((patch.active ?? z.active) && !sos && !guiding && z.active) {
         let vmin = z.vmin + (TICK_MS / 1000) * SIM_MIN_PER_SECOND;
         // Silence on the watch: record it and re-ask shortly.
-        if (z.prompt && now - z.promptAt > PROMPT_SECONDS * 1000) {
+        const promptVisible =
+          z.prompt && (s.mode === "NORMAL" || s.mode === "CHECK_IN");
+        if (z.prompt && !promptVisible) {
+          patch.prompt = false;
+          patch.reaskAt = now + REASK_AFTER_SILENCE_S * 1000;
+        } else if (z.prompt && now - z.promptAt > PROMPT_SECONDS * 1000) {
           patch.prompt = false;
           patch.noAnswer = z.noAnswer + 1;
           patch.reaskAt = now + REASK_AFTER_SILENCE_S * 1000;
@@ -174,7 +179,13 @@ export function ZoneRuntime() {
           addAlert(
             `No answer on the watch (${z.noAnswer + 1}) · will ask again`,
           );
-        } else if (!z.prompt && z.reaskAt !== null && now >= z.reaskAt) {
+        } else if (
+          !z.prompt &&
+          z.reaskAt !== null &&
+          now >= z.reaskAt &&
+          // Don't talk over another safety screen (handover, reorientation, check-in).
+          s.mode === "NORMAL"
+        ) {
           Object.assign(patch, {
             prompt: true,
             promptAt: now,

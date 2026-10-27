@@ -111,3 +111,38 @@ test("radius setting persists and lives on the safety policy page", async ({
   await page.reload();
   await expect(page.getByText("800 m", { exact: true })).toBeVisible();
 });
+
+test("leftover readings from earlier moments never block the walk home (no loop)", async ({
+  page,
+}) => {
+  const bar = moments(page);
+  await bar.getByRole("button", { name: "Wanders off route" }).click();
+  await bar.getByRole("button", { name: "Takes it off" }).click();
+  await bar.getByRole("button", { name: "Weak GPS" }).click();
+  // Caregiver is looking at another tab.
+  await phone(page)
+    .getByRole("button", { name: "Care tools", exact: true })
+    .click();
+  await bar.getByRole("button", { name: "Lost far from home" }).click();
+  await watch(page)
+    .getByRole("button", { name: "Yes, take me home" })
+    .click({ timeout: 5_000 });
+  await expect(watch(page).getByText(/Stop 1 of 4/)).toBeVisible();
+  await expect(
+    phone(page).getByRole("img", { name: /Route home map/ }),
+  ).toBeVisible();
+  await expect(watch(page).getByText("Heading home?")).toHaveCount(0);
+});
+
+test("zone moments are disabled while an SOS is open, with a reason", async ({
+  page,
+}) => {
+  const bar = moments(page);
+  await bar.getByRole("button", { name: "SOS", exact: true }).click();
+  await expect(
+    bar.getByRole("button", { name: "Lost far from home" }),
+  ).toBeDisabled();
+  await expect(
+    bar.getByRole("button", { name: "Walk out of safe zone" }),
+  ).toBeDisabled();
+});
