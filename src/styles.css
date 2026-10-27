@@ -1,13 +1,13 @@
 @import "tailwindcss";
 :root {
   font-family: "Trebuchet MS", Arial, sans-serif;
-  color: #28483b;
+  color: var(--wh-forest);
   background: #f8f6f0;
   font-synthesis: none;
   font-weight: 400;
   font-size: 14px;
   line-height: 1.5;
-  --forest: #28483b;
+  --forest: var(--wh-forest);
   --muted: #738074;
   --line: #e6e8de;
   --sage: #a8bfa0;
@@ -292,7 +292,7 @@ svg {
 }
 .sidebar nav > a.active {
   background: #e1e8d9;
-  color: #28483b;
+  color: var(--wh-forest);
   font-weight: 700;
 }
 .sidebar nav > a:hover {
@@ -604,12 +604,12 @@ svg {
   font-weight: 600;
 }
 .wearer-pin {
-  background: #28483b;
+  background: var(--wh-forest);
   color: white;
 }
 .home-pin {
   background: #e8b7a4;
-  color: #28483b;
+  color: var(--wh-forest);
   font-size: 25px;
 }
 .landmark-pin {
@@ -967,17 +967,17 @@ footer {
   gap: 9px;
   padding: 11px 9px;
   border-radius: 11px;
-  background: #e7ecdc;
+  background: var(--wh-pale);
   font-weight: 600;
   font-size: 12px;
   min-height: 42px;
 }
 .watch-controls button {
-  color: #28483b;
+  color: var(--wh-forest);
 }
 .watch-controls button:first-child,
 .watch-action {
-  background: #28483b;
+  background: var(--wh-forest);
   color: #fff;
 }
 .watch-controls button:hover,
@@ -2259,7 +2259,7 @@ input[type="checkbox"] {
   font-size: 25px;
   line-height: 1.4;
   margin: 18px 0;
-  color: #28483b;
+  color: var(--wh-forest);
   text-align: center;
 }
 .memory-experience p {
@@ -2286,9 +2286,9 @@ input[type="checkbox"] {
   width: 100%;
   min-height: 60px;
   padding: 15px 20px;
-  background: #28483b;
+  background: var(--wh-forest);
   color: #fffefa;
-  border: 1px solid #28483b;
+  border: 1px solid var(--wh-forest);
   border-radius: 13px;
   font-size: 20px;
   font-weight: 500;
@@ -2301,7 +2301,7 @@ input[type="checkbox"] {
 }
 .memory-choice.quiet {
   background: #edf1e4;
-  color: #28483b;
+  color: var(--wh-forest);
   border-color: #d8e0cc;
 }
 .memory-choice:disabled {
@@ -3177,7 +3177,7 @@ input[type="checkbox"] {
 .resolve-sos-button {
   margin-top: 14px;
   background: #e7eddd;
-  color: #28483b;
+  color: var(--wh-forest);
   border: 1px solid #bdcdb0;
   min-height: 48px;
 }

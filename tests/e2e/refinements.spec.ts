@@ -199,7 +199,12 @@ test("approved memory photo remains separate from navigation until explicit appr
       exact: true,
     }),
   });
-  await expect(pending.getByRole("checkbox")).not.toBeChecked();
+  await expect(
+    pending.getByRole("checkbox", {
+      name: "Separately approve for navigation",
+      exact: true,
+    }),
+  ).not.toBeChecked();
   await expect(
     pending.getByText("Walk toward the rose garden gate.", { exact: true }),
   ).toBeVisible();
@@ -209,7 +214,12 @@ test("approved memory photo remains separate from navigation until explicit appr
   await page.getByRole("button", { name: "Help me get home" }).click();
   await expect(page.getByText("No approved landmarks yet.")).toBeVisible();
   await page.goto("/#/caregiver/landmarks");
-  await pending.getByRole("checkbox").check();
+  await pending
+    .getByRole("checkbox", {
+      name: "Separately approve for navigation",
+      exact: true,
+    })
+    .check();
   await page.goto("/#/caregiver/library");
   await page
     .getByRole("button", { name: "Delete memory Family rose garden" })

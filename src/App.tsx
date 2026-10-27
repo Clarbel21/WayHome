@@ -1,3 +1,6 @@
+import { CareRuntime, Contacts, SafetyPolicy } from "./care/Tools";
+import { JourneyPlayer } from "./care/JourneyPlayer";
+import { Landmarks } from "./care/Landmarks";
 import { CaregiverPhone } from "./components/CaregiverPhone";
 import "./interfaces.css";
 import {
@@ -33,6 +36,7 @@ import {
   MapPin,
   Menu,
   Monitor,
+  Phone,
   Plus,
   Radio,
   RotateCcw,
@@ -45,7 +49,7 @@ import {
   X,
 } from "lucide-react";
 import Landing from "./landing/Landing";
-import { useStore, status, samples, type Event, type Landmark } from "./store";
+import { useStore, status, type Event } from "./store";
 import { Wearable, Photo } from "./components/Wearable";
 import { LandmarkPhoto } from "./components/LandmarkPhoto";
 import { WearableConfiguration } from "./components/WearableConfiguration";
@@ -158,6 +162,8 @@ function Shell({ children }: { children: React.ReactNode }) {
     ["/together", "Side-by-side view", Monitor],
     ["/caregiver/landmarks", "Familiar landmarks", Compass],
     ["/caregiver/library", "Memory Library", Leaf],
+    ["/caregiver/contacts", "Contacts", Phone],
+    ["/caregiver/policy", "Safety policy", ShieldCheck],
     ["/caregiver/settings", "Settings", Settings],
     ["/demo", "Demo control center", Sparkles],
   ] as const;
@@ -492,7 +498,9 @@ function Alerts({ compact = false }: { compact?: boolean }) {
       ) : (
         list.map((a) => (
           <div className={`alert-row ${!a.read ? "unread" : ""}`} key={a.id}>
-            <span className={`alert-icon ${a.urgent ? "urgent" : ""}`}>
+            <span
+              className={`alert-icon ${a.emergency ? "urgent" : a.urgent ? "attention" : ""}`}
+            >
               {a.urgent ? <Bell size={18} /> : <Check size={18} />}
             </span>
             <div>
@@ -534,234 +542,6 @@ function Alerts({ compact = false }: { compact?: boolean }) {
         ))
       )}
     </div>
-  );
-}
-function Landmarks() {
-  const s = useStore();
-  const [editing, setEditing] = useState<Landmark | null>(null);
-  const [error, setError] = useState("");
-  function save(e: React.SubmitEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!editing) return;
-    if (!editing.name.trim() || !editing.instruction.trim()) {
-      setError("Please add a name and a simple instruction.");
-      return;
-    }
-    if (!editing.photoId && !/^(https?:\/\/|\/images\/)/.test(editing.photo)) {
-      setError("Choose a built-in image or enter an http(s) photo URL.");
-      return;
-    }
-    s.saveLandmark({
-      ...editing,
-      name: editing.name.trim(),
-      instruction: editing.instruction.trim(),
-    });
-    setEditing(null);
-    setError("");
-  }
-  return (
-    <>
-      <Heading
-        eyebrow="PLACES THAT FEEL LIKE HOME"
-        title="Familiar landmarks"
-        description="A recognizable place can turn uncertainty into a confident next step."
-        action={
-          <button
-            className="button"
-            onClick={() => {
-              setEditing({
-                id: crypto.randomUUID(),
-                name: "",
-                instruction: "",
-                photo: samples[0],
-                approved: true,
-              });
-              setError("");
-            }}
-          >
-            <Plus size={18} />
-            Add landmark
-          </button>
-        }
-      />
-      <div className="landmark-grid">
-        {s.landmarks.map((l) => (
-          <section className="card landmark-card" key={l.id}>
-            <LandmarkPhoto landmark={l} />
-            <div className="landmark-content">
-              <span className={`badge ${l.approved ? "safe" : "attention"}`}>
-                {l.approved ? "Approved for guidance" : "Not approved"}
-              </span>
-              <h2>{l.name}</h2>
-              <p>{l.instruction}</p>
-              {l.sourceMemoryId && (
-                <p className="help-text">
-                  Independent memory-place proposal. Reminiscence approval does
-                  not permit navigation. Review this instruction and photo
-                  before approving.
-                </p>
-              )}
-              <label className="check-label">
-                <input
-                  type="checkbox"
-                  checked={l.approved}
-                  onChange={(e) =>
-                    s.saveLandmark({ ...l, approved: e.target.checked })
-                  }
-                />
-                {l.sourceMemoryId
-                  ? "Separately approve for navigation"
-                  : "Show during guided return"}
-              </label>
-              <div className="button-row">
-                <button
-                  className="button light"
-                  onClick={() => {
-                    setEditing({ ...l });
-                    setError("");
-                  }}
-                >
-                  Edit landmark
-                </button>
-                <button
-                  className="icon-button"
-                  aria-label={`Delete ${l.name}`}
-                  onClick={() => s.deleteLandmark(l.id)}
-                >
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            </div>
-          </section>
-        ))}
-      </div>
-      {!s.landmarks.length && (
-        <div className="card empty">
-          <Compass />
-          <h2>No familiar places yet</h2>
-          <p>Add a landmark to make guided return available.</p>
-        </div>
-      )}
-      {editing && (
-        <div className="modal-backdrop" onClick={() => setEditing(null)}>
-          <form
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="landmark-title"
-            className="modal card"
-            onClick={(e) => e.stopPropagation()}
-            onSubmit={save}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") setEditing(null);
-              if (e.key === "Tab") {
-                const items = Array.from(
-                  e.currentTarget.querySelectorAll<HTMLElement>(
-                    "button,input,textarea,select",
-                  ),
-                );
-                const first = items[0],
-                  last = items[items.length - 1];
-                if (e.shiftKey && document.activeElement === first) {
-                  e.preventDefault();
-                  last.focus();
-                } else if (!e.shiftKey && document.activeElement === last) {
-                  e.preventDefault();
-                  first.focus();
-                }
-              }
-            }}
-          >
-            <div className="card-heading">
-              <h2 id="landmark-title">
-                {s.landmarks.some((l) => l.id === editing.id) ? "Edit" : "Add"}{" "}
-                a familiar place
-              </h2>
-              <button
-                type="button"
-                autoFocus
-                className="icon-button"
-                aria-label="Close editor"
-                onClick={() => setEditing(null)}
-              >
-                <X />
-              </button>
-            </div>
-            <label>
-              Name
-              <input
-                required
-                value={editing.name}
-                onChange={(e) =>
-                  setEditing({ ...editing, name: e.target.value })
-                }
-              />
-            </label>
-            <label>
-              Simple navigation instruction
-              <textarea
-                required
-                value={editing.instruction}
-                onChange={(e) =>
-                  setEditing({ ...editing, instruction: e.target.value })
-                }
-              />
-            </label>
-            <label>
-              Built-in sample
-              <select
-                value={samples.includes(editing.photo) ? editing.photo : ""}
-                onChange={(e) => {
-                  if (e.target.value)
-                    setEditing({
-                      ...editing,
-                      photo: e.target.value,
-                      photoId: undefined,
-                    });
-                }}
-              >
-                <option value="">Custom photo URL</option>
-                {samples.map((p, i) => (
-                  <option key={p} value={p}>
-                    {["Home", "Bakery", "Garden", "Library"][i]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Photo URL
-              <input
-                value={editing.photo}
-                onChange={(e) =>
-                  setEditing({
-                    ...editing,
-                    photo: e.target.value,
-                    photoId: undefined,
-                  })
-                }
-              />
-            </label>
-            <label className="check-label">
-              <input
-                type="checkbox"
-                checked={editing.approved}
-                onChange={(e) =>
-                  setEditing({ ...editing, approved: e.target.checked })
-                }
-              />
-              Approved for guided return
-            </label>
-            {error && (
-              <p role="alert" className="form-error">
-                {error}
-              </p>
-            )}
-            <button className="button" type="submit">
-              Save landmark <Check size={16} />
-            </button>
-          </form>
-        </div>
-      )}
-    </>
   );
 }
 function SettingsPage() {
@@ -965,6 +745,7 @@ function DemoControls() {
   );
 }
 function Companion() {
+  const location = useLocation();
   const s = useStore();
   return (
     <div
@@ -977,14 +758,16 @@ function Companion() {
           Caregiver Mode
         </Link>
       </header>
-      <main className="companion-main">
-        <div className="eyebrow">A FAMILIAR FRIEND, ALWAYS NEAR</div>
-        <h1>
-          Here with you.
-          <br />
-          <em>Connected by care.</em>
-        </h1>
-        <p>A little reassurance, wherever the day takes you.</p>
+      <main className="companion-main viewport-stage">
+        <div className="stage-heading">
+          <div className="eyebrow">A FAMILIAR FRIEND, ALWAYS NEAR</div>
+          <h1>
+            Here with you.
+            <br />
+            <em>Connected by care.</em>
+          </h1>
+          <p>A little reassurance, wherever the day takes you.</p>
+        </div>
         <div className="shared-devices">
           <section
             className="wearer-interface"
@@ -1001,6 +784,7 @@ function Companion() {
             <Link
               className="button explore-memories"
               to="/memories"
+              state={{ from: location.pathname }}
               aria-describedby={
                 !safetyReady() ? "memories-availability" : undefined
               }
@@ -1031,13 +815,18 @@ function Companion() {
             <CaregiverPhone />
           </section>
         </div>
-        <div className="companion-foot">
-          <ShieldCheck size={17} /> Educational simulation · no real emergency
-          calls
+        <div className="stage-toolbar">
+          <div className="companion-foot">
+            <ShieldCheck size={17} /> Educational simulation · no real emergency
+            calls
+          </div>
+          <Link to="/demo" className="text-button">
+            Explore demo controls <ArrowRight size={16} />
+          </Link>
+          <Link className="text-button" to="/" onClick={s.closeDemo}>
+            Exit demonstration
+          </Link>
         </div>
-        <Link to="/demo" className="text-button">
-          Explore demo controls <ArrowRight size={16} />
-        </Link>
       </main>
     </div>
   );
@@ -1171,6 +960,9 @@ function Guided() {
             <RotateCcw size={15} />
             Reset presentation
           </button>
+          <Link className="button light" to="/companion" onClick={s.closeDemo}>
+            Exit walkthrough
+          </Link>
           {s.mode === "EMERGENCY_SIMULATED" && (
             <Link className="text-button" to="/caregiver/emergency">
               Resolve and verify S5 before restarting the walk →
@@ -1261,9 +1053,21 @@ function CaregiverRoutes() {
           }
         />
         <Route path="landmarks" element={<Landmarks />} />
+        <Route path="contacts" element={<Contacts />} />
+        <Route path="policy" element={<SafetyPolicy />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="emergency" element={<EmergencyAssistance />} />
-        <Route path="library" element={<CaregiverMemoryLibrary />} />
+        <Route
+          path="library"
+          element={
+            <>
+              <Link className="button light" to="/together">
+                Close Memory Library
+              </Link>
+              <CaregiverMemoryLibrary />
+            </>
+          }
+        />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Shell>
@@ -1285,10 +1089,12 @@ export default function App() {
     <HashRouter>
       <RouteFocus />
       <CheckInRuntime />
+      <CareRuntime />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/companion" element={<Companion />} />
         <Route path="/together" element={<Companion />} />
+        <Route path="/journeys/:id" element={<JourneyPlayer />} />
         <Route path="/memories" element={<MemoryGardenHome />} />
         <Route
           path="/memory-demo"

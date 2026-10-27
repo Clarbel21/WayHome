@@ -1,13 +1,36 @@
+import {
+  Contacts,
+  SafetyPolicy,
+  PolicyHistory,
+  PhoneSettings,
+  Journeys,
+} from "../care/Tools";
+import { Landmarks } from "../care/Landmarks";
+import {
+  CaregiverMemoryLibrary,
+  MemoryActivityHistory,
+} from "../memory/MemoryLibrary";
+import { useCare } from "../care/store";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Battery, Bell, Heart, Signal, Wifi } from "lucide-react";
-import { status, useStore } from "../store";
+import { status, useStore, simulatedLocation, navigable } from "../store";
 import { wearLabels } from "../services/safety";
 import { CheckInHistory, FamilyResponse } from "./CheckInSupport";
 
 export function CaregiverPhone() {
   const s = useStore();
-  const [view, setView] = useState<"today" | "updates">("today");
+  useCare((s) => s.receipts.length);
+  const [view, setView] = useState<
+    | "today"
+    | "updates"
+    | "contacts"
+    | "policy"
+    | "landmarks"
+    | "library"
+    | "history"
+    | "settings"
+  >("today");
   const emergency = s.alerts.find(
     (a) => a.emergency && !a.emergency.resolvedAt,
   );
@@ -52,7 +75,52 @@ export function CaregiverPhone() {
             )}
           </button>
         </div>
-        {view === "today" ? (
+        <label className="phone-section-picker">
+          Caregiver phone section
+          <select
+            aria-label="Caregiver phone section"
+            value={view}
+            onChange={(e) => setView(e.target.value as typeof view)}
+          >
+            <option value="today">Overview</option>
+            <option value="contacts">Contacts</option>
+            <option value="policy">Safety policy</option>
+            <option value="landmarks">Familiar landmarks</option>
+            <option value="library">Memory Library</option>
+            <option value="history">Activity history</option>
+            <option value="settings">Settings</option>
+            <option value="updates">Recent updates</option>
+          </select>
+        </label>
+        {view !== "today" && view !== "updates" ? (
+          <div className="phone-manager">
+            <button className="button light" onClick={() => setView("today")}>
+              Back to phone overview
+            </button>
+            {view === "contacts" ? (
+              <Contacts />
+            ) : view === "policy" ? (
+              <SafetyPolicy />
+            ) : view === "landmarks" ? (
+              <Landmarks />
+            ) : view === "library" ? (
+              <>
+                <CaregiverMemoryLibrary />
+                <Journeys />
+              </>
+            ) : view === "history" ? (
+              <>
+                <PolicyHistory />
+                <MemoryActivityHistory />
+              </>
+            ) : (
+              <PhoneSettings />
+            )}
+            <button className="button light" onClick={() => setView("today")}>
+              Close {view === "library" ? "Memory Library" : "phone section"}
+            </button>
+          </div>
+        ) : view === "today" ? (
           <>
             <section
               className={`phone-status ${isEmergency ? "phone-emergency" : ""}`}
@@ -68,6 +136,43 @@ export function CaregiverPhone() {
                   ? "A simulated SOS needs your review. Acknowledgment does not resolve it."
                   : "A familiar companion, with human support close by."}
               </p>
+            </section>
+            <section className="phone-overview-details">
+              <span
+                className="phone-avatar"
+                aria-label={`${s.settings.wearer}'s avatar`}
+              >
+                {s.settings.wearer[0]}
+              </span>
+              <p>
+                <strong>Last known location</strong>
+                <br />
+                {simulatedLocation(s.position)}
+              </p>
+              <p>
+                Battery: {s.battery}% · Heart rate: not measured (no sensor)
+              </p>
+              <p>
+                {s.mode === "GUIDED_RETURN"
+                  ? "Guidance is active."
+                  : "Guidance is not active."}{" "}
+                Next approved landmark:{" "}
+                {s.landmarks.filter(navigable)[s.guideIndex]?.name ??
+                  "None available"}
+              </p>
+              <p>
+                {s.checkIn?.stage === "question"
+                  ? `Waiting for ${s.settings.wearer} to respond.`
+                  : s.checkIn?.response
+                    ? `${s.settings.wearer} ${s.checkIn.source === "caregiver" ? "had a caregiver review" : s.checkIn.response === "okay" ? "said they are okay" : "asked for help"}.`
+                    : "No check-in response yet."}
+              </p>
+              <time>
+                Latest update:{" "}
+                {new Date(
+                  Math.max(s.lastCheck, s.alerts[0]?.time ?? 0),
+                ).toLocaleTimeString()}
+              </time>
             </section>
             <div className="phone-readings">
               <div>
@@ -121,12 +226,18 @@ export function CaregiverPhone() {
                     requestAnimationFrame(() => {
                       const heading =
                         document.getElementById("wearer-view-title");
-                      heading?.scrollIntoView({
-                        behavior: s.settings.reducedMotion
-                          ? "instant"
-                          : "smooth",
-                        block: "start",
-                      });
+                      if (
+                        !matchMedia(
+                          "(min-width: 1000px) and (min-height: 650px)",
+                        ).matches ||
+                        s.settings.largeText
+                      )
+                        heading?.scrollIntoView({
+                          behavior: s.settings.reducedMotion
+                            ? "instant"
+                            : "smooth",
+                          block: "start",
+                        });
                       heading?.focus({ preventScroll: true });
                     });
                   }}

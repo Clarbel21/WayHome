@@ -1,0 +1,449 @@
+:root {
+  --wh-forest: #28483b;
+  --wh-ink: #172d25;
+  --wh-sage: #b6cbb7;
+  --wh-pale: #e7ecdc;
+  --wh-cream: #f5f4ef;
+  --wh-surface: #fffefa;
+  --wh-warning: #88651e;
+  --wh-emergency: #9f343e;
+  --wh-focus: #385f45;
+}
+.care-manager {
+  text-align: left;
+}
+.care-manager > p,
+.care-manager label,
+.phone-overview-details {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.care-manager label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0;
+}
+.care-manager label.check-label {
+  flex-direction: row;
+  align-items: center;
+}
+.care-manager input:not([type="checkbox"]),
+.care-manager select,
+.care-manager textarea,
+.phone-section-picker select {
+  background: var(--wh-surface);
+  color: var(--wh-ink);
+  border: 1px solid #a6b7a5;
+  border-radius: 10px;
+  padding: 10px;
+  min-height: 44px;
+  width: 100%;
+}
+.care-manager button,
+.phone-tabs button,
+.phone-manager button,
+.phone-workspace-link {
+  min-height: 44px;
+}
+.phone-section-picker {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+.contact-card {
+  border: 1px solid #d6dfd0;
+  border-radius: 18px;
+  background: var(--wh-surface);
+  padding: 16px;
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+.contact-card p,
+.contact-card time {
+  font-size: 12px;
+}
+.contact-card .button-row {
+  flex-wrap: wrap;
+}
+.contact-card button {
+  padding: 8px 12px;
+  border-radius: 16px;
+  background: var(--wh-pale);
+  color: var(--wh-forest);
+}
+.contact-photo {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.care-dialog {
+  border: 1px solid #a6b7a5;
+  border-radius: 24px;
+  padding: 26px;
+  background: var(--wh-cream);
+  color: var(--wh-ink);
+  width: min(90vw, 560px);
+  max-height: 90vh;
+  overflow: auto;
+}
+.care-dialog::backdrop {
+  background: #172d2577;
+}
+.care-dialog fieldset {
+  border: 0;
+  padding: 0;
+}
+.care-dialog label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0;
+}
+.care-dialog .check-label {
+  flex-direction: row;
+}
+.care-dialog input:not([type="checkbox"]),
+.care-dialog select {
+  min-height: 44px;
+  border: 1px solid #a6b7a5;
+  border-radius: 10px;
+  background: var(--wh-surface);
+  padding: 10px;
+}
+.care-dialog [role="alert"] {
+  color: var(--wh-warning);
+}
+.phone-manager .landmark-grid,
+.phone-manager .memory-library-grid,
+.phone-manager .settings-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+.phone-manager .page-heading {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+.phone-manager .page-heading h1 {
+  font-size: 24px;
+}
+.phone-manager .card {
+  padding: 14px;
+}
+.phone-manager .landmark-card > img {
+  max-height: 130px;
+  object-fit: cover;
+}
+.phone-manager .button-row {
+  flex-wrap: wrap;
+}
+.phone-overview-details {
+  border-bottom: 1px solid #d6dfd0;
+  padding: 12px 0;
+}
+.phone-overview-details p {
+  margin: 9px 0;
+}
+.phone-overview-details time {
+  font-size: 11px;
+}
+.shared-experience .watch-home-extras {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 6px;
+}
+.shared-experience .watch-controls a {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 14px;
+}
+.watch-action.cancel-guidance {
+  margin: 6px 0;
+  background: var(--wh-pale);
+  color: var(--wh-forest);
+}
+.shared-experience .watch-controls p {
+  font-size: 14px;
+}
+.stage-toolbar {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.stage-toolbar > a {
+  min-height: 44px;
+}
+.stage-heading h1 {
+  font-size: 36px;
+  font-family: inherit;
+}
+.stage-heading h1 em {
+  color: #637f68;
+  font-style: normal;
+}
+.shared-experience :focus-visible,
+.care-workspace :focus-visible {
+  outline: 3px solid var(--wh-focus);
+  outline-offset: 3px;
+}
+@media (min-width: 1000px) and (min-height: 650px) {
+  .companion-page.shared-experience:not(.large-text) {
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .shared-experience:not(.large-text) .public-header {
+    height: 60px;
+    min-height: 60px;
+    padding: 8px 3%;
+    flex-shrink: 0;
+  }
+  .shared-experience:not(.large-text) .viewport-stage {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: 32px minmax(0, 1fr) 44px;
+    gap: 4px;
+    width: 100%;
+    max-width: 1600px;
+    padding: 6px clamp(20px, 4vw, 76px);
+  }
+  .shared-experience:not(.large-text) .stage-heading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .shared-experience:not(.large-text) .stage-heading .eyebrow,
+  .shared-experience:not(.large-text) .stage-heading > p,
+  .shared-experience:not(.large-text) .stage-heading br {
+    display: none;
+  }
+  .shared-experience:not(.large-text) .stage-heading h1 {
+    margin: 0;
+    font-size: clamp(18px, 2vw, 26px);
+    letter-spacing: -0.8px;
+  }
+  .shared-experience:not(.large-text) .stage-heading em {
+    margin-left: 8px;
+  }
+  .shared-experience:not(.large-text) .shared-devices {
+    grid-template-columns: minmax(0, 0.45fr) minmax(0, 0.55fr);
+    align-items: stretch;
+    gap: clamp(24px, 4vw, 70px);
+    width: min(100%, 1150px);
+    height: 100%;
+    margin: 0 auto;
+    min-height: 0;
+  }
+  .shared-experience:not(.large-text) .shared-devices > section {
+    height: 100%;
+    min-height: 0;
+  }
+  .shared-experience:not(.large-text) .device-caption {
+    margin: 0 0 5px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .shared-experience:not(.large-text) .device-caption h2 {
+    font-size: 16px;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+  .shared-experience:not(.large-text) .device-caption p {
+    display: none;
+  }
+  .shared-experience:not(.large-text) .watch-area {
+    width: clamp(290px, 25vw, 340px);
+    flex: 1;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .shared-experience:not(.large-text) .watch-strap {
+    display: none;
+  }
+  .shared-experience:not(.large-text) .watch {
+    width: 100%;
+    padding: 7px;
+    border-radius: 36px;
+  }
+  .shared-experience:not(.large-text) .watch-screen {
+    padding: 9px 12px;
+    border-radius: 29px;
+    min-height: 0;
+  }
+  .shared-experience:not(.large-text) .watch-label {
+    display: none;
+  }
+  .shared-experience:not(.large-text) .wearable-name {
+    font-size: 11px;
+    margin: 0;
+  }
+  .shared-experience:not(.large-text) .wearable-module {
+    font-size: 9px;
+    margin: 3px 0;
+  }
+  .shared-experience:not(.large-text) .watch .sprout {
+    height: clamp(42px, 7vh, 70px);
+    width: 80px;
+    margin: 0 auto;
+  }
+  .shared-experience:not(.large-text) .speech {
+    font-size: 17px;
+    line-height: 1.2;
+    margin: 3px auto 7px;
+  }
+  .shared-experience:not(.large-text) .watch-controls {
+    gap: 4px;
+  }
+  .shared-experience:not(.large-text) .watch-controls button,
+  .shared-experience:not(.large-text) .watch-action,
+  .shared-experience:not(.large-text) .sos-hold {
+    min-height: 44px;
+    padding: 8px;
+    font-size: 14px;
+  }
+  .shared-experience:not(.large-text) .watch-landmark p {
+    margin: 3px 0;
+    font-size: 13px;
+  }
+  .shared-experience:not(.large-text) .watch-landmark img {
+    height: clamp(58px, 9vh, 90px);
+    margin: 3px 0;
+  }
+  .shared-experience:not(.large-text) .watch-landmark small {
+    font-size: 10px;
+  }
+  .shared-experience:not(.large-text) .mode-guided_return .sprout,
+  .shared-experience:not(.large-text) .mode-guided_return .speech {
+    display: none;
+  }
+  .shared-experience:not(.large-text) .sos-hold {
+    margin-top: 6px;
+  }
+  .shared-experience:not(.large-text) .explore-memories {
+    min-height: 44px;
+    padding: 8px 18px;
+    font-size: 14px;
+    margin: 5px 0 0;
+    width: min(100%, 330px);
+    flex-shrink: 0;
+  }
+  .shared-experience:not(.large-text) .companion-memory-notice {
+    max-width: 330px;
+    font-size: 10px;
+    line-height: 1.3;
+    margin: 3px 0 0;
+  }
+  .shared-experience:not(.large-text) .care-phone {
+    height: calc(100% - 31px);
+    width: clamp(325px, 30vw, 430px);
+    max-width: 100%;
+    aspect-ratio: 1 / 1.65;
+    padding: 8px;
+    border-radius: 35px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .shared-experience:not(.large-text) .care-phone-screen {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    border-radius: 28px;
+    padding: 14px 16px;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .shared-experience:not(.large-text) .phone-island {
+    top: 15px;
+    height: 17px;
+    width: 75px;
+  }
+  .shared-experience:not(.large-text) .phone-system {
+    padding-bottom: 15px;
+  }
+  .shared-experience:not(.large-text) .phone-tabs {
+    margin: 12px 0;
+  }
+  .shared-experience:not(.large-text) .phone-home-indicator {
+    margin: 6px auto 0;
+    flex-shrink: 0;
+  }
+  .shared-experience:not(.large-text) .phone-status {
+    padding: 16px;
+  }
+  .shared-experience:not(.large-text) .phone-status h3 {
+    font-size: 24px;
+  }
+  .shared-experience:not(.large-text) .phone-status-label {
+    margin-bottom: 17px;
+  }
+  .shared-experience:not(.large-text) .stage-toolbar {
+    gap: 20px;
+    flex-wrap: nowrap;
+  }
+  .shared-experience:not(.large-text) .companion-foot {
+    margin: 0;
+    font-size: 10px;
+  }
+}
+@media (max-width: 999px), (max-height: 649px) {
+  .companion-page.shared-experience {
+    height: auto;
+    overflow: visible;
+  }
+  .shared-experience .shared-devices {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .shared-experience .stage-heading h1 {
+    font-size: clamp(28px, 6vw, 46px);
+    letter-spacing: -1px;
+  }
+  .shared-experience .companion-main {
+    padding: 24px 18px;
+  }
+  .stage-toolbar {
+    margin-top: 24px;
+  }
+}
+.form-error,
+.alert-icon.attention {
+  color: var(--wh-warning);
+}
+.alert-icon.attention {
+  background: #f2ead5;
+}
+/* Compact previews and secondary navigation remain usable touch targets. */
+.compact .watch-controls button,
+.compact .watch-action,
+.shared-experience .care-phone .text-button,
+.memory-topline .text-button,
+.care-workspace .icon-button {
+  min-height: 44px;
+  min-width: 44px;
+}
+.care-workspace .leaflet-control-zoom a {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+}
+.watch-landmark > strong {
+  overflow-wrap: anywhere;
+}

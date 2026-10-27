@@ -1,5 +1,6 @@
+import { JourneyInvitations } from "../care/JourneyPlayer";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
@@ -368,6 +369,9 @@ export function MemoryGardenExperience({
 }) {
   const m = useMemory();
   const s = useStore();
+  const location = useLocation();
+  const parent =
+    location.state?.from === "/together" ? "/together" : "/companion";
   const [categoryPage, setCategoryPage] = useState(0);
   const [empty, setEmpty] = useState("");
   const safe = safetyReady();
@@ -452,18 +456,25 @@ export function MemoryGardenExperience({
       className={`memory-experience ${embedded ? "embedded" : ""}`}
     >
       <div className="memory-topline">
-        <button
-          className="text-button"
-          onClick={() => {
-            m.home();
-            setEmpty("");
-          }}
-        >
-          <ArrowLeft size={18} />
-          Back to memories
-        </button>
+        {m.stage === "activity" ? (
+          <button
+            className="text-button"
+            onClick={() => {
+              m.home();
+              setEmpty("");
+            }}
+          >
+            <ArrowLeft size={18} />
+            Back to memories
+          </button>
+        ) : (
+          <Link className="text-button" to={parent} onClick={m.exit}>
+            <ArrowLeft size={18} />
+            Back to wearable
+          </Link>
+        )}
         {!embedded ? (
-          <Link className="text-button" to="/companion" onClick={m.exit}>
+          <Link className="text-button" to={parent} onClick={m.exit}>
             Exit memories
           </Link>
         ) : (
@@ -495,11 +506,7 @@ export function MemoryGardenExperience({
             <button className="memory-choice" onClick={m.begin}>
               Let's begin
             </button>
-            <Link
-              className="memory-choice quiet"
-              to="/companion"
-              onClick={m.exit}
-            >
+            <Link className="memory-choice quiet" to={parent} onClick={m.exit}>
               Maybe later
             </Link>
           </div>
@@ -525,6 +532,7 @@ export function MemoryGardenExperience({
         <div className="memory-question">
           <GardenVisualization />
           <h1>A memory, a feeling, a little joy.</h1>
+          <JourneyInvitations />
           <p>What would you like to explore with {s.settings.companionName}?</p>
           {suggestion && (
             <div className="memory-suggestion">

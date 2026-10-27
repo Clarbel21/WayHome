@@ -120,3 +120,9 @@ SOS resolution and device health are now independent. **Caregiver confirms — r
 ### Side-by-side interfaces
 
 Open `#/together` (or Companion Mode) to use the wearer’s device beside a caregiver phone. Both views share the existing demo state. Send a check-in from the phone, answer on the wearable, then use the phone’s Today/Updates controls for caregiver response and history. On small screens the interfaces stack; longer phone content scrolls inside its screen. The caregiver sidebar also includes **Side-by-side view**. Existing SOS resolution and Memory Garden safety gates remain in effect.
+
+### Caregiver phone tools and viewport demo
+
+`#/together` now fits the wearable and caregiver phone into one desktop viewport. Use the phone's **Caregiver phone section** selector for Contacts, Safety policy, Familiar landmarks, Memory Library, Activity history, or Settings. Phone panels scroll internally; smaller screens and zoomed layouts reflow vertically.
+
+Contacts use fictional sample numbers, format validation, permissions, escalation order and a final-required-caregiver guard. Policy settings operate on the existing check-in machine and only record simulated notifications. Optional Memory Journeys connect approved library content without grading. Memory and navigation approvals remain independent. Full details, changed modules, test results, demonstration steps and limitations: [CAREGIVER_UPGRADE.md](CAREGIVER_UPGRADE.md).

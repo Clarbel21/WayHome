@@ -34,10 +34,11 @@ async function openHome(
   await page.goto("/#/memories");
   const begin = page.getByRole("button", { name: "Let's begin", exact: true });
   if (await begin.isVisible()) await begin.click();
-  if (!preserve)
-    await page
-      .getByRole("button", { name: "Back to memories", exact: true })
-      .click();
+  const back = page.getByRole("button", {
+    name: "Back to memories",
+    exact: true,
+  });
+  if (!preserve && (await back.isVisible())) await back.click();
 }
 
 test("all five activities, gentle choices, progress persistence, and caregiver history", async ({

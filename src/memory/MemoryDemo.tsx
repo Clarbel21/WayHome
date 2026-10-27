@@ -142,6 +142,16 @@ export function MemoryGardenDemo() {
           <p role="status" className="memory-notice">
             {notice}
           </p>
+          <Link
+            className="button light"
+            to="/companion"
+            onClick={() => {
+              s.closeDemo();
+              m.pause();
+            }}
+          >
+            Exit walkthrough
+          </Link>
           <p className="help-text">
             The wearable area is interactive. Back revisits the sample activity;
             completed interactions remain in your garden. Reset prepares fresh

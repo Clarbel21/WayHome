@@ -17,7 +17,7 @@ export function CheckInRuntime() {
           repeats: 0,
           deadline: s.reviewedIncident
             ? null
-            : Date.now() + s.settings.checkInTimeoutSeconds * 1000,
+            : Date.now() + s.settings.nonurgentCheckInSeconds * 1000,
         },
       });
       return;
@@ -94,6 +94,11 @@ export function CheckInDemo() {
             s.settingsUpdate({ checkInTimeoutSeconds: Number(e.target.value) })
           }
         >
+          {![15, 30, 60].includes(s.settings.checkInTimeoutSeconds) && (
+            <option value={s.settings.checkInTimeoutSeconds}>
+              {s.settings.checkInTimeoutSeconds} (custom policy)
+            </option>
+          )}
           <option value={15}>15</option>
           <option value={30}>30</option>
           <option value={60}>60</option>

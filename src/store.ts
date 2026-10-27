@@ -43,7 +43,17 @@ export interface Landmark {
   photoId?: string;
   sourceMemoryId?: string;
   approved: boolean;
+  enabled?: boolean;
+  memoryApproved?: boolean;
+  recognition?: string;
+  spokenCue?: string;
+  gridPosition?: number;
+  visibility?: "day" | "night" | "both";
+  salience?: "low" | "medium" | "high";
+  familiarity?: string;
+  notes?: string;
 }
+export const navigable = (l: Landmark) => l.approved && l.enabled !== false;
 export const DEFAULT_COMPANION_NAME = "Sprout";
 export function validCompanionName(value: string): string | null {
   const name = value.trim();
@@ -171,6 +181,8 @@ export interface FamilyRequest {
   respondedAt?: number;
 }
 interface Settings {
+  repeatCheckInSeconds: number;
+  nonurgentCheckInSeconds: number;
   checkInTimeoutSeconds: number;
   checkInNotify: boolean;
   companionName: string;
@@ -183,6 +195,11 @@ interface Settings {
   reducedMotion: boolean;
 }
 interface State {
+  recordActivity: (title: string) => void;
+  guidanceActive: boolean;
+  cancelGuidance: () => void;
+  closeDemo: () => void;
+  dismissAcknowledgment: () => void;
   checkIn: CheckIn | null;
   checkInHistory: CheckIn[];
   familyRequest: FamilyRequest | null;
@@ -243,9 +260,9 @@ interface State {
   settingsUpdate: (patch: Partial<Settings>) => void;
 }
 function landmarkUpdate(s: State, landmarks: Landmark[]): Partial<State> {
-  const target = s.landmarks.filter((l) => l.approved)[s.guideIndex]?.id;
+  const target = s.landmarks.filter(navigable)[s.guideIndex]?.id;
   const guideIndex = landmarks
-    .filter((l) => l.approved)
+    .filter(navigable)
     .findIndex((l) => l.id === target);
   return {
     landmarks,
@@ -260,6 +277,7 @@ function landmarkUpdate(s: State, landmarks: Landmark[]): Partial<State> {
   };
 }
 const defaults = () => ({
+  guidanceActive: false,
   checkIn: null as CheckIn | null,
   checkInHistory: [] as CheckIn[],
   familyRequest: null as FamilyRequest | null,
@@ -299,6 +317,8 @@ export const useStore = create<State>()(
       ...defaults(),
       landmarks: initialLandmarks,
       settings: {
+        repeatCheckInSeconds: 30,
+        nonurgentCheckInSeconds: 60,
         checkInTimeoutSeconds: 30,
         checkInNotify: true,
         companionName: DEFAULT_COMPANION_NAME,
@@ -309,6 +329,61 @@ export const useStore = create<State>()(
         notifications: true,
         largeText: false,
         reducedMotion: false,
+      },
+      recordActivity: (title) =>
+        set((s) => ({
+          alerts: [
+            {
+              id: crypto.randomUUID(),
+              title,
+              time: Date.now(),
+              read: false,
+              urgent: false,
+            },
+            ...s.alerts,
+          ].slice(0, 100),
+        })),
+      dismissAcknowledgment: () => set({ interactionNote: "" }),
+      cancelGuidance: () => {
+        const s = get();
+        if (
+          s.mode === "EMERGENCY_SIMULATED" ||
+          (s.incident && s.incident.stage !== "resolved") ||
+          (!s.guidanceActive && s.mode !== "GUIDED_RETURN")
+        )
+          return;
+        const mode =
+          s.familyRequest && s.familyRequest.status !== "responded"
+            ? "CAREGIVER_HANDOVER"
+            : scenarioMode(s.signals) ||
+              (verificationBlockers(s).length ||
+              s.checkIn?.stage === "unresolved"
+                ? "CHECK_IN"
+                : "NORMAL");
+        set({
+          guidanceActive: false,
+          mode,
+          interactionNote:
+            "Guidance cancelled. Your caregiver can help with any remaining concern.",
+          alerts: [
+            {
+              id: crypto.randomUUID(),
+              title: "Guidance cancelled by wearer",
+              time: Date.now(),
+              read: false,
+              urgent: false,
+            },
+            ...s.alerts,
+          ].slice(0, 100),
+        });
+      },
+      closeDemo: () => {
+        const s = get();
+        s.cancelGuidance();
+        set({
+          checkIn: s.checkIn ? { ...s.checkIn, deadline: null } : null,
+          interactionNote: "",
+        });
       },
       returnToCheckIn: () => {
         const s = get();
@@ -427,10 +502,20 @@ export const useStore = create<State>()(
             checkIn: {
               ...c,
               repeats: 1,
-              deadline: now + s.settings.checkInTimeoutSeconds * 1000,
+              deadline: now + s.settings.repeatCheckInSeconds * 1000,
             },
             interactionNote:
               "I'm here with you. When you're ready, tell me how you feel.",
+            alerts: [
+              {
+                id: crypto.randomUUID(),
+                title: "Repeated check-in — primary caregiver review requested",
+                time: now,
+                read: false,
+                urgent: false,
+              },
+              ...s.alerts,
+            ].slice(0, 100),
           });
         } else {
           const unresolved: CheckIn = {
@@ -517,6 +602,10 @@ export const useStore = create<State>()(
             ? current.incident.id
             : crypto.randomUUID();
         set((s) => ({
+          ...(["GUIDE", "OKAY", "LOST", "HELP"].includes(event) &&
+          s.mode !== "EMERGENCY_SIMULATED"
+            ? { guidanceActive: event === "GUIDE" }
+            : {}),
           ...(event === "CHECK" && s.mode !== "EMERGENCY_SIMULATED"
             ? {
                 checkIn: {
@@ -927,6 +1016,17 @@ export const useStore = create<State>()(
                   ? "CAREGIVER_HANDOVER"
                   : scenarioMode(signals) || s.mode,
             alerts: [
+              ...(s.signals.gpsConfidence !== signals.gpsConfidence
+                ? [
+                    {
+                      id: crypto.randomUUID(),
+                      title: `GPS confidence ${signals.gpsConfidence < s.signals.gpsConfidence ? "reduced" : "restored"}: ${Math.round(signals.gpsConfidence * 100)}% — simulated reading; guidance requires confidence of at least 60%`,
+                      time: Date.now(),
+                      read: false,
+                      urgent: false,
+                    },
+                  ]
+                : []),
               ...(findings.length
                 ? findings.map((f) => ({
                     id: crypto.randomUUID(),
@@ -971,7 +1071,7 @@ export const useStore = create<State>()(
         ),
       nextLandmark: (expectedId) => {
         const s = get();
-        const approved = s.landmarks.filter((l) => l.approved);
+        const approved = s.landmarks.filter(navigable);
         if (
           s.mode !== "GUIDED_RETURN" ||
           !s.connected ||
@@ -982,6 +1082,18 @@ export const useStore = create<State>()(
             approved[s.guideIndex]?.id !== expectedId)
         )
           return;
+        set({
+          alerts: [
+            {
+              id: crypto.randomUUID(),
+              title: `Landmark reached: ${approved[s.guideIndex].name} — wearer confirmed recognition`,
+              time: Date.now(),
+              read: false,
+              urgent: false,
+            },
+            ...s.alerts,
+          ].slice(0, 100),
+        });
         if (s.guideIndex + 1 >= approved.length) {
           s.event("OKAY");
           set({ position: 6 });

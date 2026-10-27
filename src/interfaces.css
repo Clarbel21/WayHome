@@ -2,7 +2,7 @@
 .companion-page.shared-experience,
 .care-workspace {
   --interface-ink: #172d25;
-  --interface-cream: #f5f4ef;
+  --interface-cream: var(--wh-cream);
   font-family: Arial, Helvetica, sans-serif;
   background: var(--interface-cream);
   color: var(--interface-ink);
@@ -93,7 +93,7 @@
   box-shadow: 0 30px 65px #172d251c;
 }
 .shared-experience .watch-screen {
-  background: #f5f4ef;
+  background: var(--wh-cream);
 }
 .shared-experience .companion-foot {
   font-size: 12px;
@@ -121,7 +121,7 @@
   z-index: 1;
 }
 .care-phone-screen {
-  background: #f5f4ef;
+  background: var(--wh-cream);
   border-radius: 38px;
   padding: 22px 20px 20px;
   height: 800px;
@@ -362,7 +362,7 @@
   overflow-y: auto;
 }
 .care-workspace .sidebar .brand {
-  color: #f5f4ef;
+  color: var(--wh-cream);
 }
 .care-workspace .workspace-label {
   color: #b6cbb7;
@@ -393,10 +393,10 @@
   color: #bdccbc;
 }
 .care-workspace .sidebar .profile {
-  color: #f5f4ef;
+  color: var(--wh-cream);
 }
 .care-workspace .topbar {
-  background: #f5f4ef;
+  background: var(--wh-cream);
 }
 .care-workspace .page-heading h1 {
   font-family: Arial, Helvetica, sans-serif;
@@ -476,6 +476,6 @@
   overflow-wrap: anywhere;
 }
 .phone-workspace-link {
-  background: #f5f4ef;
+  background: var(--wh-cream);
   padding-bottom: 14px;
 }
