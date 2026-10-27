@@ -1,3 +1,5 @@
+import { CaregiverPhone } from "./components/CaregiverPhone";
+import "./interfaces.css";
 import {
   CheckInHistory,
   CheckInRuntime,
@@ -153,6 +155,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     ["/caregiver/alerts", "Alerts", Bell],
     ["/caregiver/emergency", "Emergency Assistance", ShieldCheck],
     ["/caregiver/twin", "Digital twin", Watch],
+    ["/together", "Side-by-side view", Monitor],
     ["/caregiver/landmarks", "Familiar landmarks", Compass],
     ["/caregiver/library", "Memory Library", Leaf],
     ["/caregiver/settings", "Settings", Settings],
@@ -160,7 +163,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   ] as const;
   return (
     <div
-      className={`app ${s.settings.largeText ? "large-text" : ""} ${s.settings.reducedMotion ? "reduce-motion" : ""}`}
+      className={`app care-workspace ${s.settings.largeText ? "large-text" : ""} ${s.settings.reducedMotion ? "reduce-motion" : ""}`}
     >
       <aside className={`sidebar ${open ? "open" : ""}`}>
         <Brand />
@@ -965,7 +968,7 @@ function Companion() {
   const s = useStore();
   return (
     <div
-      className={`companion-page ${s.settings.largeText ? "large-text" : ""} ${s.settings.reducedMotion ? "reduce-motion" : ""}`}
+      className={`companion-page shared-experience ${s.settings.largeText ? "large-text" : ""} ${s.settings.reducedMotion ? "reduce-motion" : ""}`}
     >
       <header className="public-header">
         <Brand />
@@ -979,30 +982,55 @@ function Companion() {
         <h1>
           Here with you.
           <br />
-          <em>Every step.</em>
+          <em>Connected by care.</em>
         </h1>
         <p>A little reassurance, wherever the day takes you.</p>
-        <Wearable />
-        <Link
-          className="button explore-memories"
-          to="/memories"
-          aria-describedby={
-            !safetyReady() ? "memories-availability" : undefined
-          }
-        >
-          <Leaf size={23} />
-          Explore Memories
-        </Link>
-        {!safetyReady() && (
-          <p
-            id="memories-availability"
-            className="companion-memory-notice"
-            role="status"
+        <div className="shared-devices">
+          <section
+            className="wearer-interface"
+            aria-labelledby="wearer-view-title"
           >
-            Memory Garden is paused. Select Explore Memories to see why and open
-            caregiver review.
-          </p>
-        )}
+            <div className="device-caption">
+              <span>01 / COMPANION</span>
+              <h2 id="wearer-view-title" tabIndex={-1}>
+                A familiar friend.
+              </h2>
+              <p>{s.settings.wearer}'s interface</p>
+            </div>
+            <Wearable />
+            <Link
+              className="button explore-memories"
+              to="/memories"
+              aria-describedby={
+                !safetyReady() ? "memories-availability" : undefined
+              }
+            >
+              <Leaf size={23} />
+              Explore Memories
+            </Link>
+            {!safetyReady() && (
+              <p
+                id="memories-availability"
+                className="companion-memory-notice"
+                role="status"
+              >
+                Memory Garden is paused. Select Explore Memories to see why and
+                open caregiver review.
+              </p>
+            )}
+          </section>
+          <section
+            className="caregiver-interface"
+            aria-labelledby="caregiver-view-title"
+          >
+            <div className="device-caption">
+              <span>02 / CAREGIVER</span>
+              <h2 id="caregiver-view-title">A little closer.</h2>
+              <p>{s.settings.caregiver}'s phone interface</p>
+            </div>
+            <CaregiverPhone />
+          </section>
+        </div>
         <div className="companion-foot">
           <ShieldCheck size={17} /> Educational simulation · no real emergency
           calls
@@ -1260,6 +1288,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/companion" element={<Companion />} />
+        <Route path="/together" element={<Companion />} />
         <Route path="/memories" element={<MemoryGardenHome />} />
         <Route
           path="/memory-demo"

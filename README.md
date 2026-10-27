@@ -116,3 +116,7 @@ The wearable and Emergency Assistance screen now include **Help received — res
 ### Continuing after caregiver confirmation
 
 SOS resolution and device health are now independent. **Caregiver confirms — resolve SOS** ends the incident after explicit human review even if the sample device is offline, wear status is unknown, or GPS confidence is low. The app keeps those observations unchanged and labels device review as pending. Choose **Explore Memories**, then **Resume activity** (or **Let's begin**) to continue local activities. This caregiver-review allowance is tied to that exact resolved incident; a new SOS, safety request or changed device/scenario observation revokes it. Navigation and simulated movement keep their device/GPS checks. Acknowledgment alone still does not end SOS or enable continuation.
+
+### Side-by-side interfaces
+
+Open `#/together` (or Companion Mode) to use the wearer’s device beside a caregiver phone. Both views share the existing demo state. Send a check-in from the phone, answer on the wearable, then use the phone’s Today/Updates controls for caregiver response and history. On small screens the interfaces stack; longer phone content scrolls inside its screen. The caregiver sidebar also includes **Side-by-side view**. Existing SOS resolution and Memory Garden safety gates remain in effect.
