@@ -34,7 +34,19 @@ export function CheckInRuntime() {
 export function FamilyResponse() {
   const s = useStore();
   const request = s.familyRequest;
-  if (!request) return null;
+  if (!request)
+    return s.mode === "CAREGIVER_HANDOVER" ? (
+      <section className="card settings-card">
+        <h2>Caregiver assistance</h2>
+        <p>
+          This concern needs review. Open a simulated family request to
+          acknowledge and respond.
+        </p>
+        <button className="button" onClick={() => s.chooseAssistance("family")}>
+          Start family handover
+        </button>
+      </section>
+    ) : null;
   return (
     <section className="card settings-card" aria-label="Family request">
       <h2>Family request · simulation</h2>
@@ -102,12 +114,23 @@ export function CheckInDemo() {
         home guidance, family contact, and calm support. During guidance, try
         either recognition answer. SOS can interrupt every branch.
       </p>
-      <button className="button" onClick={() => s.event("CHECK")}>
+      <button
+        className="button"
+        disabled={
+          s.mode === "EMERGENCY_SIMULATED" ||
+          !!(s.familyRequest && s.familyRequest.status !== "responded")
+        }
+        onClick={() => s.event("CHECK")}
+      >
         Start feeling check-in
       </button>{" "}
       <button
         className="button light"
-        disabled={s.mode !== "CHECK_IN" || s.checkIn?.stage !== "question"}
+        disabled={
+          s.mode !== "CHECK_IN" ||
+          s.checkIn?.stage !== "question" ||
+          s.checkIn.deadline === null
+        }
         onClick={() => {
           const c = useStore.getState().checkIn;
           if (c?.deadline) s.checkInTimeout(c.id, c.deadline);
@@ -120,6 +143,16 @@ export function CheckInDemo() {
         policy above controls caregiver notification. Nobody is labeled lost; no
         police are called.
       </p>
+      {s.mode === "EMERGENCY_SIMULATED" && (
+        <p role="status">
+          Resolve SOS in Emergency Assistance before starting another check-in.
+        </p>
+      )}
+      {s.familyRequest && s.familyRequest.status !== "responded" && (
+        <p role="status">
+          Respond to the family request below before starting another check-in.
+        </p>
+      )}
       <FamilyResponse />
     </section>
   );
@@ -133,11 +166,15 @@ export function CheckInHistory() {
       <h2>Check-in responses</h2>
       {history.slice(0, 5).map((c, i) => (
         <p key={`${c.id}-${i}`}>
-          {c.response === "okay"
-            ? "I'm okay"
-            : c.response === "help"
-              ? "I need help"
-              : "Unresolved check-in"}
+          {c.stage === "unresolved"
+            ? "Unresolved check-in"
+            : c.source === "caregiver"
+              ? "Caregiver review"
+              : c.response === "okay"
+                ? "I'm okay"
+                : c.response === "help"
+                  ? "I need help"
+                  : "Unresolved check-in"}
           {" · "}
           {new Date(c.respondedAt ?? c.unresolvedAt ?? 0).toLocaleString()}
         </p>

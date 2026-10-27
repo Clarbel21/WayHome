@@ -166,14 +166,19 @@ export const useMemory = create<MemoryState>()(
       session: null,
       growth: [],
       history: [],
-      saveEntry: (entry) =>
+      saveEntry: (entry) => {
         set((s) => ({
           entries: s.entries.some((e) => e.id === entry.id)
             ? s.entries.map((e) => (e.id === entry.id ? entry : e))
             : [...s.entries, entry],
-        })),
-      deleteEntry: (id) =>
-        set((s) => ({ entries: s.entries.filter((e) => e.id !== id) })),
+        }));
+        if (get().session?.entryId === entry.id && !entry.approved)
+          get().pause();
+      },
+      deleteEntry: (id) => {
+        set((s) => ({ entries: s.entries.filter((e) => e.id !== id) }));
+        if (get().session?.entryId === id) get().pause();
+      },
       setPreferences: (patch) =>
         set((s) => ({ preferences: { ...s.preferences, ...patch } })),
       begin: () => set((s) => ({ stage: s.session ? "activity" : "home" })),
@@ -212,7 +217,13 @@ export const useMemory = create<MemoryState>()(
       },
       respond: (detail) => {
         const s = get();
-        if (!s.session || s.session.paused || !safetyReady() || !eligible(s))
+        if (
+          !s.session ||
+          s.session.completed ||
+          s.session.paused ||
+          !safetyReady() ||
+          !eligible(s)
+        )
           return;
         set({ session: { ...s.session, revealed: true, response: detail } });
         if (s.session.kind !== "routine" && s.session.kind !== "garden")
@@ -241,7 +252,12 @@ export const useMemory = create<MemoryState>()(
         }),
       undoStep: () =>
         set((s) =>
-          s.session && !s.session.completed && safetyReady()
+          s.session &&
+          s.session.kind === "routine" &&
+          !s.session.paused &&
+          !s.session.completed &&
+          safetyReady() &&
+          eligible(s)
             ? { session: { ...s.session, order: s.session.order.slice(0, -1) } }
             : {},
         ),

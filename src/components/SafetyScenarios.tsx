@@ -49,10 +49,14 @@ export function SafetyScenarios() {
         >
           Clear simulated scenario readings
         </button>
-        <button className="button light" onClick={() => s.event("OKAY")}>
+        <button
+          className="button light"
+          onClick={() => s.answerCheckIn("okay", "caregiver")}
+        >
           Review check-in after observations
         </button>
       </div>
+      {s.interactionNote && <p role="status">{s.interactionNote}</p>}
       <p className="help-text">
         Clearing readings does not confirm anyone's safety, restore
         wear/connection inputs or dismiss S5. There is no background clock or

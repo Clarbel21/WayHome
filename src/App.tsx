@@ -899,7 +899,15 @@ function DemoControls() {
               <button
                 className={`scenario ${a.event === "SOS" ? "sos-scenario" : ""}`}
                 key={a.event}
-                onClick={() => s.event(a.event)}
+                disabled={
+                  s.mode === "EMERGENCY_SIMULATED" &&
+                  !["SOS", "REMOVE", "DISCONNECT"].includes(a.event)
+                }
+                onClick={() =>
+                  a.event === "OKAY"
+                    ? s.answerCheckIn("okay")
+                    : s.event(a.event)
+                }
               >
                 <span className="scenario-number">
                   {String(i + 1).padStart(2, "0")}
@@ -1014,7 +1022,7 @@ const steps = [
   },
   {
     title: "A gentle check-in",
-    body: "A simulated unusual route event prompts {companion} to ask “Are you feeling okay?” without overwhelming Alex.",
+    body: "A simulated unusual route event prompts {companion} to ask “How are you feeling?” without overwhelming Alex.",
     event: "CHECK",
   },
   {
@@ -1034,7 +1042,7 @@ const steps = [
   },
   {
     title: "One confident step",
-    body: "Alex recognizes the place. Select “I see it · Next step” on the wearable to move through the familiar landmarks.",
+    body: "Alex recognizes the place. Select “I see it” on the wearable to move through the familiar landmarks.",
     event: "GUIDE",
   },
   {
@@ -1053,9 +1061,11 @@ function Guided() {
   const [index, setIndex] = useState(0);
   const [started, setStarted] = useState(false);
   function go(i: number) {
+    if (s.mode === "EMERGENCY_SIMULATED") return;
     setIndex(i);
     setStarted(true);
-    s.event(steps[i].event);
+    if (steps[i].event === "OKAY") s.answerCheckIn("okay");
+    else s.event(steps[i].event);
   }
   return (
     <>
@@ -1076,6 +1086,7 @@ function Guided() {
                 aria-label={`Go to step ${i + 1}`}
                 aria-current={i === index ? "step" : undefined}
                 className={i <= index ? "complete" : ""}
+                disabled={s.mode === "EMERGENCY_SIMULATED"}
                 onClick={() => go(i)}
               />
             ))}
@@ -1098,7 +1109,7 @@ function Guided() {
           <div className="button-row">
             <button
               className="button light"
-              disabled={index === 0}
+              disabled={index === 0 || s.mode === "EMERGENCY_SIMULATED"}
               onClick={() => go(index - 1)}
             >
               <ChevronLeft size={17} />
@@ -1107,7 +1118,9 @@ function Guided() {
             <button
               className="button"
               onClick={() => go(!started ? 0 : Math.min(7, index + 1))}
-              disabled={started && index === 7}
+              disabled={
+                (started && index === 7) || s.mode === "EMERGENCY_SIMULATED"
+              }
             >
               {!started
                 ? "Begin story"
@@ -1119,7 +1132,9 @@ function Guided() {
           </div>
           <button
             className="text-button"
+            disabled={s.mode === "EMERGENCY_SIMULATED"}
             onClick={() => {
+              if (s.mode === "EMERGENCY_SIMULATED") return;
               s.reset();
               setStarted(false);
               setIndex(0);

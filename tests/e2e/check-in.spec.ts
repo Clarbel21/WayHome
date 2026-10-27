@@ -153,9 +153,9 @@ test("SOS interrupts help choices and okay cannot bypass the incident", async ({
     page.getByRole("button", { name: "I'm okay", exact: true }),
   ).toHaveCount(0);
   await page.goto("/#/demo");
-  await page
-    .getByRole("button", { name: /Simulate Successful Reorientation/ })
-    .click();
+  await expect(
+    page.getByRole("button", { name: /Simulate Successful Reorientation/ }),
+  ).toBeDisabled();
   await expect(
     page.getByText("Help request sent — simulation", { exact: true }),
   ).toBeVisible();

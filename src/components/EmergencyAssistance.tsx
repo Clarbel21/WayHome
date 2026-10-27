@@ -1,3 +1,4 @@
+import { FamilyResponse } from "./CheckInSupport";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ShieldAlert } from "lucide-react";
@@ -151,6 +152,7 @@ export function EmergencyAssistance() {
             )}
           </section>
           <WearableConfiguration />
+          <FamilyResponse />
           <SafetyScenarios />
           <section
             className="card settings-card emergency-panel"

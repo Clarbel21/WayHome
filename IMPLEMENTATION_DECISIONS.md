@@ -34,3 +34,7 @@ Validation for this follow-up: production build and **32 unit tests passed**; th
 ## Interactive check-in (October 2026)
 
 Keep the six safety modes and existing incident verification gates. Add persisted check-in stages, response timestamps, and a distinct simulated family request lifecycle inside the existing store. A single application timer repeats once, then logs an unresolved check-in; the demo policy controls notification only. No timeout infers that someone is lost or contacts emergency services. Recognition advances only explicitly approved landmarks; rejection stops guidance. Caregiver acknowledgment and simulated response do not resolve an emergency or physical safety condition. Existing device and incident blockers continue to guard normal monitoring.
+
+## Button logic audit (October 2026)
+
+Audit the store actions as well as visible handlers: buttons must either perform a valid transition, offer a recovery route, or explain their disabled state. Preserve pending family requests across device and signal updates, deduplicate repeated answers/acknowledgments, and keep SOS independent. A caregiver's explicit check-in review uses the same recorded response action as the wearer; it cannot fabricate healthy device readings. Handover screens without an interactive family request must offer a way to create one. Help choices need a way back to the question. Route resets must not modify an active SOS snapshot. Memory actions must reject edits to paused, completed, or withdrawn content, including stale callbacks.

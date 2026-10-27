@@ -78,7 +78,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
                   disabled={
                     !s.connected || !s.worn || s.signals.gpsConfidence < 0.6
                   }
-                  onClick={s.nextLandmark}
+                  onClick={() => s.nextLandmark(landmark.id)}
                 >
                   I see it
                 </button>
@@ -124,13 +124,25 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             <div className="watch-landmark">
               <div className="avatar">{s.settings.caregiver.slice(0, 1)}</div>
               <strong>{s.settings.caregiver}</strong>
+              {!s.familyRequest && (
+                <button
+                  className="watch-action"
+                  onClick={() => s.chooseAssistance("family")}
+                >
+                  Contact my family
+                </button>
+              )}
               <p>
-                {s.familyRequest?.status === "responded"
-                  ? `${s.settings.caregiver} has responded in this demo. They are here to help.`
-                  : "Waiting for caregiver response"}
+                {!s.familyRequest
+                  ? "Your caregiver needs to review this concern."
+                  : s.familyRequest?.status === "responded"
+                    ? `${s.settings.caregiver} has responded in this demo. They are here to help.`
+                    : "Waiting for caregiver response"}
               </p>
               <small>
-                Caregiver notification sent — simulation. No real call was made.
+                {s.familyRequest
+                  ? "Caregiver notification sent — simulation. No real call was made."
+                  : "No real call or message has been sent."}
               </small>
               {s.familyRequest?.status === "acknowledged" && (
                 <p>Your caregiver has seen your request.</p>
@@ -175,6 +187,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
               >
                 I'm confused
               </button>
+              <button onClick={s.returnToCheckIn}>Back to check-in</button>
             </div>
           )}
           {(s.mode === "NORMAL" ||

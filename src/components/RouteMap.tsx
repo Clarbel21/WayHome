@@ -165,6 +165,12 @@ export function RouteMap() {
           <button
             className="icon-button"
             aria-label="Reset route"
+            disabled={s.mode === "EMERGENCY_SIMULATED"}
+            title={
+              s.mode === "EMERGENCY_SIMULATED"
+                ? "Resolve SOS before resetting the route"
+                : "Reset simulated route"
+            }
             onClick={s.resetRoute}
           >
             ↺

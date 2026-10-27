@@ -12,12 +12,18 @@ export function SOSButton() {
     started.current = null;
     setHolding(false);
   };
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    const hidden = () => {
+      if (document.hidden) cancel();
+    };
+    window.addEventListener("blur", cancel);
+    document.addEventListener("visibilitychange", hidden);
+    return () => {
       if (timer.current) clearTimeout(timer.current);
-    },
-    [],
-  );
+      window.removeEventListener("blur", cancel);
+      document.removeEventListener("visibilitychange", hidden);
+    };
+  }, []);
   const hold = () => {
     if (timer.current) return;
     setHolding(true);
@@ -46,6 +52,7 @@ export function SOSButton() {
     <button
       className={`sos-hold ${holding ? "holding" : ""}`}
       onPointerDown={(e) => {
+        if (e.button !== 0 || !e.isPrimary) return;
         e.currentTarget.setPointerCapture(e.pointerId);
         hold();
       }}

@@ -159,6 +159,7 @@ export interface CheckIn {
   repeats: number;
   deadline: number | null;
   response?: "okay" | "help";
+  source?: "wearer" | "caregiver";
   respondedAt?: number;
   unresolvedAt?: number;
 }
@@ -186,7 +187,11 @@ interface State {
   checkInHistory: CheckIn[];
   familyRequest: FamilyRequest | null;
   interactionNote: string;
-  answerCheckIn: (answer: "okay" | "help") => void;
+  returnToCheckIn: () => void;
+  answerCheckIn: (
+    answer: "okay" | "help",
+    source?: "wearer" | "caregiver",
+  ) => void;
   chooseAssistance: (
     choice: "home" | "family" | "confused" | "unrecognized",
   ) => void;
@@ -229,13 +234,30 @@ interface State {
   resetEmergency: (note?: string) => void;
   saveCompanionName: (name: string) => boolean;
   move: () => void;
-  nextLandmark: () => void;
+  nextLandmark: (expectedId?: string) => void;
   resetRoute: () => void;
   reset: () => void;
   read: (id?: string) => void;
   saveLandmark: (landmark: Landmark) => void;
   deleteLandmark: (id: string) => void;
   settingsUpdate: (patch: Partial<Settings>) => void;
+}
+function landmarkUpdate(s: State, landmarks: Landmark[]): Partial<State> {
+  const target = s.landmarks.filter((l) => l.approved)[s.guideIndex]?.id;
+  const guideIndex = landmarks
+    .filter((l) => l.approved)
+    .findIndex((l) => l.id === target);
+  return {
+    landmarks,
+    guideIndex: Math.max(0, guideIndex),
+    ...(s.mode === "GUIDED_RETURN" && target !== undefined && guideIndex < 0
+      ? {
+          mode: "REORIENTATION",
+          interactionNote:
+            "This landmark was withdrawn. Directions have stopped. Please contact your family.",
+        }
+      : {}),
+  };
 }
 const defaults = () => ({
   checkIn: null as CheckIn | null,
@@ -288,26 +310,58 @@ export const useStore = create<State>()(
         largeText: false,
         reducedMotion: false,
       },
-      answerCheckIn: (answer) => {
+      returnToCheckIn: () => {
+        const s = get();
+        if (s.mode !== "CHECK_IN" || s.checkIn?.stage !== "help_options")
+          return;
+        set({
+          checkIn: {
+            ...s.checkIn,
+            stage: "question",
+            response: undefined,
+            respondedAt: undefined,
+            source: undefined,
+            deadline: Date.now() + s.settings.checkInTimeoutSeconds * 1000,
+          },
+          interactionNote: "",
+        });
+      },
+      answerCheckIn: (answer, source = "wearer") => {
         const s = get();
         if (
           s.mode === "EMERGENCY_SIMULATED" ||
           (s.incident && s.incident.stage !== "resolved")
         )
           return;
-        const record: CheckIn = {
-          ...(s.checkIn ?? { id: crypto.randomUUID(), repeats: 0 }),
-          stage: answer === "help" ? "help_options" : "answered",
-          deadline: null,
-          response: answer,
-          respondedAt: Date.now(),
-        };
-        set({
-          checkIn: record,
-          checkInHistory: [record, ...s.checkInHistory].slice(0, 100),
-        });
+        const duplicate =
+          s.checkIn?.response === answer &&
+          s.checkIn.source === source &&
+          s.checkIn.stage ===
+            (answer === "help" ? "help_options" : "answered") &&
+          (answer === "help" ||
+            Date.now() - (s.checkIn.respondedAt ?? 0) < 750);
+        if (duplicate && (answer === "help" || s.mode === "NORMAL")) return;
+        if (!duplicate) {
+          const record: CheckIn = {
+            ...(s.checkIn ?? { id: crypto.randomUUID(), repeats: 0 }),
+            stage: answer === "help" ? "help_options" : "answered",
+            deadline: null,
+            response: answer,
+            source,
+            respondedAt: Date.now(),
+          };
+          set({
+            checkIn: record,
+            checkInHistory: [record, ...s.checkInHistory].slice(0, 100),
+          });
+        }
         if (answer === "okay") {
-          s.event("OKAY");
+          s.event(
+            "OKAY",
+            source === "caregiver"
+              ? "Caregiver reviewed check-in — safety conditions checked separately"
+              : undefined,
+          );
           set({
             interactionNote:
               get().mode === "NORMAL"
@@ -338,7 +392,7 @@ export const useStore = create<State>()(
             interactionNote:
               get().mode === "GUIDED_RETURN"
                 ? "These are simulated directions. Look for one familiar place at a time."
-                : "Guidance is paused. Location or device readings need caregiver review. I can't confirm the route.",
+                : "Guidance is paused while your caregiver reviews the current concern. I can't confirm the route.",
           });
         } else {
           s.event(
@@ -415,6 +469,7 @@ export const useStore = create<State>()(
           !request ||
           request.id !== id ||
           request.status === "responded" ||
+          (response === "acknowledge" && request.status !== "waiting") ||
           (response === "respond" && request.status !== "acknowledged")
         )
           return;
@@ -443,6 +498,20 @@ export const useStore = create<State>()(
       },
       event: (event, reason) => {
         const current = get();
+        if (
+          (current.mode === "EMERGENCY_SIMULATED" ||
+            (current.incident && current.incident.stage !== "resolved")) &&
+          !["SOS", "POLICE", "REMOVE", "DISCONNECT"].includes(event)
+        )
+          return;
+        if (
+          event === "HELP" &&
+          current.familyRequest &&
+          current.familyRequest.status !== "responded"
+        ) {
+          set({ mode: "CAREGIVER_HANDOVER" });
+          return;
+        }
         const incidentId =
           current.incident && current.incident.stage !== "resolved"
             ? current.incident.id
@@ -468,11 +537,14 @@ export const useStore = create<State>()(
             : {}),
           ...(event === "HELP" && s.mode !== "EMERGENCY_SIMULATED"
             ? {
-                familyRequest: {
-                  id: crypto.randomUUID(),
-                  status: "waiting" as const,
-                  requestedAt: Date.now(),
-                },
+                familyRequest:
+                  s.familyRequest && s.familyRequest.status !== "responded"
+                    ? s.familyRequest
+                    : {
+                        id: crypto.randomUUID(),
+                        status: "waiting" as const,
+                        requestedAt: Date.now(),
+                      },
               }
             : {}),
           ...(!["OKAY", "WALK"].includes(event)
@@ -489,21 +561,25 @@ export const useStore = create<State>()(
           mode: withScenarioPriority(
             s.incident && s.incident.stage !== "resolved"
               ? "EMERGENCY_SIMULATED"
-              : transition(s.mode, event) === "NORMAL"
-                ? verificationBlockers(s).length ||
-                  s.checkIn?.stage === "unresolved" ||
-                  (s.familyRequest && s.familyRequest.status !== "responded")
-                  ? scenarioMode(s.signals) ||
-                    (s.familyRequest && s.familyRequest.status !== "responded"
-                      ? "CAREGIVER_HANDOVER"
-                      : "CHECK_IN")
-                  : "NORMAL"
-                : event === "GUIDE" &&
-                    (s.signals.gpsConfidence < 0.6 ||
-                      !s.connected ||
-                      s.wearStatus !== "likely_worn")
-                  ? "CHECK_IN"
-                  : transition(s.mode, event),
+              : s.familyRequest &&
+                  s.familyRequest.status !== "responded" &&
+                  !["SOS", "POLICE"].includes(event)
+                ? "CAREGIVER_HANDOVER"
+                : transition(s.mode, event) === "NORMAL"
+                  ? verificationBlockers(s).length ||
+                    s.checkIn?.stage === "unresolved" ||
+                    (s.familyRequest && s.familyRequest.status !== "responded")
+                    ? scenarioMode(s.signals) ||
+                      (s.familyRequest && s.familyRequest.status !== "responded"
+                        ? "CAREGIVER_HANDOVER"
+                        : "CHECK_IN")
+                    : "NORMAL"
+                  : event === "GUIDE" &&
+                      (s.signals.gpsConfidence < 0.6 ||
+                        !s.connected ||
+                        s.wearStatus !== "likely_worn")
+                    ? "CHECK_IN"
+                    : transition(s.mode, event),
             s.signals,
           ),
           ...(["SOS", "POLICE"].includes(event)
@@ -548,7 +624,9 @@ export const useStore = create<State>()(
             {
               id: crypto.randomUUID(),
               title:
-                titles[event] +
+                (["SOS", "POLICE"].includes(event)
+                  ? titles[event]
+                  : reason || titles[event]) +
                 (s.mode === "EMERGENCY_SIMULATED" &&
                 !["SOS", "POLICE", "REMOVE", "DISCONNECT"].includes(event)
                   ? " · S5 remains active"
@@ -642,7 +720,10 @@ export const useStore = create<State>()(
           return s.verifyIncident(id, revision, true);
         const time = Date.now();
         set({
-          mode: "CHECK_IN",
+          mode:
+            s.familyRequest && s.familyRequest.status !== "responded"
+              ? "CAREGIVER_HANDOVER"
+              : "CHECK_IN",
           reviewedIncident: { id, revision },
           incident: {
             ...s.incident,
@@ -689,7 +770,12 @@ export const useStore = create<State>()(
           return false;
         const time = Date.now();
         set({
-          mode: "NORMAL",
+          mode:
+            s.familyRequest && s.familyRequest.status !== "responded"
+              ? "CAREGIVER_HANDOVER"
+              : s.checkIn?.stage === "unresolved"
+                ? "CHECK_IN"
+                : "NORMAL",
           reviewedIncident: null,
           incident: {
             ...s.incident,
@@ -733,7 +819,12 @@ export const useStore = create<State>()(
           mode:
             s.mode === "EMERGENCY_SIMULATED"
               ? "EMERGENCY_SIMULATED"
-              : "CHECK_IN",
+              : withScenarioPriority(
+                  s.familyRequest && s.familyRequest.status !== "responded"
+                    ? "CAREGIVER_HANDOVER"
+                    : "CHECK_IN",
+                  s.signals,
+                ),
           alerts: [
             {
               id: crypto.randomUUID(),
@@ -758,9 +849,14 @@ export const useStore = create<State>()(
             mode:
               s.mode === "EMERGENCY_SIMULATED"
                 ? s.mode
-                : wearStatus !== "likely_worn"
-                  ? "CHECK_IN"
-                  : s.mode,
+                : withScenarioPriority(
+                    s.familyRequest && s.familyRequest.status !== "responded"
+                      ? "CAREGIVER_HANDOVER"
+                      : wearStatus !== "likely_worn"
+                        ? "CHECK_IN"
+                        : s.mode,
+                    s.signals,
+                  ),
             alerts: [
               {
                 id: crypto.randomUUID(),
@@ -827,7 +923,9 @@ export const useStore = create<State>()(
             mode:
               s.mode === "EMERGENCY_SIMULATED"
                 ? s.mode
-                : scenarioMode(signals) || s.mode,
+                : s.familyRequest && s.familyRequest.status !== "responded"
+                  ? "CAREGIVER_HANDOVER"
+                  : scenarioMode(signals) || s.mode,
             alerts: [
               ...(findings.length
                 ? findings.map((f) => ({
@@ -871,7 +969,7 @@ export const useStore = create<State>()(
                 battery: Math.max(0, s.battery - 1),
               },
         ),
-      nextLandmark: () => {
+      nextLandmark: (expectedId) => {
         const s = get();
         const approved = s.landmarks.filter((l) => l.approved);
         if (
@@ -879,7 +977,9 @@ export const useStore = create<State>()(
           !s.connected ||
           s.wearStatus !== "likely_worn" ||
           s.signals.gpsConfidence < 0.6 ||
-          !approved.length
+          !approved.length ||
+          (expectedId !== undefined &&
+            approved[s.guideIndex]?.id !== expectedId)
         )
           return;
         if (s.guideIndex + 1 >= approved.length) {
@@ -891,7 +991,15 @@ export const useStore = create<State>()(
             position: Math.min(6, s.position + 1),
           });
       },
-      resetRoute: () => set({ position: 0, guideIndex: 0 }),
+      resetRoute: () => {
+        const s = get();
+        if (
+          s.mode === "EMERGENCY_SIMULATED" ||
+          (s.incident && s.incident.stage !== "resolved")
+        )
+          return;
+        set({ position: 0, guideIndex: 0 });
+      },
       reset: () => {
         const s = get();
         if (
@@ -912,17 +1020,21 @@ export const useStore = create<State>()(
           ),
         })),
       saveLandmark: (l) =>
-        set((s) => ({
-          landmarks: s.landmarks.some((x) => x.id === l.id)
-            ? s.landmarks.map((x) => (x.id === l.id ? l : x))
-            : [...s.landmarks, l],
-          guideIndex: 0,
-        })),
+        set((s) =>
+          landmarkUpdate(
+            s,
+            s.landmarks.some((x) => x.id === l.id)
+              ? s.landmarks.map((x) => (x.id === l.id ? l : x))
+              : [...s.landmarks, l],
+          ),
+        ),
       deleteLandmark: (id) =>
-        set((s) => ({
-          landmarks: s.landmarks.filter((l) => l.id !== id),
-          guideIndex: 0,
-        })),
+        set((s) =>
+          landmarkUpdate(
+            s,
+            s.landmarks.filter((l) => l.id !== id),
+          ),
+        ),
       settingsUpdate: (patch) =>
         set((s) => ({ settings: { ...s.settings, ...patch } })),
     }),

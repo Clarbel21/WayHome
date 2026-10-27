@@ -972,6 +972,9 @@ footer {
   font-size: 12px;
   min-height: 42px;
 }
+.watch-controls button {
+  color: #28483b;
+}
 .watch-controls button:first-child,
 .watch-action {
   background: #28483b;
