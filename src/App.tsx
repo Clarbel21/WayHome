@@ -42,7 +42,7 @@ import {
   Wifi,
   X,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import Landing from "./landing/Landing";
 import { useStore, status, samples, type Event, type Landmark } from "./store";
 import { Wearable, Photo } from "./components/Wearable";
 import { LandmarkPhoto } from "./components/LandmarkPhoto";
@@ -1143,131 +1143,6 @@ function Guided() {
         </section>
       </div>
     </>
-  );
-}
-function Landing() {
-  const companionName = useStore((s) => s.settings.companionName);
-  return (
-    <div className="landing">
-      <header className="public-header">
-        <Brand />
-        <span className="simulation-pill">
-          <span />
-          EDUCATIONAL PROTOTYPE
-        </span>
-        <Link className="text-button" to="/caregiver">
-          Your circle of care <ArrowRight size={16} />
-        </Link>
-      </header>
-      <main className="landing-main">
-        <div className="landing-copy">
-          <span className="hero-pill">
-            <Leaf size={15} /> A familiar friend. A little more freedom.
-          </span>
-          <h1>
-            Finding the way.
-            <br />
-            <em>Feeling at home.</em>
-          </h1>
-          <p>
-            Meet WayHome. A gentle companion that helps people living with
-            dementia feel more confident, connected, and supported — wherever
-            the day takes them.
-          </p>
-          <div className="hero-actions">
-            <Link className="button" to="/companion">
-              <Watch size={19} />
-              Enter Companion Mode <ArrowRight size={17} />
-            </Link>
-            <Link className="button light" to="/caregiver">
-              <LayoutDashboard size={19} />
-              Enter Caregiver Dashboard
-            </Link>
-          </div>
-          <Link className="guided-link" to="/guided">
-            <span>
-              <Sparkles size={17} />
-            </span>
-            Start Guided Demo <ArrowRight size={16} />
-            <small>2–3 minute interactive story</small>
-          </Link>
-          <div className="hero-trust">
-            <div>
-              <ShieldCheck size={20} />
-              <span>
-                Designed for
-                <br />
-                <strong>peace of mind</strong>
-              </span>
-            </div>
-            <div>
-              <Heart size={20} />
-              <span>
-                Built around
-                <br />
-                <strong>human connection</strong>
-              </span>
-            </div>
-            <div>
-              <Compass size={20} />
-              <span>
-                Familiar places.
-                <br />
-                <strong>Confident steps.</strong>
-              </span>
-            </div>
-          </div>
-        </div>
-        <motion.div
-          className="landing-visual"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-        >
-          <div className="orbit orbit-one" />
-          <div className="orbit orbit-two" />
-          <div className="floating-note note-top">
-            <span className="green-icon">
-              <ShieldCheck size={22} />
-            </span>
-            <div>
-              <strong>A little reassurance.</strong>
-              <p>Right when it's needed.</p>
-            </div>
-          </div>
-          <Wearable compact />
-          <div className="floating-note note-bottom">
-            <span className="peach-icon">
-              <Home size={21} />
-            </span>
-            <div>
-              <strong>Home is a familiar feeling.</strong>
-              <p>Let's find our way together.</p>
-            </div>
-          </div>
-          <span className="visual-caption">
-            MEET {companionName.toLocaleUpperCase()}. YOUR EVERYDAY COMPANION.
-          </span>
-        </motion.div>
-      </main>
-      <section className="landing-bottom">
-        <div>
-          <span className="eyebrow">A GENTLER WAY TO FIND HOME</span>
-          <h2>Independence, with a circle of care.</h2>
-        </div>
-        <p>
-          Not just a dot on a map. A reassuring presence, familiar landmarks,
-          and a connection to someone who cares.
-        </p>
-      </section>
-      <footer>
-        WayHome · Moonshot 101{" "}
-        <span>
-          All GPS, AI behavior, risk detection, and emergency escalation are
-          simulated. Not a medical device.
-        </span>
-      </footer>
-    </div>
   );
 }
 function CaregiverRoutes() {

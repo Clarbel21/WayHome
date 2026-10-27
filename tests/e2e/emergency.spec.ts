@@ -45,7 +45,10 @@ test("Buddy persists across modes; police confirmation, acknowledgment and reset
     .getByRole("link", { name: "Emergency Assistance", exact: true })
     .click();
   await expect(
-    page.getByText("SIMULATION — No police were contacted", { exact: true }),
+    page.getByRole("heading", {
+      name: "SIMULATION — No police were contacted",
+      exact: true,
+    }),
   ).toBeVisible();
   const police = page.getByRole("button", {
     name: "Simulate Police Notification",
