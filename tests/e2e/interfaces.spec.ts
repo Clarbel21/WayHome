@@ -128,3 +128,82 @@ test("mobile interfaces stack without overflow and caregiver workspace navigatio
     .click();
   await expect(page).toHaveURL(/#\/together$/);
 });
+
+test("phone hardware keeps portrait proportions and navigation stays fixed while content scrolls", async ({
+  page,
+}) => {
+  for (const viewport of [
+    { width: 1280, height: 720 },
+    { width: 1920, height: 1080 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/#/together");
+    const phone = page.locator(".care-phone");
+    const box = (await phone.boundingBox())!;
+    expect(box.height / box.width).toBeGreaterThan(2);
+    expect(box.height / box.width).toBeLessThan(2.15);
+    const nav = page.getByRole("navigation", {
+      name: "Phone views",
+      exact: true,
+    });
+    const before = (await nav.boundingBox())!;
+    await page
+      .locator(".phone-scroll")
+      .evaluate((e) => (e.scrollTop = e.scrollHeight));
+    expect((await nav.boundingBox())!.y).toBe(before.y);
+    await nav.getByRole("button", { name: "Care tools", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "Your care tools", exact: true }),
+    ).toBeVisible();
+    expect(
+      await page.locator(".phone-scroll").evaluate((e) => e.scrollTop),
+    ).toBe(0);
+    await page
+      .getByRole("button", { name: "View notifications", exact: true })
+      .click();
+    await expect(
+      page.getByRole("heading", {
+        name: "Little moments. Shared.",
+        exact: true,
+      }),
+    ).toBeVisible();
+    // Decorative hardware must never intercept the emergency control.
+    const sos = page.getByRole("button", {
+      name: "SOS Hold for 2 seconds",
+      exact: true,
+    });
+    expect(
+      await sos.evaluate((e) => {
+        const r = e.getBoundingClientRect();
+        return e.contains(
+          document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2),
+        );
+      }),
+    ).toBe(true);
+  }
+});
+
+test("SOS remains discoverable while caregiver browses tools", async ({
+  page,
+}) => {
+  await page.goto("/#/together");
+  await page.getByRole("button", { name: "Care tools", exact: true }).click();
+  await page
+    .getByRole("button", { name: "SOS Hold for 2 seconds", exact: true })
+    .focus();
+  await page.keyboard.down("Space");
+  await page.waitForTimeout(2100);
+  await page.keyboard.up("Space");
+  await page
+    .getByRole("button", { name: "SOS needs review", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Acknowledge SOS alert", exact: true })
+    .click();
+  await expect(
+    page.getByRole("link", { name: "Review SOS", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Send a check-in", exact: true }),
+  ).toHaveCount(0);
+});

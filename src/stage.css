@@ -447,3 +447,472 @@
 .watch-landmark > strong {
   overflow-wrap: anywhere;
 }
+
+/* Device study: stable hardware proportions, with app content scrolling inside. */
+.shared-experience .care-phone {
+  --phone-height: 710px;
+  width: min(100%, 344px);
+  height: var(--phone-height);
+  aspect-ratio: 344 / 710;
+  padding: 7px;
+  border: 2px solid #788077;
+  border-radius: 44px;
+  background: linear-gradient(120deg, #4d554d, #121913 40%, #313d32);
+  box-shadow:
+    0 22px 40px -16px #20362960,
+    inset 0 0 0 2px #111b13,
+    0 0 0 1px #263226;
+  flex: none;
+  position: relative;
+}
+.care-phone::before,
+.care-phone::after {
+  content: "";
+  position: absolute;
+  width: 3px;
+  background: linear-gradient(#9da597, #4b5649);
+  border-radius: 3px;
+}
+.care-phone::before {
+  left: -5px;
+  top: 100px;
+  height: 58px;
+}
+.care-phone::after {
+  right: -5px;
+  top: 140px;
+  height: 43px;
+}
+.shared-experience .care-phone-screen {
+  height: 100%;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 35px;
+  background: #f4f5ef;
+}
+.shared-experience .phone-island {
+  top: 17px;
+  width: 76px;
+  height: 20px;
+  background: #111611;
+  z-index: 2;
+}
+.shared-experience .phone-system {
+  padding: 15px 19px 10px;
+  flex: 0 0 43px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  background: #f4f5ef;
+}
+.phone-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  flex: 1;
+  min-height: 0;
+  padding: 8px 15px 16px;
+  scrollbar-width: thin;
+  scrollbar-color: #b7c5b3 transparent;
+}
+.phone-scroll > * {
+  min-width: 0;
+}
+.shared-experience .phone-greeting {
+  margin: 0 0 18px;
+  gap: 9px;
+}
+.shared-experience .phone-greeting strong {
+  font-size: 19px;
+  font-weight: 600;
+}
+.shared-experience .phone-greeting p {
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+.shared-experience .phone-avatar {
+  width: 33px;
+  height: 33px;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+.phone-bell {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #e8ecdf;
+  display: grid;
+  place-items: center;
+  position: relative;
+  color: var(--wh-forest);
+  flex-shrink: 0;
+}
+.notification-dot {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #9f343e;
+  border: 1px solid #fff;
+}
+.shared-experience .phone-status {
+  position: relative;
+  padding: 17px 15px;
+  border-radius: 20px;
+  background: #e3ebda;
+  color: #28483b;
+}
+.shared-experience .phone-status-label {
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  display: block;
+  margin: 0 0 10px;
+  padding-right: 32px;
+}
+.shared-experience .phone-status h3 {
+  font-size: 23px;
+  line-height: 1.15;
+  letter-spacing: -0.8px;
+  margin: 0 0 8px;
+}
+.shared-experience .phone-status p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #46623f;
+  margin: 0;
+}
+.phone-person-avatar {
+  position: absolute;
+  right: 14px;
+  top: 12px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  background: #fff9;
+  border-radius: 50%;
+  font-size: 13px;
+}
+.shared-experience .phone-status.phone-emergency {
+  background: #f8e2df;
+  color: #892c35;
+}
+.shared-experience .phone-status.phone-emergency p {
+  color: #892c35;
+}
+.shared-experience .phone-action-card {
+  padding: 14px 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.shared-experience .phone-action-card h3 {
+  font-size: 15px;
+  margin: 0 0 5px;
+}
+.shared-experience .phone-action-card p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0 0 10px;
+}
+.shared-experience .phone-action-card .button {
+  border-radius: 14px;
+  min-height: 44px;
+  font-size: 13px;
+  width: 100%;
+}
+.phone-bottom-nav {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  flex: 0 0 58px;
+  border-top: 1px solid #dde3d5;
+  background: #fbfcf7;
+  padding: 3px 8px 0;
+}
+.phone-bottom-nav button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 10px;
+  color: #647260;
+  background: transparent;
+  border-radius: 14px;
+  min-height: 48px;
+  position: relative;
+}
+.phone-bottom-nav button[aria-pressed="true"] {
+  color: #26452f;
+  background: #e6eddd;
+  font-weight: 700;
+}
+.shared-experience .phone-home-indicator {
+  flex: 0 0 4px;
+  width: 90px;
+  background: #263226;
+  margin: 6px auto 7px;
+  border-radius: 4px;
+}
+.phone-tools h3 {
+  font-size: 25px;
+  font-weight: 500;
+  letter-spacing: -1px;
+  margin: 5px 0;
+}
+.phone-tools > p {
+  font-size: 12px;
+  color: #52634c;
+}
+.phone-kicker {
+  font-size: 9px !important;
+  letter-spacing: 1px;
+}
+.phone-tool-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+.phone-tool-list button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 10px;
+  border: 1px solid #e0e6d9;
+  border-radius: 16px;
+  background: #fffefa;
+  text-align: left;
+  color: #28483b;
+}
+.phone-tool-list button > span:nth-child(2) {
+  flex: 1;
+}
+.phone-tool-list strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+.phone-tool-list small {
+  display: block;
+  font-size: 10px;
+  line-height: 1.4;
+  margin-top: 3px;
+  color: #596852;
+}
+.tool-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 38px;
+  border-radius: 12px;
+  background: #edf0e6;
+  flex-shrink: 0;
+}
+.phone-location-card {
+  overflow: hidden;
+  border: 1px solid #dce3d3;
+  border-radius: 18px;
+  background: #fffefa;
+  margin: 4px 0 12px;
+}
+.location-illustration {
+  height: 92px;
+  position: relative;
+}
+.location-illustration svg {
+  width: 100%;
+  height: 100%;
+}
+.location-illustration > span {
+  position: absolute;
+  bottom: 7px;
+  left: 9px;
+  background: #fffefaed;
+  border-radius: 10px;
+  padding: 3px 7px;
+  font-size: 9px;
+}
+.location-caption {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  align-items: start;
+}
+.location-caption strong {
+  display: block;
+  font-size: 12px;
+}
+.location-caption small {
+  display: block;
+  font-size: 10px;
+  color: #596852;
+  margin-top: 4px;
+}
+.phone-overview-details summary {
+  min-height: 44px;
+  padding: 12px 0;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.shared-experience .phone-overview-details {
+  padding: 0;
+}
+.shared-experience .phone-readings {
+  gap: 8px;
+  margin-top: 12px;
+}
+.shared-experience .phone-readings > div {
+  padding: 12px 8px;
+  border-radius: 14px;
+  background: #e9eee2;
+}
+.shared-experience .phone-readings strong {
+  font-size: 12px;
+}
+.shared-experience .phone-workspace-link {
+  font-size: 11px;
+  margin: 12px 0 0;
+}
+.shared-experience .phone-manager > .button {
+  font-size: 12px;
+  margin: 0 0 12px;
+}
+.shared-experience .phone-manager h1,
+.shared-experience .phone-manager h2 {
+  font-size: 22px;
+  letter-spacing: -0.5px;
+}
+.shared-experience .phone-manager .care-manager > p {
+  font-size: 12px;
+}
+@media (min-width: 1000px) and (min-height: 650px) {
+  .shared-experience:not(.large-text) .shared-devices {
+    max-width: 940px;
+    grid-template-columns: 1fr 1fr;
+    gap: 90px;
+  }
+  .shared-experience:not(.large-text) .care-phone {
+    --phone-height: min(740px, calc(100dvh - 190px));
+    height: var(--phone-height);
+    width: calc(var(--phone-height) * 0.4845);
+    padding: 7px;
+    border-radius: 40px;
+    margin: auto 0;
+  }
+  .shared-experience:not(.large-text) .care-phone-screen {
+    height: 100%;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 31px;
+  }
+  .shared-experience:not(.large-text) .phone-system {
+    padding: 14px 16px 10px;
+  }
+  .shared-experience:not(.large-text) .phone-island {
+    top: 17px;
+    height: 20px;
+    width: 70px;
+  }
+  .shared-experience:not(.large-text) .phone-status {
+    padding: 16px 13px;
+  }
+  .shared-experience:not(.large-text) .phone-status h3 {
+    font-size: 22px;
+  }
+  .shared-experience:not(.large-text) .phone-status-label {
+    margin-bottom: 10px;
+  }
+  .shared-experience:not(.large-text) .phone-home-indicator {
+    margin: 6px auto 7px;
+  }
+  .shared-experience:not(.large-text) .device-caption {
+    gap: 8px;
+    justify-content: center;
+  }
+  .shared-experience:not(.large-text) .device-caption > span {
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+  .shared-experience:not(.large-text) .device-caption h2 {
+    font-size: 14px;
+  }
+  .shared-experience:not(.large-text) .watch-area {
+    width: 290px;
+  }
+  .shared-experience:not(.large-text) .watch-strap {
+    display: block;
+    left: 65px;
+    width: 160px;
+    height: 55px;
+    top: calc(50% - 255px);
+  }
+  .shared-experience:not(.large-text) .watch-strap.bottom {
+    top: auto;
+    bottom: calc(50% - 255px);
+  }
+  .shared-experience:not(.large-text) .watch {
+    border-radius: 48px;
+    padding: 9px;
+    box-shadow:
+      0 25px 40px -20px #263c3566,
+      inset 0 0 0 1px #a5b49d;
+  }
+  .shared-experience:not(.large-text) .watch-screen {
+    border-radius: 39px;
+  }
+  .shared-experience:not(.large-text) .watch-area.pendant .watch-strap.top {
+    width: 12px;
+    left: calc(50% - 6px);
+  }
+  .shared-experience:not(.large-text) .watch-area.pendant .watch-strap.bottom,
+  .shared-experience:not(.large-text) .watch-area.clip .watch-strap {
+    display: none;
+  }
+  .shared-experience:not(.large-text) .stage-heading h1 {
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -0.6px;
+  }
+}
+@media (max-width: 999px), (max-height: 649px) {
+  .shared-experience .care-phone {
+    height: 710px;
+    max-width: 344px;
+    width: 100%;
+  }
+  .shared-experience .shared-devices {
+    gap: 48px;
+  }
+}
+
+.shared-experience .watch {
+  z-index: 1;
+}
+.shared-experience .watch-strap {
+  pointer-events: none;
+}
+.phone-priority-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  min-height: 44px;
+  margin: 0 12px 6px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: #f0e9d1;
+  color: #6c5316;
+  font-size: 12px;
+  font-weight: 600;
+}
+.phone-priority-banner.emergency {
+  background: #f8e2df;
+  color: #892c35;
+}

@@ -62,3 +62,20 @@ After “I'm okay,” the wearer can Open Memory Garden or Return to wearable ho
 - All 50 browser tests passed, covering both existing features and the new tools. Layout tests check the four requested desktop viewports, 390 px mobile, keyboard dialogs/focus return and 200%-equivalent reflow. New browser tests fail on uncaught JavaScript exceptions.
 - Production build passed (TypeScript check plus Vite). The existing non-blocking bundle-size/directive warnings remain.
 - Static production smoke checks use the `/WayHome/` deployment subpath; the deployment workflow is preserved. Backend-available tests are not applicable because no backend is present in the target repository.
+
+## Phone and shared-stage redesign — 27 October 2026
+
+The previous layout stretched the phone and put dashboard controls into one scrolling page. This revision takes inspiration from the portrait hardware, focused panels, and compact app organization in `saltymiaaaa/wayhome`, while retaining WayHome's green identity and existing state machine.
+
+- Phone maintains approximately 2.06:1 portrait proportions across desktop viewport sizes. A layered frame, side buttons, camera island, fixed status bar and home indicator surround the screen.
+- Only app content scrolls. Persistent Today, Updates and Care tools navigation replaces the section dropdown. Switching screens resets the content scroll position.
+- Today prioritizes status and a working check-in, followed by an explicitly illustrative location card. Technical device and response details are expandable; uncertainty and simulation labels remain available.
+- Care tools opens dedicated contacts, policy, landmarks, Memory Library, history and settings screens. Existing editing, persistence, approval and validation behavior is retained.
+- The notification bell opens Updates. SOS and family requests have persistent review banners when another phone screen is open. SOS acknowledgment still cannot resolve an incident.
+- Wearable case, straps, device spacing and typography are refined. Decorative straps cannot intercept controls. Small screens stack the devices; large-text settings retain reflow.
+
+Validation: 75 unit tests and all 52 browser tests passed on the final revision, including two new regression tests for portrait proportions, fixed navigation, scroll reset, notification navigation, SOS control hit testing and emergency discovery from Care tools. Production build and a static `/WayHome/` browser smoke check passed; the deployment path and hash routes remain unchanged.
+
+Demo: open `/#/together`, send a check-in, answer on the wearable, and open Updates. Open Care tools to edit contacts or review memory approvals. While Care tools is open, hold wearable SOS for two seconds; use the persistent review banner and acknowledge the alert. Explicit caregiver resolution remains required.
+
+Limitations: this is browser-rendered device hardware, not a native application. Location artwork is illustrative and readings/communication remain simulated. On shorter desktops the portrait phone is narrower, and its content scrolls internally. GitHub Pages deployment completion is separate from a successful source push.

@@ -12,9 +12,19 @@ const picture = Buffer.from(
   "base64",
 );
 async function section(page: Page, value: string) {
+  const names: Record<string, string> = {
+    contacts: "Contacts",
+    policy: "Safety policy",
+    landmarks: "Familiar landmarks",
+    library: "Memory Library",
+    history: "Activity history",
+    settings: "Settings",
+  };
+  await page.getByRole("button", { name: "Care tools", exact: true }).click();
   await page
-    .getByLabel("Caregiver phone section", { exact: true })
-    .selectOption(value);
+    .locator(".phone-tool-list")
+    .getByRole("button", { name: new RegExp(names[value]) })
+    .click();
 }
 
 test("phone contacts validate, persist, reorder, protect required caregiver and restore focus on Cancel/Escape", async ({
