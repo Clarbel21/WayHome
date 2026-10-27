@@ -67,6 +67,8 @@ import { CompanionPersonalization } from "./components/CompanionPersonalization"
 import { Sprout } from "./components/Sprout";
 import { DemoStage, LangSwitch } from "./components/DemoStage";
 import { useT } from "./i18n";
+import { ZoneRuntime } from "./zone/ZoneRuntime";
+import { useZone } from "./zone/store";
 import { UpdateNotice, buildLabel } from "./components/UpdateNotice";
 const LazyRouteMap = lazy(() =>
   import("./components/RouteMap").then((m) => ({ default: m.RouteMap })),
@@ -288,10 +290,11 @@ function Heading({
 }
 function Overview() {
   const s = useStore();
+  const zoneActive = useZone((z) => z.active);
   const tone =
     s.mode === "EMERGENCY_SIMULATED"
       ? "urgent"
-      : s.mode === "NORMAL" && s.connected && s.worn
+      : s.mode === "NORMAL" && s.connected && s.worn && !zoneActive
         ? "calm"
         : "attention";
   return (
@@ -1157,6 +1160,7 @@ export default function App() {
       <RouteFocus />
       <UpdateNotice />
       <CheckInRuntime />
+      <ZoneRuntime />
       <CareRuntime />
       <Routes>
         <Route path="/" element={<Landing />} />

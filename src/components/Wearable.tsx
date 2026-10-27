@@ -14,7 +14,12 @@ import {
   ChevronLeft,
   Sparkles,
   HandHelping,
+  MapPin,
+  ArrowUp,
+  CornerUpRight,
+  CornerUpLeft,
 } from "lucide-react";
+import { useZone, legTarget } from "../zone/store";
 import { useStore, navigable } from "../store";
 import { attachmentNames, wearLabels } from "../services/safety";
 import { LandmarkPhoto } from "./LandmarkPhoto";
@@ -52,6 +57,17 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     s.checkIn.source !== "caregiver" &&
     s.interactionNote.startsWith("Thank you for telling me") &&
     s.mode !== "EMERGENCY_SIMULATED";
+  const z = useZone();
+  const [buzzing, setBuzzing] = useState(false);
+  useEffect(() => {
+    if (!z.buzzAt || Date.now() - z.buzzAt > 1500) return;
+    setBuzzing(true);
+    const off = setTimeout(() => setBuzzing(false), 1300);
+    return () => clearTimeout(off);
+  }, [z.buzzAt]);
+  const wearerFirst = s.settings.wearer.split(" ")[0];
+  const zonePrompt =
+    z.prompt && s.mode !== "EMERGENCY_SIMULATED" && s.mode !== "GUIDED_RETURN";
   const [now, setNow] = useState(new Date());
   const approved = s.landmarks.filter(navigable);
   const landmark = approved[s.guideIndex];
@@ -103,6 +119,25 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     </div>
   );
 
+  const zoneGuided = s.mode === "GUIDED_RETURN" && z.guideStartM !== null;
+  const walking = zoneGuided && z.phase === "walking";
+  const legRemaining = zoneGuided
+    ? Math.max(
+        0,
+        z.distanceM -
+          legTarget(z.guideStartM ?? 0, s.guideIndex, approved.length),
+      )
+    : 0;
+  const direction = (
+    ["goStraight", "turnRight", "turnLeft", "goStraight"] as const
+  )[s.guideIndex % 4];
+  const DirectionIcon =
+    direction === "turnRight"
+      ? () => <CornerUpRight size={26} />
+      : direction === "turnLeft"
+        ? () => <CornerUpLeft size={26} />
+        : () => <ArrowUp size={26} />;
+
   let screen: React.ReactNode;
   let screenKey: string = s.mode;
 
@@ -137,6 +172,33 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         <ResolveSOSButton />
       </div>
     );
+  } else if (zonePrompt) {
+    screenKey = `zone-${z.promptAt}`;
+    screen = (
+      <div className="wos-center wos-zone">
+        <div className="wos-zone-icon" aria-hidden="true">
+          <MapPin size={28} />
+        </div>
+        <strong className="wos-zone-title">{t("zoneTitle")}</strong>
+        {speech(t("zoneText", { name: wearerFirst }))}
+        <small className="wos-kicker">
+          {t("zoneDistance", { km: (z.distanceM / 1000).toFixed(2) })}
+        </small>
+        <button
+          className="watch-action wos-primary"
+          onClick={() => {
+            z.acceptGuide();
+            s.chooseAssistance("home");
+          }}
+        >
+          <House size={18} /> {t("zoneYes")}
+        </button>
+        <button className="wos-ghost" onClick={z.decline}>
+          {t("zoneNo")}
+        </button>
+        <span className="wos-zone-timer" aria-hidden="true" />
+      </div>
+    );
   } else if (s.mode === "GUIDED_RETURN") {
     screenKey = `guide-${landmark?.id ?? "none"}`;
     screen = landmark ? (
@@ -156,24 +218,42 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             ))}
           </span>
         </div>
-        <div className="wos-photo">
+        {walking && (
+          <div className="wos-direction" aria-live="polite">
+            <DirectionIcon />
+            <span>
+              <b>{t(direction)}</b>
+              <small>{t("walkToward", { m: legRemaining })}</small>
+            </span>
+          </div>
+        )}
+        <div className={`wos-photo ${walking ? "small" : ""}`}>
           <LandmarkPhoto landmark={landmark} />
         </div>
-        <small className="wos-kicker">{t("lookFor")}</small>
+        <small className="wos-kicker">
+          {walking ? t("headingTo") : t("lookFor")}
+        </small>
         <strong>{landmark.name}</strong>
+        {!walking && zoneGuided && (
+          <p className="wos-question">
+            {t("doYouSee", { name: landmark.name })}
+          </p>
+        )}
         <p>{landmark.instruction}</p>
         {landmark.recognition && (
           <p className="recognition-cue">{landmark.recognition}</p>
         )}
-        <small>
-          {t("approx", {
-            m: Math.max(
-              10,
-              ((landmark.gridPosition ?? s.guideIndex) + 1) * 40 -
-                s.position * 10,
-            ),
-          })}
-        </small>
+        {!zoneGuided && (
+          <small>
+            {t("approx", {
+              m: Math.max(
+                10,
+                ((landmark.gridPosition ?? s.guideIndex) + 1) * 40 -
+                  s.position * 10,
+              ),
+            })}
+          </small>
+        )}
         {guidanceBlocked && (
           <p role="status" className="wos-warn">
             {t("guidancePaused")}
@@ -487,7 +567,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
 
   return (
     <div
-      className={`watch-area mode-${s.mode.toLowerCase()} ${s.attachment} ${compact ? "compact" : ""}`}
+      className={`watch-area mode-${s.mode.toLowerCase()} ${s.attachment} ${compact ? "compact" : ""} ${buzzing ? "buzz" : ""} ${zonePrompt ? "zone-alert" : ""}`}
     >
       <div className="watch-strap top" />
       <div className="watch">

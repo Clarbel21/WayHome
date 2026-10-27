@@ -31,14 +31,10 @@ import {
 } from "lucide-react";
 import { status, useStore, simulatedLocation, navigable } from "../store";
 import { useLang, useT, timeAgo } from "../i18n";
+import { useZone } from "../zone/store";
+import { ZoneLadder, ZoneMap } from "../zone/ZoneViews";
 import { evaluateSignals } from "../services/safety";
-import {
-  Check,
-  MapPinned,
-  BatteryLow,
-  Satellite,
-  AlertTriangle,
-} from "lucide-react";
+import { Check, BatteryLow, Satellite, AlertTriangle } from "lucide-react";
 import { wearLabels } from "../services/safety";
 import { CheckInHistory, FamilyResponse } from "./CheckInSupport";
 
@@ -306,26 +302,35 @@ function PhoneToday() {
     (a) => a.emergency && !a.emergency.resolvedAt,
   );
   const approved = s.landmarks.filter(navigable);
-  const tone = isEmergency
-    ? "urgent"
-    : s.mode === "NORMAL" && !findings.length && s.connected
-      ? "calm"
-      : "attention";
+  const zone = useZone();
+  const tone =
+    isEmergency || (zone.active && zone.level >= 3)
+      ? "urgent"
+      : s.mode === "NORMAL" && !findings.length && s.connected && !zone.active
+        ? "calm"
+        : "attention";
   const heading =
-    lang === "id"
-      ? (statusId[status[s.mode]] ?? status[s.mode])
-      : status[s.mode];
+    zone.active && s.mode === "NORMAL"
+      ? t("zoneOutside")
+      : lang === "id"
+        ? (statusId[status[s.mode]] ?? status[s.mode])
+        : status[s.mode];
   const subtitle = isEmergency
     ? t("sosSub")
-    : s.mode === "GUIDED_RETURN"
-      ? t("walkingHome", { wearer: first })
-      : s.checkIn?.stage === "question"
-        ? t("waitingAnswer", { wearer: first })
-        : waiting
-          ? t("familySub")
-          : s.mode === "NORMAL" && !findings.length
-            ? t("calmSub")
-            : t("changedSub");
+    : zone.active && s.mode !== "GUIDED_RETURN"
+      ? t("zoneFor", {
+          min: Math.floor(zone.vmin),
+          km: (zone.distanceM / 1000).toFixed(2),
+        })
+      : s.mode === "GUIDED_RETURN"
+        ? t("walkingHome", { wearer: first })
+        : s.checkIn?.stage === "question"
+          ? t("waitingAnswer", { wearer: first })
+          : waiting
+            ? t("familySub")
+            : s.mode === "NORMAL" && !findings.length
+              ? t("calmSub")
+              : t("changedSub");
   const sendCheckIn = () => {
     s.event("CHECK");
     requestAnimationFrame(() => {
@@ -397,6 +402,7 @@ function PhoneToday() {
         </section>
       ) : (
         <>
+          <ZoneLadder />
           {waiting && <FamilyResponse />}
           <section className="phone-action-card">
             {s.mode === "GUIDED_RETURN" && approved.length > 0 ? (
@@ -461,15 +467,16 @@ function PhoneToday() {
         className="phone-location-card"
         aria-label="Simulated location overview"
       >
-        <RouteStrip
-          position={s.position}
-          lowGps={s.signals.gpsConfidence < 0.6}
-        />
+        <ZoneMap />
         <div className="location-caption">
           <MapPin size={17} />
           <div>
             <strong>{t("lastKnown")}</strong>
-            <small>{simulatedLocation(s.position)}</small>
+            <small>
+              {zone.distanceM > 0
+                ? `About ${(zone.distanceM / 1000).toFixed(2)} km from home (simulated)`
+                : simulatedLocation(s.position)}
+            </small>
             <small>
               Simulated GPS confidence ·{" "}
               {Math.round(s.signals.gpsConfidence * 100)}%
@@ -528,92 +535,5 @@ function PhoneToday() {
         {Math.round(s.signals.gpsConfidence * 100)}% · simulated readings.
       </p>
     </>
-  );
-}
-
-// Seven fictional route points, matching simulatedLocation(); home is the last.
-const ROUTE = [
-  [24, 78],
-  [62, 62],
-  [104, 66],
-  [146, 46],
-  [190, 52],
-  [232, 46],
-  [276, 40],
-];
-function RouteStrip({
-  position,
-  lowGps,
-}: {
-  position: number;
-  lowGps: boolean;
-}) {
-  const p = Math.max(0, Math.min(6, Math.round(position)));
-  const d = ROUTE.map(([x, y], i) => `${i ? "L" : "M"}${x} ${y}`).join(" ");
-  const done = ROUTE.slice(0, p + 1)
-    .map(([x, y], i) => `${i ? "L" : "M"}${x} ${y}`)
-    .join(" ");
-  const [cx, cy] = ROUTE[p];
-  return (
-    <div className="location-illustration route-strip" aria-hidden="true">
-      <svg viewBox="0 0 300 100" preserveAspectRatio="xMidYMid slice">
-        <rect width="300" height="100" fill="#e4eadb" />
-        <rect x="40" y="8" width="60" height="26" rx="8" fill="#d3dfc8" />
-        <rect x="180" y="68" width="80" height="24" rx="8" fill="#d3dfc8" />
-        <path
-          d={d}
-          stroke="#faf9f2"
-          strokeWidth="12"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d={d}
-          stroke="#b7c6ab"
-          strokeWidth="2"
-          strokeDasharray="3 5"
-          fill="none"
-        />
-        <path
-          d={done}
-          stroke="#3b6b4c"
-          strokeWidth="3.5"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        {ROUTE.map(([x, y], i) => (
-          <circle
-            key={i}
-            cx={x}
-            cy={y}
-            r="2.6"
-            fill={i <= p ? "#3b6b4c" : "#9fb293"}
-          />
-        ))}
-        <g transform={`translate(${ROUTE[6][0]} ${ROUTE[6][1]})`}>
-          <rect x="-9" y="-16" width="18" height="14" rx="2" fill="#28483b" />
-          <path d="M-12 -15 L0 -25 L12 -15Z" fill="#28483b" />
-        </g>
-        <circle
-          cx={cx}
-          cy={cy}
-          r={lowGps ? 20 : 13}
-          fill={lowGps ? "#88651e33" : "#375c4030"}
-        />
-        <circle
-          cx={cx}
-          cy={cy}
-          r="7"
-          fill={lowGps ? "#88651e" : "#375c40"}
-          stroke="white"
-          strokeWidth="3"
-        />
-      </svg>
-      <span>
-        <MapPinned size={12} /> Illustrative demo map
-      </span>
-    </div>
   );
 }

@@ -311,6 +311,9 @@ const titles: Record<Event, string> = {
     "Wearable removal indicated · simulated inference, caregiver review requested",
   DISCONNECT: "Device disconnected",
 };
+// Feature modules (e.g. the safe-zone simulation) register here to clear their own
+// simulated state when the demo is reset.
+export const resetListeners = new Set<() => void>();
 export const useStore = create<State>()(
   persist(
     (set, get) => ({
@@ -1124,6 +1127,7 @@ export const useStore = create<State>()(
           attachment: s.attachment,
           wearInputs: wearPreset(s.attachment, "likely_worn"),
         });
+        resetListeners.forEach((listener) => listener());
       },
       read: (id) =>
         set((s) => ({

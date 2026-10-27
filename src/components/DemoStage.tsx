@@ -10,9 +10,13 @@ import {
   ShieldAlert,
   RotateCcw,
   Home,
+  Route,
+  MapPinned,
+  FastForward,
 } from "lucide-react";
 import { useStore } from "../store";
 import { useLang, type Lang } from "../i18n";
+import { useZone } from "../zone/store";
 
 type Moment = {
   id: string;
@@ -31,7 +35,38 @@ export function DemoStage() {
   const lang = useLang((l) => l.lang);
   const [last, setLast] = useState<Moment | null>(null);
   const sos = s.mode === "EMERGENCY_SIMULATED";
+  const zone = useZone();
   const moments: Moment[] = [
+    {
+      id: "zone-out",
+      label: { en: "Walk out of safe zone", id: "Keluar zona aman" },
+      watch: {
+        en: "The dot crosses the radius. The watch vibrates and asks “Heading home?”. The phone shows the escalation ladder.",
+        id: "Titik melewati radius. Jam bergetar dan bertanya “Mau pulang?”. Ponsel menampilkan tahap eskalasi.",
+      },
+      icon: Route,
+      run: () => zone.wanderOut(),
+    },
+    {
+      id: "zone-lost",
+      label: { en: "Lost far from home", id: "Tersesat jauh" },
+      watch: {
+        en: "Jumps well outside the zone. Tap “Yes, take me home” to start landmark-by-landmark guidance.",
+        id: "Langsung jauh di luar zona. Ketuk “Ya, antar aku pulang” untuk panduan tempat demi tempat.",
+      },
+      icon: MapPinned,
+      run: () => zone.lostFar(),
+    },
+    {
+      id: "zone-ffwd",
+      label: { en: "+8 min", id: "+8 mnt" },
+      watch: {
+        en: "Fast-forwards time outside the zone so the next ladder step fires: notify, then call, then a simulated emergency.",
+        id: "Mempercepat waktu di luar zona agar tahap berikutnya berjalan: beri tahu, telepon, lalu darurat simulasi.",
+      },
+      icon: FastForward,
+      run: () => zone.fastForward(8),
+    },
     {
       id: "walk",
       label: { en: "Walk home", id: "Jalan pulang" },
@@ -135,8 +170,10 @@ export function DemoStage() {
           <button
             key={m.id}
             type="button"
-            className={`demo-chip ${m.tone ?? ""} ${last?.id === m.id ? "active" : ""}`}
-            disabled={sos && !m.allowedInSos}
+            className={`demo-chip ${m.tone ?? ""} ${m.id.startsWith("zone") ? "zone" : ""} ${last?.id === m.id ? "active" : ""}`}
+            disabled={
+              (sos && !m.allowedInSos) || (m.id === "zone-ffwd" && !zone.active)
+            }
             onClick={() => {
               m.run();
               setLast(m);

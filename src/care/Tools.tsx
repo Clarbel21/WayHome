@@ -1,3 +1,4 @@
+import { SafeZoneSettings } from "../zone/ZoneViews";
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store";
 import { CompanionPersonalization } from "../components/CompanionPersonalization";
@@ -357,6 +358,7 @@ export function SafetyPolicy() {
       >
         Advance simulated notification clock
       </button>
+      <SafeZoneSettings />
       <PolicyHistory />
     </section>
   );

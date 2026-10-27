@@ -59,3 +59,16 @@ The first upgrade only covered the side-by-side page. This pass connects the res
 - **Stale site fix:** the footer shows a build stamp (commit ID and date). Open tabs check for a newer deploy and offer **Refresh**, so an old cached version is never presented by accident.
 
 Tests: 79 unit, 59 browser.
+
+## Safe zone and guided return (modelled on saltymiaaaa/wayhome)
+
+Code: `src/zone/` (store, runtime, views). Fall detection and medicine reminders were intentionally not ported.
+
+- **Set the radius:** use the slider under the phone's map, or **Safety policy → Safe zone around home**, which also sets the ladder timing. Values are remembered per browser.
+- **Demo moments:** **Walk out of safe zone** (the dot walks past the edge), **Lost far from home** (jumps well outside) and **+8 min** (fast-forwards time outside).
+- **Leaving the zone:** the watch vibrates (shake animation, `navigator.vibrate` where supported, a soft chime) and asks _"Heading home? Alex, you are a little far from home. Shall I guide you back?"_ with **Yes, take me home** / **No, I'm fine** and a 16-second countdown. Silence or "No" means it asks again gently.
+- **Escalation ladder** (shown on the phone, paused while guiding): check-in on the watch now → notify Jamie (+5 min) → SMS and call Morgan (+10 min) → simulated emergency (+20 min), which hands over to the existing SOS flow. One real second equals 30 simulated seconds.
+- **Guided return:** for each approved landmark the watch shows a direction ("Go straight ahead · about 55 m") while the dot walks on the map. Then it asks _"Do you see the Community garden?"_ with the photo. **I see it** continues; **I don't see it** stops directions and offers family. After the last landmark: **Welcome home**, the zone check closes, and Updates records "arrived home safely".
+- Everything is simulated: no real GPS, vibration hardware, SMS, calls or emergency dispatch.
+
+Tests: `tests/zone.test.ts` (5) and `tests/e2e/safe-zone.spec.ts` (3). Totals: 84 unit, 62 browser.
