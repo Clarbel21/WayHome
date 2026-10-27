@@ -259,7 +259,7 @@ function Experience() {
               <span className="wh-moment-body">{item.body}</span>
             </button>
           ))}
-          <Link to="/companion" className="wh-inline-link">
+          <Link to="/together" className="wh-inline-link">
             Explore the companion experience <ArrowRight size={18} />
           </Link>
         </Reveal>
@@ -410,7 +410,7 @@ export default function Landing() {
           <button onClick={() => goTo("ways-to-wear")}>Ways to wear</button>
           <button onClick={() => goTo("experience")}>The experience</button>
         </nav>
-        <Link to="/guided" className="wh-nav-cta">
+        <Link to="/together" className="wh-nav-cta">
           Explore demo <ArrowRight size={15} />
         </Link>
       </header>
@@ -604,7 +604,7 @@ export default function Landing() {
             </p>
             <div className="wh-closing-actions">
               <Link
-                to="/companion"
+                to="/together"
                 className="wh-pill wh-pill-dark"
                 aria-label="Enter Companion Mode"
               >

@@ -1163,3 +1163,261 @@
     margin-bottom: 4px;
   }
 }
+
+/* ============================================================ guided story: watch + phone */
+.guided-layout {
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.4fr);
+}
+.guided-devices {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px 12px;
+}
+.guided-devices > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+.guided-devices .watch-area {
+  margin-top: 12px;
+}
+.guided-devices .care-phone {
+  width: 300px;
+  height: 620px;
+  margin-top: 12px;
+  padding: 7px;
+  border-radius: 38px;
+  display: flex;
+  flex-direction: column;
+}
+.guided-devices .care-phone-screen {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  border-radius: 31px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.guided-devices .phone-system {
+  padding: 14px 16px 8px;
+}
+.guided-devices .phone-island {
+  top: 15px;
+  height: 18px;
+  width: 64px;
+}
+.guided-devices .phone-status h3 {
+  font-size: 21px;
+}
+@media (max-width: 1250px) {
+  .guided-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .guided-devices {
+    position: static;
+    flex-wrap: wrap;
+  }
+}
+.guided-devices .watch-area .watch .watch-screen.wos {
+  height: 470px;
+}
+
+/* ============================================================ Memory Garden — match the watch */
+/* Headings receive programmatic focus for screen readers; they are not controls. */
+.memory-experience h1[tabindex="-1"]:focus,
+.memory-experience h2[tabindex="-1"]:focus,
+.memory-page h1[tabindex="-1"]:focus {
+  outline: none;
+}
+.memory-question h1,
+.memory-experience h1 {
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  color: var(--wh-ink);
+}
+.memory-experience .memory-choice {
+  border-radius: 18px;
+  font-weight: 650;
+  font-size: 18px;
+  min-height: 58px;
+  transition:
+    transform 0.12s ease,
+    background-color 0.15s ease;
+}
+.memory-experience .memory-choice:active {
+  transform: scale(0.98);
+}
+/* Answer sets: first = yes/primary, second = gentle amber, third = lavender */
+.memory-experience .memory-choice.unsure {
+  background: #f7e6c4;
+  border-color: #efd7a8;
+  color: #5c3404;
+}
+.memory-experience .memory-choice.more {
+  background: #e4e1f4;
+  border-color: #d3cfee;
+  color: #2e2775;
+}
+/* Activity menu as large tiles */
+.memory-experience .memory-tiles {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.memory-experience .memory-tile {
+  justify-content: flex-start;
+  text-align: left;
+  gap: 14px;
+  min-height: 72px;
+  padding: 12px 18px;
+  border: 0;
+}
+.memory-experience .memory-tile > span:nth-of-type(2) {
+  flex: 1;
+}
+.memory-experience .memory-tile-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #ffffffb3;
+  flex-shrink: 0;
+}
+.memory-experience .memory-tile.tile-faces {
+  background: #f5e1d1;
+  color: #6a3618;
+}
+.memory-experience .memory-tile.tile-places {
+  background: #dce8d2;
+  color: #24452f;
+}
+.memory-experience .memory-tile.tile-music {
+  background: #e4e1f4;
+  color: #3a3287;
+}
+.memory-experience .memory-tile.tile-routine {
+  background: #f7e6c4;
+  color: #5c3404;
+}
+.memory-experience .memory-tile.tile-garden {
+  background: #d6eee4;
+  color: #0b4d3d;
+}
+.memory-experience .memory-tile:hover {
+  filter: brightness(0.97);
+}
+/* Same SOS bar as the watch */
+.memory-safety-footer .sos-hold {
+  position: relative;
+  overflow: hidden;
+  min-height: 50px;
+  border-radius: 14px;
+  background: #f4e1dd;
+  color: #7a1f28;
+  border: 1.5px solid #e2b3ae;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+.memory-safety-footer .sos-hold > span {
+  font-weight: 600;
+  letter-spacing: 0;
+  position: relative;
+}
+.memory-safety-footer .sos-hold.holding {
+  background: #f4e1dd;
+  color: #5c1219;
+  box-shadow: none;
+}
+
+/* ============================================================ caregiver dashboard */
+.welcome-banner {
+  transition: background-color 0.3s ease;
+}
+.welcome-banner.tone-attention {
+  background: #f6ebd3;
+  color: #4d3305;
+}
+.welcome-banner.tone-attention p,
+.welcome-banner.tone-attention h2 {
+  color: #4d3305;
+}
+.welcome-banner.tone-urgent {
+  background: #f4dcd8;
+  color: #6e1e26;
+}
+.welcome-banner.tone-urgent p,
+.welcome-banner.tone-urgent h2 {
+  color: #6e1e26;
+}
+.welcome-banner .banner-action {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.welcome-banner.tone-urgent .banner-action {
+  background: var(--wh-emergency);
+  border-color: var(--wh-emergency);
+}
+.demo-quick .demo-stage {
+  align-items: flex-start;
+}
+.demo-quick .demo-stage-chips {
+  flex-wrap: wrap;
+  overflow: visible;
+  padding: 4px 0;
+}
+.demo-quick .demo-stage-label {
+  display: none;
+}
+.demo-quick .demo-stage-caption {
+  text-align: left;
+}
+.demo-quick .demo-stage {
+  padding: 0 18px 16px;
+}
+
+/* ============================================================ update notice */
+.update-notice {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 999px;
+  background: var(--wh-ink);
+  color: #fff;
+  font-size: 13px;
+  box-shadow: 0 12px 30px #0b151140;
+  max-width: calc(100vw - 32px);
+}
+.update-notice button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 999px;
+  min-height: 34px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.update-notice .update-refresh {
+  background: #dce8d2;
+  color: var(--wh-ink);
+  padding: 0 14px;
+}
+.update-notice .update-dismiss {
+  background: transparent;
+  color: #fff;
+  min-width: 34px;
+  justify-content: center;
+}

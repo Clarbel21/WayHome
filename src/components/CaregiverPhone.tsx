@@ -358,7 +358,7 @@ function PhoneToday() {
         </span>
         <h3>{heading}</h3>
         <p>{subtitle}</p>
-        {s.checkIn?.stage === "question" && !isEmergency && (
+        {s.mode === "CHECK_IN" && s.checkIn?.stage === "question" && (
           <span className="phone-live-dot" aria-hidden="true" />
         )}
       </section>

@@ -121,3 +121,37 @@ test("mobile stacks devices and wraps demo moments without horizontal scroll", a
     }),
   ).toBeVisible();
 });
+
+test("landing and guided story link to the live side-by-side stage", async ({
+  page,
+}) => {
+  await page.goto("/#/");
+  await page
+    .getByRole("link", { name: /Explore demo/ })
+    .first()
+    .click();
+  await expect(page).toHaveURL(/#\/together$/);
+  await expect(
+    page.getByRole("toolbar", { name: "Demo moments" }),
+  ).toBeVisible();
+  await page.goto("/#/guided");
+  await expect(page.locator(".guided-devices .care-phone")).toBeVisible();
+  await page
+    .getByRole("link", { name: "Open side-by-side stage", exact: true })
+    .click();
+  await expect(page).toHaveURL(/#\/together$/);
+});
+
+test("dashboard banner turns amber with a direct action, demo page offers quick moments", async ({
+  page,
+}) => {
+  await page.goto("/#/demo");
+  await page
+    .getByRole("toolbar", { name: "Demo moments" })
+    .getByRole("button", { name: "Wanders off route" })
+    .click();
+  await page.goto("/#/caregiver");
+  await expect(page.locator(".welcome-banner.tone-attention")).toBeVisible();
+  await page.getByRole("link", { name: /Review alerts/ }).click();
+  await expect(page).toHaveURL(/#\/caregiver\/alerts$/);
+});

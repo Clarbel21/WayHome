@@ -8,6 +8,11 @@ import {
   Pause,
   Play,
   Volume2,
+  Users,
+  MapPin,
+  Music,
+  ListChecks,
+  Flower2,
 } from "lucide-react";
 import { useStore } from "../store";
 import { Sprout } from "../components/Sprout";
@@ -171,13 +176,13 @@ export function MemoryActivityPlayer() {
                 Yes
               </button>
               <button
-                className="memory-choice"
+                className="memory-choice unsure"
                 onClick={() => m.respond("Not sure")}
               >
                 Not sure
               </button>
               <button
-                className="memory-choice"
+                className="memory-choice more"
                 onClick={() => m.respond("Tell me more")}
               >
                 Tell me more
@@ -209,13 +214,13 @@ export function MemoryActivityPlayer() {
                 Yes
               </button>
               <button
-                className="memory-choice"
+                className="memory-choice unsure"
                 onClick={() => m.respond("Not sure")}
               >
                 Not sure
               </button>
               <button
-                className="memory-choice"
+                className="memory-choice more"
                 onClick={() => m.respond("Tell me about it")}
               >
                 Tell me about it
@@ -544,10 +549,10 @@ export function MemoryGardenExperience({
               </small>
             </div>
           )}
-          <div className="memory-choices">
+          <div className="memory-choices memory-tiles">
             {visible.map((kind) => (
               <button
-                className="memory-choice"
+                className={`memory-choice memory-tile tile-${kind}`}
                 key={kind}
                 onClick={() => {
                   setEmpty("");
@@ -564,7 +569,8 @@ export function MemoryGardenExperience({
                     );
                 }}
               >
-                {activityNames[kind]}
+                <ActivityIcon kind={kind} />
+                <span>{activityNames[kind]}</span>
                 <ArrowRight size={18} />
               </button>
             ))}
@@ -623,5 +629,23 @@ export function MemoryGardenHome() {
         <MemoryGardenExperience />
       </main>
     </div>
+  );
+}
+
+function ActivityIcon({ kind }: { kind: string }) {
+  const Icon =
+    kind === "faces"
+      ? Users
+      : kind === "places"
+        ? MapPin
+        : kind === "music"
+          ? Music
+          : kind === "routine"
+            ? ListChecks
+            : Flower2;
+  return (
+    <span className="memory-tile-icon" aria-hidden="true">
+      <Icon size={22} />
+    </span>
   );
 }

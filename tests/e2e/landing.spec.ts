@@ -52,7 +52,7 @@ test("landing preview responds without changing persisted companion state", asyn
   await page
     .getByRole("link", { name: "Enter Companion Mode", exact: true })
     .click();
-  await expect(page).toHaveURL(/#\/companion$/);
+  await expect(page).toHaveURL(/#\/together$/);
   await expect(
     page.getByRole("button", { name: "SOS Hold for 2 seconds" }),
   ).toBeVisible();

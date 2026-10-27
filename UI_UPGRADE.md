@@ -46,3 +46,16 @@ A usability pass on the side-by-side demo (`#/together`), using the
 ## Still simulated
 
 Nothing here adds real GPS, calls, notifications or hardware. Thresholds and wording are demo assumptions. Review the wearer-facing wording with caregivers before any user trial.
+
+## Linking pass (follow-up)
+
+The first upgrade only covered the side-by-side page. This pass connects the rest of the app to it:
+
+- **Landing:** "Explore demo", "Explore the companion experience" and "Enter Companion Mode" now open the live side-by-side stage (`#/together`). "Take the guided demo" still opens the story.
+- **Guided story:** shows the caregiver phone next to the watch. All eight steps now describe what the new screens actually show. It also links to the side-by-side stage.
+- **Caregiver dashboard:** the status banner turns green, amber or red like the phone, with a direct action (Review SOS / Answer family request / Review alerts). The header has **Open live stage**.
+- **Demo control center:** has the same one-click **Quick moments** bar as the stage.
+- **Memory Garden:** activities are coloured tiles with icons, answers use distinct colours (Yes / Not sure / Tell me more), headings match the app, the focus box is gone, and the SOS bar matches the watch.
+- **Stale site fix:** the footer shows a build stamp (commit ID and date). Open tabs check for a newer deploy and offer **Refresh**, so an old cached version is never presented by accident.
+
+Tests: 79 unit, 59 browser.

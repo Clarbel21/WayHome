@@ -67,6 +67,7 @@ import { CompanionPersonalization } from "./components/CompanionPersonalization"
 import { Sprout } from "./components/Sprout";
 import { DemoStage, LangSwitch } from "./components/DemoStage";
 import { useT } from "./i18n";
+import { UpdateNotice, buildLabel } from "./components/UpdateNotice";
 const LazyRouteMap = lazy(() =>
   import("./components/RouteMap").then((m) => ({ default: m.RouteMap })),
 );
@@ -255,7 +256,9 @@ function Shell({ children }: { children: React.ReactNode }) {
         <main>{children}</main>
         <footer>
           Made for moments that matter.{" "}
-          <span>WayHome · Moonshot 101 · Educational prototype</span>
+          <span>
+            WayHome · Moonshot 101 · Educational prototype · {buildLabel}
+          </span>
         </footer>
       </div>
     </div>
@@ -285,6 +288,12 @@ function Heading({
 }
 function Overview() {
   const s = useStore();
+  const tone =
+    s.mode === "EMERGENCY_SIMULATED"
+      ? "urgent"
+      : s.mode === "NORMAL" && s.connected && s.worn
+        ? "calm"
+        : "attention";
   return (
     <>
       <Heading
@@ -292,13 +301,19 @@ function Overview() {
         title={`Looking out for ${s.settings.wearer.split(" ")[0]}.`}
         description="A familiar companion. A reassuring connection. You're in this together."
         action={
-          <Link className="button light" to="/guided">
-            <Sparkles size={17} />
-            Start Guided Demo
-          </Link>
+          <div className="button-row">
+            <Link className="button light" to="/together">
+              <Monitor size={17} />
+              Open live stage
+            </Link>
+            <Link className="button light" to="/guided">
+              <Sparkles size={17} />
+              Start Guided Demo
+            </Link>
+          </div>
         }
       />
-      <div className="welcome-banner">
+      <div className={`welcome-banner tone-${tone}`}>
         <div className="banner-icon">
           <ShieldCheck size={29} />
         </div>
@@ -318,7 +333,25 @@ function Overview() {
                   : `${s.settings.companionName} and your dashboard are responding together.`}
           </p>
         </div>
-        <Badge />
+        {tone === "calm" ? (
+          <Badge />
+        ) : (
+          <Link
+            className="button banner-action"
+            to={
+              s.mode === "EMERGENCY_SIMULATED"
+                ? "/caregiver/emergency"
+                : "/caregiver/alerts"
+            }
+          >
+            {s.mode === "EMERGENCY_SIMULATED"
+              ? "Review SOS"
+              : s.familyRequest && s.familyRequest.status !== "responded"
+                ? "Answer family request"
+                : "Review alerts"}
+            <ArrowRight size={15} />
+          </Link>
+        )}
       </div>
       <div className="stats-grid">
         <Stat
@@ -676,6 +709,22 @@ function DemoControls() {
           </Link>
         }
       />
+      <section className="card demo-quick">
+        <div className="card-heading">
+          <div>
+            <h2>Quick moments</h2>
+            <p>
+              One click per situation. Open the live stage to see the watch and
+              phone side by side.
+            </p>
+          </div>
+          <Link className="button light" to="/together">
+            <Monitor size={17} />
+            Open live stage
+          </Link>
+        </div>
+        <DemoStage />
+      </section>
       <CheckInDemo />
       <div className="demo-layout">
         <div>
@@ -831,7 +880,7 @@ function Companion() {
           <DemoStage />
           <div className="companion-foot">
             <ShieldCheck size={15} /> Educational simulation · no real emergency
-            calls
+            calls · {buildLabel}
           </div>
         </div>
       </main>
@@ -841,42 +890,42 @@ function Companion() {
 const steps = [
   {
     title: "A little independence",
-    body: "Alex is enjoying a neighborhood walk. {companion} is happy, the device is connected, and the caregiver has a reassuring overview.",
+    body: "Alex is out on a neighborhood walk. The watch shows four large choices — Go home, Call family, Talk and Memories — and the caregiver’s phone is green: All calm.",
     event: "WALK",
   },
   {
     title: "A gentle check-in",
-    body: "A simulated unusual route event prompts {companion} to ask “How are you feeling?” without overwhelming Alex.",
+    body: "A gentle check-in arrives. {companion} asks “How are you feeling?” with two large answers. The phone shows it is waiting for Alex — no alarm, no pressure.",
     event: "CHECK",
   },
   {
     title: "A moment of uncertainty",
-    body: "Alex selects “I need help.” {companion} offers a calm, reassuring response and updates the caregiver.",
+    body: "Alex feels unsure. {companion} switches to a calm screen — “It’s okay. I’m here with you.” — with a slow breathing circle. The phone turns amber: Check-in Needed.",
     event: "LOST",
   },
   {
     title: "Let’s find something familiar",
-    body: "{companion} says “That’s okay. Let’s find a place you recognize.” Familiar places support reorientation.",
+    body: "{companion} shows a familiar place and offers to contact family. Nothing has to be remembered right now — familiar places support reorientation.",
     event: "LOST",
   },
   {
     title: "A place Alex knows",
-    body: "An approved landmark and one simple instruction appear. No complicated directions or crowded screens.",
+    body: "Guidance starts. The watch shows Stop 1 of 4: one landmark photo and one simple instruction. The phone shows the route home, stop by stop.",
     event: "GUIDE",
   },
   {
     title: "One confident step",
-    body: "Alex recognizes the place. Select “I see it” on the wearable to move through the familiar landmarks.",
+    body: "Try it: select “I see it” on the watch. The next landmark appears and the phone’s route strip moves forward. “I don’t see it” stops directions safely and offers family.",
     event: "GUIDE",
   },
   {
     title: "Connected through the journey",
-    body: "Alex confirms feeling okay. The caregiver sees the updated safety status and a timestamped check-in.",
+    body: "Alex confirms feeling okay. The phone returns to green and the check-in is saved with a timestamp under Updates.",
     event: "OKAY",
   },
   {
     title: "An alternate path to support",
-    body: "For this alternate scenario, a simulated SOS updates the wearable and adds an urgent caregiver alert. No real emergency services are contacted.",
+    body: "In this alternate scenario Alex holds SOS for two seconds. The watch turns red and shows Sent → Seen; the phone asks the caregiver to acknowledge. No real emergency services are contacted.",
     event: "SOS",
   },
 ] as const;
@@ -924,9 +973,9 @@ function Guided() {
           <div className="presenter-note">
             <CircleHelp size={20} />
             <p>
-              Presenter tip: spend about 15–20 seconds on each step. The digital
-              twin is interactive, and all changes appear in the caregiver
-              dashboard.
+              Presenter tip: spend about 15–20 seconds on each step. The watch
+              and phone are live — tap them during the story. For free
+              exploration, open the side-by-side stage.
             </p>
           </div>
           <Badge />
@@ -975,13 +1024,24 @@ function Guided() {
               Resolve and verify S5 before restarting the walk →
             </Link>
           )}
+          <Link className="text-button" to="/together">
+            Open side-by-side stage <ArrowRight size={15} />
+          </Link>
           <Link className="text-button" to="/caregiver">
             See caregiver dashboard <ArrowRight size={15} />
           </Link>
         </section>
-        <section className="card demo-twin">
-          <div className="eyebrow">WHAT ALEX SEES</div>
-          <Wearable compact />
+        <section className="card demo-twin guided-devices">
+          <div>
+            <div className="eyebrow">WHAT ALEX SEES</div>
+            <Wearable compact />
+          </div>
+          <div>
+            <div className="eyebrow">
+              WHAT {s.settings.caregiver.split(" ")[0].toUpperCase()} SEES
+            </div>
+            <CaregiverPhone />
+          </div>
         </section>
       </div>
     </>
@@ -1095,6 +1155,7 @@ export default function App() {
   return (
     <HashRouter>
       <RouteFocus />
+      <UpdateNotice />
       <CheckInRuntime />
       <CareRuntime />
       <Routes>
