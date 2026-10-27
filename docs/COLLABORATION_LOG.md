@@ -11,3 +11,4 @@ Append concise dated entries for completed work and decisions. Link commits and 
 - Product direction after setup has not yet been provided by the user.
 - Verified the unmodified application locally with Node 22.22.0: clean dependency install, 40 passing unit tests, and successful production build. Existing Vite warnings concern third-party `use client` directives and a bundle over 500 kB.
 - Pushed the setup branch and opened [PR #1](https://github.com/Clarbel21/WayHome/pull/1) for team review. The handoff remains on that branch until the PR is merged.
+- Automatic approval review rejected merging PR #1 into `main` because that shared-branch change may trigger GitHub Pages. The branch and PR remain available; explicit user approval is needed to merge.
