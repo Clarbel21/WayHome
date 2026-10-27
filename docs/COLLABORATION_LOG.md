@@ -10,3 +10,4 @@ Append concise dated entries for completed work and decisions. Link commits and 
 - Agreed working pattern: inspect new team activity at the start of a session, implement requested product changes on focused branches, push reviewable work, and keep the handoff current. No always-on monitoring is configured.
 - Product direction after setup has not yet been provided by the user.
 - Verified the unmodified application locally with Node 22.22.0: clean dependency install, 40 passing unit tests, and successful production build. Existing Vite warnings concern third-party `use client` directives and a bundle over 500 kB.
+- Pushed the setup branch and opened [PR #1](https://github.com/Clarbel21/WayHome/pull/1) for team review. The handoff remains on that branch until the PR is merged.

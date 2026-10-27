@@ -17,10 +17,10 @@ Key files: `src/store.ts` (safety state and check-ins), `src/App.tsx` (routes/da
 
 ## Current working state
 
-- The local checkout was created from `origin/main` on 2026-10-27. Collaboration setup is being prepared on branch `codex/workspace-handoff`.
+- The local checkout was created from `origin/main` on 2026-10-27. Collaboration setup is on branch `codex/workspace-handoff` in [PR #1](https://github.com/Clarbel21/WayHome/pull/1). It has not been merged into `main`; a fresh clone of `main` will not include these instructions until then.
 - At initial inspection, GitHub showed no open pull requests or issues. Recheck at the next session; this observation can become stale.
 - No product change has been requested yet. The next step after this setup is to ask the user which WayHome product behavior or screen to change, then inspect that flow and implement it.
-- Local GitHub CLI credentials failed validation on 2026-10-27; the GitHub connector was authenticated as `itsme-lahlou`. Recheck available access before pushing. Do not record credentials here.
+- Local GitHub CLI credentials failed validation on 2026-10-27, but the GitHub connector authenticated as `itsme-lahlou` and `git push` succeeded. Recheck available access in future sessions. Do not record credentials here.
 - The default shell used Node 20.20.0, below the project's requirement. Node 22.22.0 is installed at `~/.nvm/versions/node/v22.22.0/bin/node`; use Node 22+ for installs and tests. Update this note if the environment changes.
 - Local baseline verification on 2026-10-27 with Node 22.22.0: `npm ci` succeeded, `npm test` passed 40/40 tests, and `npm run build` passed. The build reports existing third-party `use client` directive and bundle-size warnings. Playwright tests were not run for this documentation-only setup.
 
