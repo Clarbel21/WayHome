@@ -17,7 +17,7 @@ Key files: `src/store.ts` (safety state and check-ins), `src/App.tsx` (routes/da
 
 ## Current working state
 
-- The local checkout was created from `origin/main` on 2026-10-27. Collaboration setup is on branch `codex/workspace-handoff` in [PR #1](https://github.com/Clarbel21/WayHome/pull/1). It has not been merged into `main`; a fresh clone of `main` will not include these instructions until then.
+- The local checkout was created from `origin/main` on 2026-10-27. Collaboration setup was submitted from branch `codex/workspace-handoff` in [PR #1](https://github.com/Clarbel21/WayHome/pull/1). Check that PR for its current merge status. A fresh clone of `main` includes these instructions only after the PR is merged.
 - At initial inspection, GitHub showed no open pull requests or issues. Recheck at the next session; this observation can become stale.
 - No product change has been requested yet. The next step after this setup is to ask the user which WayHome product behavior or screen to change, then inspect that flow and implement it.
 - Local GitHub CLI credentials failed validation on 2026-10-27, but the GitHub connector authenticated as `itsme-lahlou` and `git push` succeeded. Recheck available access in future sessions. Do not record credentials here.
