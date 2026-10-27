@@ -1,5 +1,7 @@
 # WayHome
 
+> **New:** simpler four-tile wearable, colour-coded caregiver phone, one-click demo moments and an EN/ID switch on `#/together`. See [UI_UPGRADE.md](UI_UPGRADE.md).
+
 **Helping people find their way home.** A working, local-first Moonshot 101 prototype for a dementia-support companion and caregiver dashboard. Educational simulation, not a medical device. No real location tracking, calls, messages, emergency dispatch, authentication, paid APIs, or hardware.
 
 ## Run on your laptop

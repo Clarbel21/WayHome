@@ -117,7 +117,7 @@ test("wearer recognition returns home, empty approval offers help, and a short S
   page,
 }) => {
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "Help me get home" }).click();
+  await page.getByRole("button", { name: "Go home" }).click();
   await expect(
     page.getByText("Community garden", { exact: true }),
   ).toBeVisible();
@@ -139,7 +139,7 @@ test("wearer recognition returns home, empty approval offers help, and a short S
   for (const checkbox of await page.getByRole("checkbox").all())
     await checkbox.uncheck();
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "Help me get home" }).click();
+  await page.getByRole("button", { name: "Go home" }).click();
   await expect(page.getByText("No approved landmarks yet.")).toBeVisible();
   await page.getByRole("button", { name: "Contact my caregiver" }).click();
   await expect(

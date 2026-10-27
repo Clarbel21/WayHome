@@ -65,6 +65,8 @@ import { useMemory, safetyReady } from "./memory/store";
 import { EmergencyAssistance } from "./components/EmergencyAssistance";
 import { CompanionPersonalization } from "./components/CompanionPersonalization";
 import { Sprout } from "./components/Sprout";
+import { DemoStage, LangSwitch } from "./components/DemoStage";
+import { useT } from "./i18n";
 const LazyRouteMap = lazy(() =>
   import("./components/RouteMap").then((m) => ({ default: m.RouteMap })),
 );
@@ -747,24 +749,34 @@ function DemoControls() {
 function Companion() {
   const location = useLocation();
   const s = useStore();
+  const t = useT();
   return (
     <div
       className={`companion-page shared-experience ${s.settings.largeText ? "large-text" : ""} ${s.settings.reducedMotion ? "reduce-motion" : ""}`}
     >
       <header className="public-header">
         <Brand />
-        <Link className="button light" to="/caregiver">
-          <LayoutDashboard size={17} />
-          Caregiver Mode
-        </Link>
+        <div className="stage-header-actions">
+          <LangSwitch />
+          <Link to="/demo" className="text-button">
+            {t("demoControls")} <ArrowRight size={16} />
+          </Link>
+          <Link className="text-button" to="/" onClick={s.closeDemo}>
+            {t("exitDemo")}
+          </Link>
+          <Link className="button light" to="/caregiver">
+            <LayoutDashboard size={17} />
+            {t("caregiverMode")}
+          </Link>
+        </div>
       </header>
       <main className="companion-main viewport-stage">
         <div className="stage-heading">
           <div className="eyebrow">A FAMILIAR FRIEND, ALWAYS NEAR</div>
           <h1>
-            Here with you.
+            {t("stageTitle")}
             <br />
-            <em>Connected by care.</em>
+            <em>{t("stageEm")}</em>
           </h1>
           <p>A little reassurance, wherever the day takes you.</p>
         </div>
@@ -776,7 +788,7 @@ function Companion() {
             <div className="device-caption">
               <span>01 / COMPANION</span>
               <h2 id="wearer-view-title" tabIndex={-1}>
-                A familiar friend.
+                {t("familiarFriend")}
               </h2>
               <p>{s.settings.wearer}'s interface</p>
             </div>
@@ -790,7 +802,7 @@ function Companion() {
               }
             >
               <Leaf size={23} />
-              Explore Memories
+              {t("exploreMemories")}
             </Link>
             {!safetyReady() && (
               <p
@@ -809,23 +821,18 @@ function Companion() {
           >
             <div className="device-caption">
               <span>02 / CAREGIVER</span>
-              <h2 id="caregiver-view-title">A little closer.</h2>
+              <h2 id="caregiver-view-title">{t("littleCloser")}</h2>
               <p>{s.settings.caregiver}'s phone interface</p>
             </div>
             <CaregiverPhone />
           </section>
         </div>
         <div className="stage-toolbar">
+          <DemoStage />
           <div className="companion-foot">
-            <ShieldCheck size={17} /> Educational simulation · no real emergency
+            <ShieldCheck size={15} /> Educational simulation · no real emergency
             calls
           </div>
-          <Link to="/demo" className="text-button">
-            Explore demo controls <ArrowRight size={16} />
-          </Link>
-          <Link className="text-button" to="/" onClick={s.closeDemo}>
-            Exit demonstration
-          </Link>
         </div>
       </main>
     </div>

@@ -211,7 +211,7 @@ test("approved memory photo remains separate from navigation until explicit appr
   for (const checkbox of await page.getByRole("checkbox").all())
     if (await checkbox.isChecked()) await checkbox.uncheck();
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "Help me get home" }).click();
+  await page.getByRole("button", { name: "Go home" }).click();
   await expect(page.getByText("No approved landmarks yet.")).toBeVisible();
   await page.goto("/#/caregiver/landmarks");
   await pending

@@ -140,9 +140,7 @@ test("withdrawing a landmark stops recognition across tabs instead of silently s
   context,
 }) => {
   await page.goto("/#/companion");
-  await page
-    .getByRole("button", { name: "Help me get home", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Go home", exact: true }).click();
   await page.getByRole("button", { name: "I see it", exact: true }).click();
   await expect(
     page.getByText("Neighborhood bakery", { exact: true }),
@@ -189,7 +187,7 @@ test("SOS ignores right-click and canceled holds; active SOS disables conflictin
   await sos.focus();
   await page.keyboard.down("Space");
   await page.waitForTimeout(100);
-  await page.getByRole("button", { name: "I'm okay", exact: true }).focus();
+  await page.getByRole("button", { name: "Go home", exact: true }).focus();
   await page.keyboard.up("Space");
   await page.waitForTimeout(2100);
   await expect(

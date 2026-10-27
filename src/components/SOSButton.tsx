@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store";
+import { useT } from "../i18n";
 export function SOSButton() {
   const event = useStore((s) => s.event);
+  const t = useT();
   const [holding, setHolding] = useState(false);
   const started = useRef<number | null>(null);
   const sent = useRef(false);
@@ -70,7 +72,8 @@ export function SOSButton() {
       }}
       onBlur={cancel}
     >
-      SOS <span>{holding ? "Keep holding…" : "Hold for 2 seconds"}</span>
+      <i className="sos-fill" aria-hidden="true" />
+      SOS <span>{holding ? t("sosKeep") : t("sosHold")}</span>
     </button>
   );
 }
