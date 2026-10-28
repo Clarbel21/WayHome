@@ -86,7 +86,7 @@ test("caregiver confirmation ends SOS and allows memories despite preserved devi
   expect(state.connected).toBe(false);
   expect(state.worn).toBe(false);
   await page
-    .getByRole("link", { name: "Explore Memories", exact: true })
+    .getByRole("button", { name: "Explore Memories", exact: true })
     .click();
   await expect(
     page.getByText(/SOS is resolved. Local memories can continue/),
@@ -96,9 +96,9 @@ test("caregiver confirmation ends SOS and allows memories despite preserved devi
     .getByRole("button", { name: "Familiar Faces", exact: true })
     .click();
   await page.getByRole("button", { name: "Tell me more", exact: true }).click();
-  await expect(page.getByText(/This is your daughter, Mei/)).toBeVisible();
+  await expect(page.getByText(/This is your son, Jamie/)).toBeVisible();
   await page.reload();
-  await expect(page.getByText(/This is your daughter, Mei/)).toBeVisible();
+  await expect(page.getByText(/This is your son, Jamie/)).toBeVisible();
   await sos(page);
   await expect(
     page.getByRole("heading", { name: "Memory Garden is paused", exact: true }),

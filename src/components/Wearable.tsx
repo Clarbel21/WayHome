@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { useZone, legTarget } from "../zone/store";
 import { planRoute } from "../zone/route";
+import { useWatchUi } from "./watchUi";
+import { MemoryGardenExperience } from "../memory/MemoryPlayer";
 import { useStore, navigable } from "../store";
 import { attachmentNames, wearLabels } from "../services/safety";
 import { LandmarkPhoto } from "./LandmarkPhoto";
@@ -59,6 +61,28 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     s.interactionNote.startsWith("Thank you for telling me") &&
     s.mode !== "EMERGENCY_SIMULATED";
   const z = useZone();
+  const watchUi = useWatchUi();
+  // Safety always wins: if anything needs the wearer's attention, leave the
+  // Memory Garden so the alert or guidance owns the screen.
+  useEffect(() => {
+    // The activity itself is paused by the memory safety rules and can be
+    // resumed later; only the watch view is closed here.
+    if (s.mode !== "NORMAL" && useWatchUi.getState().memories)
+      useWatchUi.getState().closeMemories();
+  }, [s.mode]);
+  // Bring the watch into view when the Memory Garden opens on it.
+  const watchRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!watchUi.memories) return;
+    const el = watchRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    if (r.top < 0 || r.bottom > window.innerHeight)
+      el.scrollIntoView({
+        behavior: s.settings.reducedMotion ? "instant" : "smooth",
+        block: "center",
+      });
+  }, [watchUi.memories]);
   const [buzzing, setBuzzing] = useState(false);
   useEffect(() => {
     if (!z.buzzAt || Date.now() - z.buzzAt > 1500) return;
@@ -468,6 +492,18 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         </div>
       </div>
     );
+  } else if (watchUi.memories && s.mode === "NORMAL") {
+    screenKey = "memories";
+    screen = (
+      <div className="wos-memories">
+        <MemoryGardenExperience
+          onClose={() => {
+            watchUi.closeMemories();
+            s.dismissAcknowledgment();
+          }}
+        />
+      </div>
+    );
   } else if (acknowledged) {
     screenKey = "acknowledged";
     screen = (
@@ -476,13 +512,9 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         {speech(modeMessage(lang, "NORMAL", name))}
         {note}
         <div className="watch-controls wos-list">
-          <Link
-            className="watch-action"
-            to="/memories"
-            state={{ from: location.pathname }}
-          >
+          <button className="watch-action" onClick={watchUi.openMemories}>
             <Leaf size={17} /> {t("openGarden")}
-          </Link>
+          </button>
           <button className="wos-back" onClick={s.dismissAcknowledgment}>
             {t("returnHome")}
           </button>
@@ -572,14 +604,10 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             <MessageCircle size={26} />
             <span>{t("talk")}</span>
           </button>
-          <Link
-            className="wos-tile garden"
-            to="/memories"
-            state={{ from: location.pathname }}
-          >
+          <button className="wos-tile garden" onClick={watchUi.openMemories}>
             <Leaf size={26} />
             <span>{t("memories")}</span>
-          </Link>
+          </button>
         </div>
       </div>
     );
@@ -590,7 +618,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       className={`watch-area mode-${s.mode.toLowerCase()} ${s.attachment} ${compact ? "compact" : ""} ${buzzing ? "buzz" : ""} ${zonePrompt ? "zone-alert" : ""}`}
     >
       <div className="watch-strap top" />
-      <div className="watch">
+      <div className="watch" ref={watchRef}>
         <div className="watch-crown" />
         <div className="watch-screen wos">
           <div className="watch-status">

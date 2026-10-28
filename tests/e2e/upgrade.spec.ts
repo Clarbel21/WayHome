@@ -16,7 +16,7 @@ test("home screen offers four large actions plus SOS", async ({ page }) => {
   for (const name of ["Go home", "Call family", "Talk"])
     await expect(w.getByRole("button", { name, exact: true })).toBeVisible();
   await expect(
-    w.getByRole("link", { name: "Memories", exact: true }),
+    w.getByRole("button", { name: "Memories", exact: true }),
   ).toBeVisible();
   await expect(
     w.getByRole("button", { name: "SOS Hold for 2 seconds", exact: true }),

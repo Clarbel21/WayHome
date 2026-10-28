@@ -128,7 +128,7 @@ test("removal handover provides a request, response and device recovery path", a
     page.getByText("Hi! I'm Sprout. I'm here with you.", { exact: true }),
   ).toBeVisible();
   await page
-    .getByRole("link", { name: "Explore Memories", exact: true })
+    .getByRole("button", { name: "Explore Memories", exact: true })
     .click();
   await expect(
     page.getByRole("heading", { name: "Memory Garden is paused", exact: true }),

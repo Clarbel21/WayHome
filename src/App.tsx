@@ -10,14 +10,16 @@ import {
   FamilyResponse,
 } from "./components/CheckInSupport";
 import { RouteFocus } from "./components/RouteFocus";
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
   HashRouter,
   Routes,
   Route,
   NavLink,
   Link,
+  Navigate,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import {
   Activity,
@@ -69,6 +71,7 @@ import { DemoStage, LangSwitch } from "./components/DemoStage";
 import { useT } from "./i18n";
 import { ZoneRuntime } from "./zone/ZoneRuntime";
 import { useZone } from "./zone/store";
+import { useWatchUi } from "./components/watchUi";
 import { UpdateNotice, buildLabel } from "./components/UpdateNotice";
 const LazyRouteMap = lazy(() =>
   import("./components/RouteMap").then((m) => ({ default: m.RouteMap })),
@@ -798,7 +801,19 @@ function DemoControls() {
     </>
   );
 }
+/** The Memory Garden lives on the watch. Old links to /memories open it there. */
+function MemoriesRoute() {
+  // Decided once on arrival, so a page already showing a paused activity is
+  // not pulled away mid-activity when the safety state settles.
+  const [normal] = useState(() => useStore.getState().mode === "NORMAL");
+  useEffect(() => {
+    if (normal) useWatchUi.getState().openMemories();
+  }, [normal]);
+  return normal ? <Navigate to="/companion" replace /> : <MemoryGardenHome />;
+}
+
 function Companion() {
+  const navigate = useNavigate();
   const location = useLocation();
   const s = useStore();
   const t = useT();
@@ -845,17 +860,22 @@ function Companion() {
               <p>{s.settings.wearer}'s interface</p>
             </div>
             <Wearable />
-            <Link
+            <button
+              type="button"
               className="button explore-memories"
-              to="/memories"
-              state={{ from: location.pathname }}
               aria-describedby={
                 !safetyReady() ? "memories-availability" : undefined
               }
+              onClick={() => {
+                // While an alert or guidance owns the watch, explain the pause
+                // on its own page instead of covering the safety screen.
+                if (s.mode !== "NORMAL") return navigate("/memories");
+                useWatchUi.getState().openMemories();
+              }}
             >
               <Leaf size={23} />
               {t("exploreMemories")}
-            </Link>
+            </button>
             {!safetyReady() && (
               <p
                 id="memories-availability"
@@ -1167,7 +1187,7 @@ export default function App() {
         <Route path="/companion" element={<Companion />} />
         <Route path="/together" element={<Companion />} />
         <Route path="/journeys/:id" element={<JourneyPlayer />} />
-        <Route path="/memories" element={<MemoryGardenHome />} />
+        <Route path="/memories" element={<MemoriesRoute />} />
         <Route
           path="/memory-demo"
           element={

@@ -173,7 +173,7 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
     .click();
   await page.getByRole("button", { name: "I'm okay", exact: true }).click();
   await expect(
-    page.getByRole("link", { name: "Open Memory Garden", exact: true }),
+    page.getByRole("button", { name: "Open Memory Garden", exact: true }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Return to wearable home", exact: true })
@@ -190,15 +190,21 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
   await page
     .getByRole("button", { name: "Back to wearable home", exact: true })
     .click();
-  await page.getByRole("link", { name: "Memories", exact: true }).click();
+  // Memories open on the watch itself and close back to the watch home.
+  await page.getByRole("button", { name: "Memories", exact: true }).click();
+  await expect(page.locator(".wos-memories")).toBeVisible();
   await page
-    .getByRole("link", { name: "Back to wearable", exact: true })
+    .getByRole("button", { name: "Back to watch home", exact: true })
     .click();
   await expect(page).toHaveURL(/#\/together$/);
+  await expect(page.locator(".wos-memories")).toHaveCount(0);
   await page
-    .getByRole("link", { name: "Explore Memories", exact: true })
+    .getByRole("button", { name: "Explore Memories", exact: true })
     .click();
-  await page.getByRole("link", { name: "Exit memories", exact: true }).click();
+  await expect(page.locator(".wos-memories")).toBeVisible();
+  await page
+    .getByRole("button", { name: "Back to watch home", exact: true })
+    .click();
   await expect(page).toHaveURL(/#\/together$/);
   await page.getByRole("button", { name: "Go home", exact: true }).click();
   const care = await context.newPage();
@@ -257,7 +263,7 @@ test("policy, optional journey, navigation roots and walkthrough exits work with
     .getByRole("button", { name: "Close Memory Library", exact: true })
     .click();
   await page
-    .getByRole("link", { name: "Explore Memories", exact: true })
+    .getByRole("button", { name: "Explore Memories", exact: true })
     .click();
   await page.getByRole("button", { name: "Let's begin", exact: true }).click();
   await page
@@ -384,8 +390,9 @@ test("standalone library close and Maybe later return to their parent interface"
     .click();
   await expect(page).toHaveURL(/#\/together$/);
   await page
-    .getByRole("link", { name: "Explore Memories", exact: true })
+    .getByRole("button", { name: "Explore Memories", exact: true })
     .click();
-  await page.getByRole("link", { name: "Maybe later", exact: true }).click();
+  await page.getByRole("button", { name: "Maybe later", exact: true }).click();
   await expect(page).toHaveURL(/#\/together$/);
+  await expect(page.locator(".wos-memories")).toHaveCount(0);
 });

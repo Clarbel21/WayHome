@@ -100,3 +100,15 @@ The Memory Garden now has a clear purpose at the top: helping the wearer **notic
 - **Garden picture:** redrawn with illustrated flowers, leaves, butterflies and trees.
 
 Code: `src/memory/practice.ts` (engine), `src/memory/WayHomePractice.tsx` (screens + caregiver card). Tests: `tests/practice.test.ts` (6), `tests/e2e/practice.spec.ts` (4). Existing library tests were updated for the new samples. Totals: 93 unit, 68 browser.
+
+## Pass 7 — Memory Garden on the watch, real songs, realistic faces
+
+- **Memory Garden now runs inside the watch screen.** The Memories tile, "Open Memory Garden" and the companion "Explore Memories" button open it on the watch (no page change). "Back to watch home" / "Maybe later" close it. SOS stays visible underneath.
+- Old links to `/memories` (caregiver review, journeys, library) open it on the watch when the wearer is calm. If an alert, check-in or guidance is active, the separate paused page still explains why and links to caregiver review.
+- **Safety wins:** any non-NORMAL mode closes the watch Memory Garden immediately. The activity is paused, not lost, and can be resumed later. The open view survives a reload (per-tab sessionStorage).
+- Compact watch styling: single-column activity tiles, 2×2 route photos, smaller hero and garden art, no horizontal overflow.
+- **Familiar Faces:** 10 new realistic people with portraits and everyday details: son Jamie, daughter-in-law Morgan, granddaughter Lily, carer Sarah, kopi-stall Ah Seng, neighbour Auntie Siti, Uncle Lim, Dr Kumar, granddaughter Priya, Mr Wong. 13 faces in total.
+- **Music Memories:** 12 real, well-known songs with artist and year: Teresa Teng, P. Ramlee, Saloma, Gesang, folk songs, Elvis, Louis Armstrong, Audrey Hepburn, Doris Day, The Righteous Brothers. 14 songs in total. No audio or lyrics are bundled. Each card has a "Find this song to play together" YouTube search link.
+- Realistic samples and caregiver-added entries are offered before the old placeholder samples.
+- Memory store migration v3 adds the new samples for existing users without touching their own entries. The backup image whitelist includes the new portraits.
+- Tests: `tests/memory-samples.test.ts` and `tests/e2e/watch-memories.spec.ts` are new, and the existing specs are updated for the watch flow. 97 unit tests and 70 browser tests pass.

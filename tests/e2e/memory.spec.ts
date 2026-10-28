@@ -27,11 +27,45 @@ const picture = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aXxkAAAAASUVORK5CYII=",
   "base64",
 );
+// Every built-in sample (so a test can check an empty or single-entry activity).
+const sampleFaces = [
+  "Mei",
+  "Daniel",
+  "Mrs Tan",
+  "Jamie",
+  "Morgan",
+  "Lily",
+  "Sarah",
+  "Ah Seng",
+  "Auntie Siti",
+  "Uncle Lim",
+  "Dr Kumar",
+  "Priya",
+  "Mr Wong",
+];
+const sampleSongs = [
+  "A song from a happy afternoon",
+  "The song from your wedding day",
+  "The Moon Represents My Heart (月亮代表我的心)",
+  "Tian Mi Mi (甜蜜蜜)",
+  "Getaran Jiwa",
+  "Engkau Laksana Bulan",
+  "Bengawan Solo",
+  "Rasa Sayang",
+  "Burung Kakak Tua",
+  "Can't Help Falling in Love",
+  "What a Wonderful World",
+  "Moon River",
+  "Que Sera, Sera",
+  "Unchained Melody",
+];
 async function openHome(
   page: import("@playwright/test").Page,
   preserve = false,
 ) {
   await page.goto("/#/memories");
+  // /memories opens the Memory Garden on the watch screen.
+  await page.locator(".wos-memories").waitFor();
   const begin = page.getByRole("button", { name: "Let's begin", exact: true });
   if (await begin.isVisible()) await begin.click();
   const back = page.getByRole("button", {
@@ -46,7 +80,7 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
 }) => {
   await page.goto("/#/companion");
   await page
-    .getByRole("link", { name: "Explore Memories", exact: true })
+    .getByRole("button", { name: "Explore Memories", exact: true })
     .click();
   await expect(
     page.getByText("Hi, I'm Sprout. Would you like to explore a memory?"),
@@ -55,9 +89,9 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
   await page
     .getByRole("button", { name: "Familiar Faces", exact: true })
     .click();
-  await expect(page.getByText("Mei", { exact: true })).not.toBeVisible();
+  await expect(page.getByText("Jamie", { exact: true })).not.toBeVisible();
   await page.getByRole("button", { name: "Tell me more", exact: true }).click();
-  await expect(page.getByText(/This is your daughter, Mei/)).toBeVisible();
+  await expect(page.getByText(/This is your son, Jamie/)).toBeVisible();
   await expect(
     page.getByRole("img", { name: /has 1 keepsakes/ }),
   ).toBeVisible();
@@ -117,7 +151,11 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
   await expect(
     page.getByRole("img", { name: /has 5 keepsakes/ }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Exit memories", exact: true }).click();
+  await page.getByRole("button", { name: "Back to my memories" }).click();
+  await page
+    .getByRole("button", { name: "Back to watch home", exact: true })
+    .click();
+  await expect(page.locator(".wos-memories")).toHaveCount(0);
   await page.goto("/#/caregiver/library");
   await expect(
     page.getByRole("heading", { name: "Shared moments", exact: true }),
@@ -164,7 +202,7 @@ test("library approval, image/audio persistence, previews, edit/delete, metadata
   ).toBeVisible();
   await page.getByRole("button", { name: "Close preview" }).click();
   // Revoke the built-in faces: an unapproved uploaded face must not be selected either.
-  for (const name of ["Mei", "Daniel", "Mrs Tan"])
+  for (const name of sampleFaces)
     await page
       .locator(".memory-library-entry")
       .filter({ has: page.getByRole("heading", { name, exact: true }) })
@@ -205,10 +243,7 @@ test("library approval, image/audio persistence, previews, edit/delete, metadata
   await page
     .getByLabel("Enable optional music sound (still requires Play)")
     .check();
-  for (const name of [
-    "A song from a happy afternoon",
-    "The song from your wedding day",
-  ])
+  for (const name of sampleSongs)
     await page
       .locator(".memory-library-entry")
       .filter({ has: page.getByRole("heading", { name, exact: true }) })
@@ -268,7 +303,7 @@ test("library approval, image/audio persistence, previews, edit/delete, metadata
   ).not.toBeVisible();
   await page.getByLabel("Import memory backup").setInputFiles(path!);
   await expect(
-    page.getByText(/Imported 12 entries as new copies/),
+    page.getByText(/Imported 34 entries as new copies/),
   ).toBeVisible();
   const imported = page.locator(".memory-library-entry").filter({
     has: page.getByRole("heading", { name: "Aunt Juniper", exact: true }),
@@ -315,10 +350,10 @@ test("cross-tab safety interrupts and preserves routine; renaming, skipping and 
     .click();
   await page.goto("/#/demo");
   await page.getByRole("button", { name: /Start Guided Return/ }).click();
+  // Safety owns the watch: the Memory Garden steps aside for guidance.
+  await expect(wearer.locator(".wos-memories")).toHaveCount(0);
   await expect(
-    wearer.getByRole("heading", {
-      name: "Memories can wait. We're here with you.",
-    }),
+    wearer.getByRole("button", { name: "Cancel guidance", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: /Trigger Simulated SOS/ }).click();
   await expect(
@@ -330,6 +365,10 @@ test("cross-tab safety interrupts and preserves routine; renaming, skipping and 
   ).toBeVisible();
   await page.goto("/#/caregiver/emergency");
   await resolveIncident(page);
+  // Reopening the Memory Garden offers to resume where it stopped.
+  await wearer
+    .getByRole("button", { name: "Explore Memories", exact: true })
+    .click();
   await expect(
     wearer.getByRole("button", { name: "Resume activity" }),
   ).toBeVisible();
@@ -342,10 +381,11 @@ test("cross-tab safety interrupts and preserves routine; renaming, skipping and 
     wearer.getByRole("img", { name: /has 0 keepsakes/ }),
   ).toBeVisible();
   await wearer
-    .getByRole("link", { name: "Exit memories", exact: true })
+    .getByRole("button", { name: "Back to watch home", exact: true })
     .click();
+  await expect(wearer.locator(".wos-memories")).toHaveCount(0);
   await expect(
-    wearer.getByRole("link", { name: "Explore Memories", exact: true }),
+    wearer.getByRole("button", { name: "Explore Memories", exact: true }),
   ).toBeVisible();
 });
 

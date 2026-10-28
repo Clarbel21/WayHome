@@ -87,11 +87,12 @@ describe("Memory Garden is optional and safety-gated", () => {
       id: "another",
       title: "Another person",
     });
-    m.start("faces");
-    expect(useMemory.getState().session?.entryId).toBe("sample-mei");
-    m.home();
+    // Caregiver-added people come before the built-in placeholder samples.
     m.start("faces");
     expect(useMemory.getState().session?.entryId).toBe("another");
+    m.home();
+    m.start("faces");
+    expect(useMemory.getState().session?.entryId).toBe("sample-mei");
     m.setPreferences({ sound: true, preferred: ["music"], duration: "short" });
     expect(useMemory.getState().preferences.preferred).toEqual(["music"]);
     expect(useStore.getState().mode).toBe("NORMAL");

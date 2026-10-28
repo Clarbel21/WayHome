@@ -81,9 +81,16 @@ function MusicPlayer({ entry }: { entry: MemoryEntry }) {
   }, [sound]);
   return (
     <div className="memory-music">
-      <span className="music-disc">♫</span>
+      <span className="music-disc" aria-hidden="true">
+        <Music size={30} />
+      </span>
       <h3>{entry.title}</h3>
-      <p>{entry.artist || "A personal music memory"}</p>
+      <p className="music-artist">
+        {entry.artist || "A personal music memory"}
+      </p>
+      {entry.description && !entry.audioId && (
+        <p className="music-prompt">{entry.description}</p>
+      )}
       {entry.audioId ? (
         <>
           {media.error && <p role="status">{media.error}</p>}
@@ -128,10 +135,23 @@ function MusicPlayer({ entry }: { entry: MemoryEntry }) {
           )}
         </>
       ) : (
-        <p className="memory-notice">
-          No audio is attached. Nothing is playing. Think of a familiar tune or
-          hum together.
-        </p>
+        <>
+          <p className="memory-notice">
+            No audio is attached. Nothing is playing. Think of a familiar tune
+            or hum together.
+          </p>
+          {songSearch(entry) && (
+            <a
+              className="memory-choice quiet music-find"
+              href={songSearch(entry)!}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Play size={18} aria-hidden="true" /> Find this song to play
+              together
+            </a>
+          )}
+        </>
       )}
       {!sound && entry.audioId && (
         <p>Sound is off in Memory Library preferences. No audio will play.</p>
@@ -373,9 +393,13 @@ export function MemoryActivityPlayer() {
 }
 export function MemoryGardenExperience({
   embedded = false,
+  onClose,
 }: {
   embedded?: boolean;
+  /** Present when the garden runs on the watch screen; closes back to watch home. */
+  onClose?: () => void;
 }) {
+  const onWatch = !!onClose;
   const m = useMemory();
   const s = useStore();
   const location = useLocation();
@@ -388,13 +412,13 @@ export function MemoryGardenExperience({
   const screen = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
     if (embedded) return;
-    window.scrollTo(0, 0);
+    if (!onWatch) window.scrollTo(0, 0);
     const heading = screen.current?.querySelector<HTMLElement>("h1,h2");
     if (heading) {
       heading.setAttribute("tabindex", "-1");
       heading.focus({ preventScroll: true });
     }
-  }, [embedded, safe, m.stage, m.session?.id]);
+  }, [embedded, onWatch, safe, m.stage, m.session?.id]);
   const options = m.preferences.preferred.length
     ? m.preferences.preferred
     : kinds;
@@ -405,7 +429,11 @@ export function MemoryGardenExperience({
   }, [options.length, categoryPage]);
   if (!safe)
     return (
-      <section ref={screen} className="memory-safety" aria-live="assertive">
+      <section
+        ref={screen}
+        className={`memory-safety ${onWatch ? "on-watch" : ""}`}
+        aria-live="assertive"
+      >
         <h1>Memory Garden is paused</h1>
         <h2>Memories can wait. We're here with you.</h2>
         <p>
@@ -452,18 +480,26 @@ export function MemoryGardenExperience({
             Open caregiver review (demo)
           </Link>
         </div>
-        <Wearable compact={embedded} />
-        {!embedded && (
-          <Link className="button light" to="/companion">
-            Back to Companion Mode
-          </Link>
+        {onWatch ? (
+          <button className="memory-choice quiet" onClick={onClose}>
+            Back to watch home
+          </button>
+        ) : (
+          <>
+            <Wearable compact={embedded} />
+            {!embedded && (
+              <Link className="button light" to="/companion">
+                Back to Companion Mode
+              </Link>
+            )}
+          </>
         )}
       </section>
     );
   return (
     <section
       ref={screen}
-      className={`memory-experience ${embedded ? "embedded" : ""}`}
+      className={`memory-experience ${embedded ? "embedded" : ""} ${onWatch ? "on-watch" : ""}`}
     >
       <div className="memory-topline">
         {m.stage === "activity" ? (
@@ -477,13 +513,24 @@ export function MemoryGardenExperience({
             <ArrowLeft size={18} />
             Back to memories
           </button>
+        ) : onWatch ? (
+          <button
+            className="text-button"
+            onClick={() => {
+              m.exit();
+              onClose?.();
+            }}
+          >
+            <ArrowLeft size={18} />
+            Back to watch home
+          </button>
         ) : (
           <Link className="text-button" to={parent} onClick={m.exit}>
             <ArrowLeft size={18} />
             Back to wearable
           </Link>
         )}
-        {!embedded ? (
+        {onWatch ? null : !embedded ? (
           <Link className="text-button" to={parent} onClick={m.exit}>
             Exit memories
           </Link>
@@ -499,10 +546,12 @@ export function MemoryGardenExperience({
           Device warnings remain; navigation still needs review.
         </p>
       )}
-      <div className="memory-host">
-        <Sprout small />
-        <span>Here with {s.settings.companionName}</span>
-      </div>
+      {!onWatch && (
+        <div className="memory-host">
+          <Sprout small />
+          <span>Here with {s.settings.companionName}</span>
+        </div>
+      )}
       {m.stage === "invite" ? (
         <div className="memory-question">
           <span className="eyebrow">A LITTLE TIME TOGETHER</span>
@@ -516,9 +565,25 @@ export function MemoryGardenExperience({
             <button className="memory-choice" onClick={m.begin}>
               Let's begin
             </button>
-            <Link className="memory-choice quiet" to={parent} onClick={m.exit}>
-              Maybe later
-            </Link>
+            {onWatch ? (
+              <button
+                className="memory-choice quiet"
+                onClick={() => {
+                  m.exit();
+                  onClose?.();
+                }}
+              >
+                Maybe later
+              </button>
+            ) : (
+              <Link
+                className="memory-choice quiet"
+                to={parent}
+                onClick={m.exit}
+              >
+                Maybe later
+              </Link>
+            )}
           </div>
         </div>
       ) : m.stage === "activity" && m.session ? (
@@ -608,13 +673,15 @@ export function MemoryGardenExperience({
           </p>
         </div>
       )}
-      <div className="memory-safety-footer">
-        <SOSButton />
-        <small>
-          Educational prototype. No real emergency calls. Activities are for
-          connection, not diagnosis or treatment.
-        </small>
-      </div>
+      {!onWatch && (
+        <div className="memory-safety-footer">
+          <SOSButton />
+          <small>
+            Educational prototype. No real emergency calls. Activities are for
+            connection, not diagnosis or treatment.
+          </small>
+        </div>
+      )}
     </section>
   );
 }
@@ -691,4 +758,13 @@ function WayHomeHero({ onStart }: { onStart: () => void }) {
       </div>
     </section>
   );
+}
+
+/** A YouTube search link for real songs (no audio or lyrics are bundled). */
+function songSearch(entry: MemoryEntry) {
+  if (!entry.artist || /sample suggestion/i.test(entry.artist)) return null;
+  const artist = entry.artist.split(" · ")[0];
+  const title = entry.title.replace(/\s*\(.*\)\s*$/, "");
+  const who = /traditional/i.test(artist) ? "folk song" : artist;
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(`${title} ${who}`)}`;
 }
