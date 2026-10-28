@@ -161,20 +161,42 @@ function Shell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const s = useStore();
   const location = useLocation();
-  const links = [
-    ["/caregiver", "Overview", LayoutDashboard],
-    ["/caregiver/location", "Live location", MapPin],
-    ["/caregiver/alerts", "Alerts", Bell],
-    ["/caregiver/emergency", "Emergency Assistance", ShieldCheck],
-    ["/caregiver/twin", "Digital twin", Watch],
-    ["/together", "Side-by-side view", Monitor],
-    ["/caregiver/landmarks", "Familiar landmarks", Compass],
-    ["/caregiver/library", "Memory Library", Leaf],
-    ["/caregiver/contacts", "Contacts", Phone],
-    ["/caregiver/policy", "Safety policy", ShieldCheck],
-    ["/caregiver/settings", "Settings", Settings],
-    ["/demo", "Demo control center", Sparkles],
-  ] as const;
+  // The caregiver product structure: overview & safety first, then care
+  // settings, then the presentation surfaces. The wearer experience lives in
+  // Companion Mode (link at the bottom of the sidebar).
+  const navGroups: {
+    label: string;
+    items: (readonly [string, string, typeof LayoutDashboard])[];
+  }[] = [
+    {
+      label: "Overview & safety",
+      items: [
+        ["/caregiver", "Overview", LayoutDashboard],
+        ["/caregiver/location", "Live location", MapPin],
+        ["/caregiver/alerts", "Alerts", Bell],
+        ["/caregiver/emergency", "Emergency Assistance", ShieldCheck],
+        ["/caregiver/twin", "Digital twin", Watch],
+      ],
+    },
+    {
+      label: "Care settings",
+      items: [
+        ["/caregiver/landmarks", "Familiar landmarks", Compass],
+        ["/caregiver/library", "Memory Library", Leaf],
+        ["/caregiver/contacts", "Contacts", Phone],
+        ["/caregiver/policy", "Safety policy", ShieldCheck],
+        ["/caregiver/settings", "Settings", Settings],
+      ],
+    },
+    {
+      label: "Present",
+      items: [
+        ["/together", "Side-by-side view", Monitor],
+        ["/demo", "Demo control center", Sparkles],
+      ],
+    },
+  ];
+  const links = navGroups.flatMap((g) => g.items);
   return (
     <div
       className={`app care-workspace ${s.settings.largeText ? "large-text" : ""} ${s.settings.reducedMotion ? "reduce-motion" : ""}`}
@@ -183,21 +205,26 @@ function Shell({ children }: { children: React.ReactNode }) {
         <Brand />
         <div className="workspace-label">CAREGIVER WORKSPACE</div>
         <nav aria-label="Main navigation">
-          {links.map(([url, label, Icon]) => (
-            <NavLink
-              key={url}
-              to={url}
-              end={url === "/caregiver"}
-              onClick={() => setOpen(false)}
-            >
-              <Icon size={19} />
-              {label}
-              {label === "Alerts" && s.alerts.some((a) => !a.read) && (
-                <span className="nav-count">
-                  {s.alerts.filter((a) => !a.read).length}
-                </span>
-              )}
-            </NavLink>
+          {navGroups.map((group) => (
+            <div className="nav-group" key={group.label}>
+              <div className="nav-group-label">{group.label}</div>
+              {group.items.map(([url, label, Icon]) => (
+                <NavLink
+                  key={url}
+                  to={url}
+                  end={url === "/caregiver"}
+                  onClick={() => setOpen(false)}
+                >
+                  <Icon size={19} />
+                  {label}
+                  {label === "Alerts" && s.alerts.some((a) => !a.read) && (
+                    <span className="nav-count">
+                      {s.alerts.filter((a) => !a.read).length}
+                    </span>
+                  )}
+                </NavLink>
+              ))}
+            </div>
           ))}
         </nav>
         <div className="sidebar-bottom">

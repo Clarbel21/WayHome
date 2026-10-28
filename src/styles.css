@@ -281,7 +281,24 @@ svg {
   flex-direction: column;
   gap: 5px;
 }
-.sidebar nav > a {
+/* Grouped navigation: Overview & safety · Care settings · Present */
+.nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 14px;
+}
+.nav-group:first-child {
+  margin-top: 0;
+}
+.nav-group-label {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #8b9486;
+  margin: 0 14px 3px;
+}
+.sidebar nav a {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -290,12 +307,12 @@ svg {
   padding: 12px 14px;
   font-size: 12px;
 }
-.sidebar nav > a.active {
+.sidebar nav a.active {
   background: #e1e8d9;
   color: var(--wh-forest);
   font-weight: 700;
 }
-.sidebar nav > a:hover {
+.sidebar nav a:hover {
   background: #e6ebdf;
 }
 .nav-count {
@@ -305,12 +322,6 @@ svg {
   padding: 0 5px;
   border-radius: 20px;
   font-size: 10px;
-}
-.sidebar nav > a:last-child {
-  margin-top: 20px;
-  border-top: 1px solid var(--line);
-  border-radius: 0;
-  padding-top: 22px;
 }
 .sidebar-bottom {
   margin-top: auto;
@@ -1721,7 +1732,7 @@ input[type="checkbox"] {
     margin-left: 185px;
     width: calc(100% - 185px);
   }
-  .sidebar nav > a {
+  .sidebar nav a {
     padding: 11px 10px;
     font-size: 11px;
     gap: 8px;

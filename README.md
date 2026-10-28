@@ -33,9 +33,31 @@ Static hosting works without rewrite rules: the app uses hash routes (for exampl
 4. The final step demonstrates an alternate **simulated SOS**. No real emergency services are contacted.
 5. Open **Alerts** to see timestamps and mark requests read. **Reset presentation** starts the scenario again.
 
-For a side-by-side pitch, open `/#/companion` and `/#/caregiver` in **two tabs of the same browser, on the same origin**. Hold SOS on the wearable for two seconds (pointer or hold Space/Enter with focus on the button). The caregiver alert and digital twin synchronize via localStorage events. Separate browsers/devices are not connected; there is no backend. Simulated contact requests are recorded in the app only.
+For a side-by-side pitch, open `/#/together`: the wearable and the caregiver phone share one desktop viewport and respond to the same event at the same moment; on small screens they stack. To show the two interfaces on separate screens of the same browser instead, open `/#/companion` and `/#/caregiver` in two tabs on the same origin. Hold SOS on the wearable for two seconds (pointer or hold Space/Enter with focus on the button). The caregiver alert and digital twin synchronize via localStorage events. Separate browsers/devices are not connected; there is no backend. Simulated contact requests are recorded in the app only.
 
 The **Demo Control Center** offers all nine scenario events plus reset. Full demo reset recreates fictional starting observations and is blocked during an unresolved S5; it preserves edited profiles and landmarks. Starting a normal walk changes the walking scenario only; it never reconnects the device or confirms wear. Device disconnection retains last known location and blocks simulated movement. Route progress is discrete demo movement, not real directions.
+
+## Product structure
+
+WayHome is organized as two experiences instead of separate screens:
+
+```
+Wearer experience — Companion Mode (`#/companion`)
+├── Home            four large tiles: Go home, Call family, Talk, Memories
+├── Companion       Sprout conversations and gentle check-ins
+├── Memory Garden   reminiscence activities and the growing garden
+└── Guided return   landmark-photo route home
+
+Caregiver experience — caregiver workspace (`#/caregiver`)
+├── Overview        status, live location, alerts, emergency assistance, digital twin
+├── Contacts        validated caregiver contacts with escalation order
+├── Safety          shared safety policy, safe zone, notification history
+├── Landmarks       familiar places with separate memory/navigation approvals
+├── Memories        Memory Library and Memory Journeys
+└── Activity history  alert timeline, notification receipts, garden history
+```
+
+The caregiver sidebar groups its pages under **Overview & safety**, **Care settings** and **Present**; Companion Mode — the wearer experience — is one link away at the bottom of the sidebar, and `#/together` shows both experiences in one desktop viewport.
 
 ## Features
 
@@ -87,7 +109,7 @@ Use **Caregiver → Memory Library** to add/edit/delete people, places, songs an
 
 **Safety:** any non-normal safety state or disconnection/removal pauses Memory Garden. SOS immediately uses the existing S5 machine and caregiver alert history. The paused activity and garden remain saved. Request resolution and complete verification in Emergency Assistance, then explicitly **Resume activity**. Activities cannot clear S5, issue navigation instructions, or change safety rules.
 
-**Presentation:** choose **Demo Control Center → Memory Garden Demo → Prepare sample demo**. This explicitly adds approved fictional sample copies without changing personal entries. Use Next/Back through the ten-step story: invitation, familiar face, reveal, growing flower, happy place, caregiver history, then simulated SOS interruption. **Reset sample scenario** preserves garden/history and does not clear an emergency. Reset S5 from Emergency Assistance before replaying. Use two tabs on the same origin to show caregiver updates alongside the wearer.
+**Presentation:** choose **Demo Control Center → Memory Garden Demo → Prepare sample demo**. This explicitly adds approved fictional sample copies without changing personal entries. Use Next/Back through the ten-step story: invitation, familiar face, reveal, growing flower, happy place, caregiver history, then simulated SOS interruption. **Reset sample scenario** preserves garden/history and does not clear an emergency. Reset S5 from Emergency Assistance before replaying. Open `/#/together` to show caregiver updates alongside the wearer in one viewport.
 
 This is a reminiscence and connection prototype, not a diagnostic test or proven dementia treatment. GitHub Pages continues to deploy through the existing workflow on pushes to main, including all routes/assets under `/WayHome/`.
 
