@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import {
   Battery,
   BatteryLow,
+  BellOff,
+  BellRing,
   Check,
   Heart,
   House,
@@ -25,6 +27,12 @@ import { useWatchUi } from "./watchUi";
 import { MemoryGardenExperience } from "../memory/MemoryPlayer";
 import { useStore, navigable } from "../store";
 import { attachmentNames, wearLabels } from "../services/safety";
+import {
+  startRingtone,
+  stopRingtone,
+  useFind,
+  type FindRing,
+} from "../services/find";
 import { LandmarkPhoto } from "./LandmarkPhoto";
 import { ResolveSOSButton } from "./ResolveSOSButton";
 import { SOSButton } from "./SOSButton";
@@ -90,6 +98,34 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     const off = setTimeout(() => setBuzzing(false), 1300);
     return () => clearTimeout(off);
   }, [z.buzzAt]);
+  // Find My: the caregiver is ringing this band. The watch shakes, vibrates
+  // and repeats a tone until the wearer stops it (or 30 s pass). Safety
+  // screens win: an emergency owns the watch instead, and an offline band
+  // cannot ring.
+  const find = useFind();
+  const ringing: FindRing | null =
+    find.ringing && s.connected && s.mode !== "EMERGENCY_SIMULATED"
+      ? find.ringing
+      : null;
+  useEffect(() => {
+    if (!ringing) return;
+    startRingtone();
+    const vibrate =
+      "vibrate" in navigator
+        ? window.setInterval(() => navigator.vibrate([260, 140, 260]), 900)
+        : null;
+    const timeout = window.setTimeout(() => useFind.getState().stop(), 30000);
+    return () => {
+      stopRingtone();
+      if (vibrate !== null) window.clearInterval(vibrate);
+      window.clearTimeout(timeout);
+    };
+  }, [ringing]);
+  useEffect(() => {
+    if (find.ringing && (!s.connected || s.mode === "EMERGENCY_SIMULATED")) {
+      useFind.getState().stop();
+    }
+  }, [find.ringing, s.connected, s.mode]);
   const wearerFirst = s.settings.wearer.split(" ")[0];
   // Only ask "Heading home?" when no other safety screen owns the watch.
   const zonePrompt = z.prompt && (s.mode === "NORMAL" || s.mode === "CHECK_IN");
@@ -646,7 +682,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
 
   return (
     <div
-      className={`watch-area mode-${s.mode.toLowerCase()} ${s.attachment} ${compact ? "compact" : ""} ${buzzing ? "buzz" : ""} ${zonePrompt ? "zone-alert" : ""}`}
+      className={`watch-area mode-${s.mode.toLowerCase()} ${s.attachment} ${compact ? "compact" : ""} ${buzzing ? "buzz" : ""} ${ringing ? "find-ring" : ""} ${zonePrompt ? "zone-alert" : ""}`}
     >
       <div className="watch-strap top" />
       <div className="watch" ref={watchRef}>
@@ -702,6 +738,21 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
               )}
             <SOSButton />
           </div>
+          {ringing && (
+            <div className="wos-find" role="alert">
+              <span className="wos-find-icon" aria-hidden="true">
+                <BellRing size={28} />
+              </span>
+              <strong>{t("findTitle", { companion: name })}</strong>
+              <p>{t("findBody", { caregiver: ringing.by })}</p>
+              <button
+                className="wos-stop"
+                onClick={() => useFind.getState().stop()}
+              >
+                <BellOff size={17} /> {t("findStop")}
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <div className="watch-strap bottom" />

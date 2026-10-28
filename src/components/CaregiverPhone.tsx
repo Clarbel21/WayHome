@@ -11,12 +11,15 @@ import {
   MemoryActivityHistory,
 } from "../memory/MemoryLibrary";
 import { useCare } from "../care/store";
+import { useFind } from "../services/find";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
   Battery,
   Bell,
+  BellOff,
+  BellRing,
   Heart,
   Signal,
   Wifi,
@@ -300,6 +303,7 @@ function PhoneToday() {
   const s = useStore();
   const lang = useLang((l) => l.lang);
   const t = useT();
+  const find = useFind();
   const wearer = s.settings.wearer;
   const first = wearer.split(" ")[0];
   const isEmergency = s.mode === "EMERGENCY_SIMULATED";
@@ -459,10 +463,35 @@ function PhoneToday() {
                 <p>{t("reassureBody")}</p>
               </>
             )}
-            <button className="button" disabled={waiting} onClick={sendCheckIn}>
-              {t("sendCheckIn")}
-            </button>
+            <div className="phone-action-row">
+              <button
+                className="button"
+                disabled={waiting}
+                onClick={sendCheckIn}
+              >
+                {t("sendCheckIn")}
+              </button>
+              <button
+                className={`button light ${find.ringing ? "is-ringing" : ""}`}
+                disabled={!s.connected && !find.ringing}
+                title={!s.connected ? t("findOffline") : undefined}
+                aria-pressed={Boolean(find.ringing)}
+                onClick={() =>
+                  find.ringing
+                    ? useFind.getState().stop()
+                    : useFind.getState().start(s.settings.caregiver)
+                }
+              >
+                {find.ringing ? <BellOff size={16} /> : <BellRing size={16} />}
+                {find.ringing ? t("findStop") : t("findBand")}
+              </button>
+            </div>
             {waiting && <p>{t("respondFirst")}</p>}
+            {find.ringing && (
+              <p className="phone-find-note" role="status">
+                {t("findNote")}
+              </p>
+            )}
           </section>
           {s.mode === "GUIDED_RETURN" && zone.guideStartM !== null && (
             <ZoneLadder />

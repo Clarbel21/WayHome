@@ -919,6 +919,7 @@ footer {
   border-radius: 0 5px 5px 0;
 }
 .watch-screen {
+  position: relative;
   border: 4px solid #25362d;
   border-radius: 37px;
   background: #f7f7eb;
@@ -926,6 +927,89 @@ footer {
   padding: 14px 16px 15px;
   min-height: 420px;
   box-shadow: inset 0 0 9px #28483b16;
+}
+/* Find My: the caregiver is ringing the band. The frame shakes while the
+   screen shows a full-cover alert with a large stop button. */
+.watch-area.find-ring .watch {
+  animation: find-shake 0.6s ease-in-out infinite;
+}
+@keyframes find-shake {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-1.8deg);
+  }
+  75% {
+    transform: rotate(1.8deg);
+  }
+}
+.wos-find {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px 16px;
+  text-align: center;
+  color: #fff;
+  background: linear-gradient(170deg, #477b5d, #173d2c);
+  animation: wos-pop 0.25s ease;
+}
+.wos-find-icon {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.18);
+  animation: find-pulse 1.1s ease-in-out infinite;
+}
+@keyframes find-pulse {
+  50% {
+    transform: scale(1.12);
+    box-shadow: 0 0 0 12px rgba(255, 255, 255, 0.08);
+  }
+}
+@keyframes wos-pop {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.wos-find strong {
+  font-size: 17px;
+  line-height: 1.2;
+}
+.wos-find p {
+  font-size: 12.5px;
+  line-height: 1.4;
+  opacity: 0.92;
+}
+.wos-stop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: #fff;
+  color: #173d2c;
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.25);
+}
+.wos-stop:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
 }
 .watch-status {
   display: flex;
