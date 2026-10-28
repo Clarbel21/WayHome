@@ -1,4 +1,7 @@
 import { JourneyInvitations } from "../care/JourneyPlayer";
+import { WayHomePractice, RouteStrip } from "./WayHomePractice";
+import { familiarityLevel, usePractice } from "./practice";
+import { navigable } from "../store";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -13,6 +16,7 @@ import {
   Music,
   ListChecks,
   Flower2,
+  Footprints,
 } from "lucide-react";
 import { useStore } from "../store";
 import { Sprout } from "../components/Sprout";
@@ -378,6 +382,7 @@ export function MemoryGardenExperience({
   const parent =
     location.state?.from === "/together" ? "/together" : "/companion";
   const [categoryPage, setCategoryPage] = useState(0);
+  const [practicing, setPracticing] = useState(false);
   const [empty, setEmpty] = useState("");
   const safe = safetyReady();
   const screen = useRef<HTMLElement>(null);
@@ -533,10 +538,14 @@ export function MemoryGardenExperience({
         ) : (
           <MemoryActivityPlayer />
         )
+      ) : practicing ? (
+        <WayHomePractice onExit={() => setPracticing(false)} />
       ) : (
-        <div className="memory-question">
-          <GardenVisualization />
-          <h1>A memory, a feeling, a little joy.</h1>
+        <div className="memory-question memory-home">
+          <WayHomeHero onStart={() => setPracticing(true)} />
+          <h1 className="memory-section-title">
+            A memory, a feeling, a little joy.
+          </h1>
           <JourneyInvitations />
           <p>What would you like to explore with {s.settings.companionName}?</p>
           {suggestion && (
@@ -592,6 +601,7 @@ export function MemoryGardenExperience({
               {empty}
             </p>
           )}
+          <GardenVisualization />
           <p className="memory-help">
             Take as much or as little time as you like. You can always skip or
             leave.
@@ -647,5 +657,38 @@ function ActivityIcon({ kind }: { kind: string }) {
     <span className="memory-tile-icon" aria-hidden="true">
       <Icon size={22} />
     </span>
+  );
+}
+
+function WayHomeHero({ onStart }: { onStart: () => void }) {
+  const route = useStore((s) => s.landmarks).filter(navigable);
+  const practice = usePractice();
+  const familiar = route.filter(
+    (l) => familiarityLevel(practice.familiarity[l.id]) === "well",
+  ).length;
+  return (
+    <section className="wp-hero" aria-labelledby="wp-hero-title">
+      <div className="wp-hero-text">
+        <span className="eyebrow">PRACTICE MY WAY HOME</span>
+        <h2 id="wp-hero-title">Get to know the places on your walk home</h2>
+        <p>
+          A few minutes with the photos of your route, so they feel familiar
+          when you're out.
+        </p>
+      </div>
+      {route.length > 0 && <RouteStrip route={route} />}
+      <div className="wp-hero-foot">
+        <button className="memory-choice" onClick={onStart}>
+          <Footprints size={20} aria-hidden="true" /> Practice my way home
+        </button>
+        {route.length > 0 && (
+          <span className="wp-hero-progress">
+            {practice.sessions
+              ? `${familiar} of ${route.length} places feel familiar`
+              : `${route.length} places on your walk`}
+          </span>
+        )}
+      </div>
+    </section>
   );
 }

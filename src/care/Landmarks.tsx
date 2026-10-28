@@ -1,3 +1,4 @@
+import { LandmarkFamiliarity } from "../memory/WayHomePractice";
 import { useEffect, useRef, useState } from "react";
 import { Plus, Trash2, Compass, X, Check } from "lucide-react";
 import { samples, useStore, type Landmark } from "../store";
@@ -132,6 +133,7 @@ export function Landmarks() {
           </button>
         }
       />
+      <LandmarkFamiliarity />
       <div className="landmark-grid">
         {s.landmarks.map((l) => (
           <section className="card landmark-card" key={l.id}>

@@ -6,6 +6,16 @@ const images = [
   "/images/garden.svg",
   "/images/bakery.svg",
   "/images/library.svg",
+  "/images/memory-grandson.svg",
+  "/images/memory-neighbour.svg",
+  "/images/market.svg",
+  "/images/kopi.svg",
+  "/images/pharmacy.svg",
+  "/images/busstop.svg",
+  "/images/playground.svg",
+  "/images/postoffice.svg",
+  "/images/school.svg",
+  "/images/fountain.svg",
 ];
 export async function createBackup(
   entries: MemoryEntry[],

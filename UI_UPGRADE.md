@@ -81,3 +81,22 @@ Tests: `tests/zone.test.ts` (5) and `tests/e2e/safe-zone.spec.ts` (3). Totals: 8
 - Starting guidance from the watch's **Go home** tile inside the zone uses a fictional start point inside the radius, so the walk is shown without triggering a zone alert.
 
 Tests: `tests/route.test.ts` (3); safe-zone browser test checks the map and turn text. Totals: 87 unit, 62 browser.
+
+## Memory Garden: Practice my way home
+
+The Memory Garden now has a clear purpose at the top: helping the wearer **notice and remember the landmarks on their walk home**, using the same landmarks and turns as live guidance (`src/zone/route.ts`).
+
+- **Practice my way home** card: the walk shown as a strip of photos with turn arrows, and how many places already feel familiar.
+- **Look at my walk first:** one place at a time, with the instruction the watch will give ("Turn right at the Community garden"), a large photo and a clue ("Look for the red-and-white striped awning and the peach door").
+- **Practice with me:** short questions in three rounds:
+  - "Which one is the Neighborhood bakery?" (photos)
+  - "At the Community garden, which way do you go?" (Left / Straight on / Right)
+  - "After the bakery, which place comes next?"
+    The look-alike choices come from 8 new neighbourhood places.
+- **Errorless learning:** a wrong pick is never marked wrong. The right photo glows with its clue and the wearer chooses it. A place that needed a clue comes back a little later (spaced retrieval), once per question and at most 3 extra per walk.
+- **Finishing** grows a flower in the garden and shows each place as "Feels familiar" or "Let's look again soon". There are no scores, timers or penalties.
+- **For caregivers:** _Familiar landmarks_ has a **Landmark familiarity** card ("Remembers well / Getting familiar / Still learning", with how often each was recognised straight away versus with a clue). It describes the landmark, not the person: a place that stays "Still learning" needs a clearer photo or clue.
+- **More realistic data:** distinctive redrawn route landmarks (a garden arch with flowers, a striped bakery awning, library columns, a blue home gate) with clues; 8 new place illustrations; new sample memories (grandson Daniel, neighbour Mrs Tan, the Saturday market, the kopi shop, a wedding song, making tea). Saved libraries are migrated to include the new samples.
+- **Garden picture:** redrawn with illustrated flowers, leaves, butterflies and trees.
+
+Code: `src/memory/practice.ts` (engine), `src/memory/WayHomePractice.tsx` (screens + caregiver card). Tests: `tests/practice.test.ts` (6), `tests/e2e/practice.spec.ts` (4). Existing library tests were updated for the new samples. Totals: 93 unit, 68 browser.

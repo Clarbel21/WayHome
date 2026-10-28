@@ -163,12 +163,13 @@ test("library approval, image/audio persistence, previews, edit/delete, metadata
       .getByRole("heading", { name: "Aunt June", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Close preview" }).click();
-  // Revoke the built-in face: an unapproved uploaded face must not be selected either.
-  await page
-    .locator(".memory-library-entry")
-    .filter({ has: page.getByRole("heading", { name: "Mei", exact: true }) })
-    .getByRole("checkbox")
-    .uncheck();
+  // Revoke the built-in faces: an unapproved uploaded face must not be selected either.
+  for (const name of ["Mei", "Daniel", "Mrs Tan"])
+    await page
+      .locator(".memory-library-entry")
+      .filter({ has: page.getByRole("heading", { name, exact: true }) })
+      .getByRole("checkbox")
+      .uncheck();
   await openHome(page);
   await page
     .getByRole("button", { name: "Familiar Faces", exact: true })
@@ -204,16 +205,15 @@ test("library approval, image/audio persistence, previews, edit/delete, metadata
   await page
     .getByLabel("Enable optional music sound (still requires Play)")
     .check();
-  await page
-    .locator(".memory-library-entry")
-    .filter({
-      has: page.getByRole("heading", {
-        name: "A song from a happy afternoon",
-        exact: true,
-      }),
-    })
-    .getByRole("checkbox")
-    .uncheck();
+  for (const name of [
+    "A song from a happy afternoon",
+    "The song from your wedding day",
+  ])
+    await page
+      .locator(".memory-library-entry")
+      .filter({ has: page.getByRole("heading", { name, exact: true }) })
+      .getByRole("checkbox")
+      .uncheck();
   await openHome(page);
   await page
     .getByRole("button", { name: "Music Memories", exact: true })
@@ -268,7 +268,7 @@ test("library approval, image/audio persistence, previews, edit/delete, metadata
   ).not.toBeVisible();
   await page.getByLabel("Import memory backup").setInputFiles(path!);
   await expect(
-    page.getByText(/Imported 6 entries as new copies/),
+    page.getByText(/Imported 12 entries as new copies/),
   ).toBeVisible();
   const imported = page.locator(".memory-library-entry").filter({
     has: page.getByRole("heading", { name: "Aunt Juniper", exact: true }),

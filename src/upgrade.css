@@ -1749,3 +1749,466 @@
   padding: 8px 10px;
   margin: 4px 0 10px;
 }
+
+/* ============================================================ Memory Garden: home + practice */
+.memory-experience .memory-home {
+  text-align: left;
+}
+.memory-experience .memory-section-title {
+  font-size: 22px;
+  margin: 28px 0 4px;
+  text-align: left;
+}
+.memory-experience .memory-home > p {
+  margin-top: 4px;
+  font-size: 16px;
+}
+.memory-garden-art {
+  height: auto;
+  background: none;
+  margin: 22px 0 6px;
+  border: 1px solid #e3e8da;
+}
+.memory-garden-art svg {
+  display: block;
+  width: 100%;
+  height: 170px;
+}
+.embedded .memory-garden-art svg {
+  height: 130px;
+}
+.memory-garden-art .garden-caption {
+  background: #fffefae6;
+  width: max-content;
+  margin: 0 auto;
+  padding: 3px 10px;
+  border-radius: 999px;
+  color: #3e5446;
+  font-size: 12px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .garden-plant-svg {
+    animation: garden-grow 0.6s ease-out both;
+  }
+  .garden-plant-svg.butterfly {
+    animation:
+      garden-grow 0.6s ease-out both,
+      garden-flutter 3.2s ease-in-out infinite 0.6s;
+  }
+}
+.reduce-motion .garden-plant-svg {
+  animation: none !important;
+}
+@keyframes garden-grow {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes garden-flutter {
+  50% {
+    translate: 0 -6px;
+  }
+}
+
+/* Hero: practice my way home */
+.wp-hero {
+  border-radius: 22px;
+  padding: 20px;
+  background: linear-gradient(160deg, #e3eddb, #f4f0df);
+  border: 1px solid #d6e2cc;
+}
+.wp-hero .eyebrow {
+  color: #3f6b4c;
+}
+.wp-hero h2 {
+  text-align: left;
+  margin: 6px 0 4px;
+  font-size: 24px;
+  line-height: 1.25;
+  color: var(--wh-ink);
+}
+.memory-experience .wp-hero p {
+  margin: 0 0 12px;
+  font-size: 16px;
+  color: #3e5446;
+}
+.wp-hero-foot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.wp-hero-foot .memory-choice {
+  width: auto;
+  flex: 1 1 260px;
+}
+.wp-hero-progress {
+  font-size: 14px;
+  font-weight: 650;
+  color: #2f5d3f;
+}
+
+/* Route strip: the walk home as photos with turn arrows */
+.wp-route-strip {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 18px;
+}
+.wp-route-strip li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.wp-route-strip img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 12px #28483b14;
+}
+.wp-route-strip span {
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--wh-ink);
+  line-height: 1.25;
+}
+.wp-route-turn {
+  position: absolute;
+  right: -17px;
+  top: calc(31% - 8px);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--wh-forest);
+  color: #fff;
+  z-index: 1;
+}
+
+/* Practice screens */
+.wp-practice {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+.wp-practice h1 {
+  font-size: 28px;
+  line-height: 1.2;
+  margin: 4px 0;
+  text-align: left;
+  color: var(--wh-ink);
+}
+.memory-experience .wp-practice .wp-lead {
+  font-size: 17px;
+  margin: 0 0 6px;
+}
+.wp-practice .text-button {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.wp-dots {
+  display: flex;
+  gap: 5px;
+}
+.wp-dots i {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: #dde4d5;
+  max-width: 46px;
+}
+.wp-dots i.done {
+  background: #8fb197;
+}
+.wp-dots i.now {
+  background: var(--wh-forest);
+}
+.wp-quiz-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.wp-quiz-top .wp-dots {
+  flex: 1;
+  justify-content: flex-end;
+}
+.wp-walk-turn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--wh-forest);
+  color: #fff;
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-weight: 650;
+  font-size: 16px;
+}
+.wp-walk-photo {
+  margin: 0;
+}
+.wp-walk-photo img {
+  display: block;
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 18px;
+}
+.wp-walk-photo.small img {
+  max-height: 170px;
+}
+.memory-experience .wp-practice .wp-cue {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  background: #fbf3e2;
+  color: #4d3305;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 16px;
+  margin: 0;
+}
+.wp-cue svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.wp-nav-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+}
+.wp-prompt {
+  font-size: 26px;
+}
+.wp-clue-button {
+  color: #6a4a0a;
+}
+
+/* Photo choices */
+.wp-photo-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.wp-photo-option {
+  position: relative;
+  padding: 0;
+  border: 3px solid transparent;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 16px #28483b14;
+  transition:
+    transform 0.15s ease,
+    border-color 0.2s ease,
+    opacity 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+.wp-photo-option:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: #b6cbb7;
+}
+.wp-photo-option img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.wp-photo-option span {
+  display: block;
+  padding: 8px 10px;
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--wh-ink);
+  text-align: center;
+}
+.wp-photo-option.is-right {
+  border-color: #3b8a55;
+}
+.wp-photo-option.glow {
+  border-color: #c08a1e;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wp-photo-option.glow,
+  .wp-turn-option.glow {
+    animation: wh-glow 1.4s ease-in-out infinite;
+  }
+}
+@keyframes wh-glow {
+  50% {
+    box-shadow: 0 0 0 7px #c08a1e40;
+  }
+}
+.wp-photo-option.dim,
+.wp-turn-option.dim {
+  opacity: 0.45;
+}
+.wp-photo-option:disabled,
+.wp-turn-option:disabled {
+  cursor: default;
+}
+.wp-tick {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #3b8a55;
+  color: #fff;
+}
+
+/* Turn choices */
+.wp-turns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.wp-turn-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 8px;
+  min-height: 96px;
+  border-radius: 18px;
+  border: 3px solid transparent;
+  background: #e8eee1;
+  color: var(--wh-ink);
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.wp-turn-option.is-right {
+  background: #dcebd9;
+  border-color: #3b8a55;
+}
+.wp-turn-option.glow {
+  border-color: #c08a1e;
+  background: #fbf3e2;
+}
+
+/* Feedback */
+.wp-feedback {
+  display: grid;
+  gap: 10px;
+  background: #e3efe0;
+  border-radius: 16px;
+  padding: 14px 16px;
+}
+.memory-experience .wp-feedback p {
+  margin: 0;
+  font-size: 17px;
+  color: #1f4a2c;
+}
+
+/* Finish */
+.wp-finished {
+  text-align: center;
+  align-items: stretch;
+}
+.wp-finished h1 {
+  text-align: center;
+}
+.wp-bloom {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+  background: #f6dfe5;
+  color: #b5657a;
+}
+.wp-familiar-list,
+.wp-familiarity ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.wp-familiar-list li,
+.wp-familiarity li {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e3e8da;
+  border-radius: 14px;
+  padding: 6px 12px 6px 6px;
+  text-align: left;
+}
+.wp-familiar-list img,
+.wp-familiarity img {
+  width: 64px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.wp-familiarity li > div {
+  display: grid;
+}
+.wp-familiarity small {
+  color: #5d6e62;
+}
+.wp-level {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.wp-level.well {
+  background: #dcebd9;
+  color: #1f4a2c;
+}
+.wp-level.getting {
+  background: #e4ecf5;
+  color: #284a6a;
+}
+.wp-level.learning {
+  background: #fbf3e2;
+  color: #5c3c04;
+}
+.wp-level.new {
+  background: #eef1e8;
+  color: #4a5a50;
+}
+@media (max-width: 640px) {
+  .wp-photo-options {
+    grid-template-columns: 1fr;
+  }
+  .wp-photo-option img {
+    aspect-ratio: 16 / 7;
+  }
+  .wp-route-strip {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .wp-route-turn {
+    display: none;
+  }
+  .wp-practice h1 {
+    font-size: 23px;
+  }
+}

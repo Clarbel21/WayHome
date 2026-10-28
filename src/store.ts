@@ -107,6 +107,7 @@ export const initialLandmarks: Landmark[] = [
     name: "Community garden",
     instruction: "Walk toward the green garden gate.",
     photo: samples[2],
+    recognition: "Look for the green arch with flowers over the gate.",
     approved: true,
   },
   {
@@ -114,6 +115,8 @@ export const initialLandmarks: Landmark[] = [
     name: "Neighborhood bakery",
     instruction: "Continue to the bakery with the peach door.",
     photo: samples[1],
+    recognition:
+      "Look for the red-and-white striped awning and the peach door.",
     approved: true,
   },
   {
@@ -121,6 +124,7 @@ export const initialLandmarks: Landmark[] = [
     name: "Local library",
     instruction: "Turn toward the library entrance.",
     photo: samples[3],
+    recognition: "Look for the white columns and wide stone steps.",
     approved: true,
   },
   {
@@ -128,6 +132,7 @@ export const initialLandmarks: Landmark[] = [
     name: "Home",
     instruction: "Your front door is just ahead. Welcome home.",
     photo: samples[0],
+    recognition: "Look for the blue gate and the red roof.",
     approved: true,
   },
 ];

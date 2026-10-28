@@ -100,6 +100,89 @@ export const sampleEntries: MemoryEntry[] = [
     sample: true,
   },
 ];
+// Added in v2: more realistic, fictional samples. Appended after the originals so
+// first visits are unchanged; migrated in for people with saved libraries.
+export const sampleEntriesV2: MemoryEntry[] = [
+  {
+    id: "sample-daniel",
+    kind: "faces",
+    title: "Daniel",
+    relationship: "grandson",
+    description:
+      "He visits on Sundays after football and always asks for your fried rice.",
+    artist: "",
+    steps: [],
+    approved: true,
+    sample: true,
+    image: "/images/memory-grandson.svg",
+  },
+  {
+    id: "sample-mrs-tan",
+    kind: "faces",
+    title: "Mrs Tan",
+    relationship: "neighbour",
+    description:
+      "Your neighbour from two doors down. You often share kuih and talk about her orchids.",
+    artist: "",
+    steps: [],
+    approved: true,
+    sample: true,
+    image: "/images/memory-neighbour.svg",
+  },
+  {
+    id: "sample-market",
+    kind: "places",
+    title: "The Saturday morning market",
+    relationship: "",
+    description:
+      "You liked picking the ripest mangoes here and chatting with the fruit seller.",
+    artist: "",
+    steps: [],
+    approved: true,
+    sample: true,
+    image: "/images/market.svg",
+  },
+  {
+    id: "sample-kopi",
+    kind: "places",
+    title: "The kopi shop on the corner",
+    relationship: "",
+    description:
+      "Where you meet old friends for teh tarik and toast after a morning walk.",
+    artist: "",
+    steps: [],
+    approved: true,
+    sample: true,
+    image: "/images/kopi.svg",
+  },
+  {
+    id: "sample-wedding-song",
+    kind: "music",
+    title: "The song from your wedding day",
+    relationship: "",
+    description:
+      "Think of the song you first danced to. Would you like to hum a little of it?",
+    artist: "Sample suggestion — no recording",
+    steps: [],
+    approved: true,
+    sample: true,
+  },
+  {
+    id: "sample-tea",
+    kind: "routine",
+    title: "Let’s make a cup of tea.",
+    relationship: "",
+    description: "There's no wrong order. Choose the steps the way you like.",
+    artist: "",
+    steps: [
+      "Fill the kettle",
+      "Put a tea bag in your cup",
+      "Pour the water and add milk",
+    ],
+    approved: true,
+    sample: true,
+  },
+];
 export function safetyReady() {
   const s = useStore.getState();
   if (s.incident && s.incident.stage !== "resolved") return false;
@@ -154,7 +237,7 @@ const log = (
 export const useMemory = create<MemoryState>()(
   persist(
     (set, get) => ({
-      entries: sampleEntries,
+      entries: [...sampleEntries, ...sampleEntriesV2],
       preferences: {
         preferred: [...kinds],
         duration: "unhurried",
@@ -325,7 +408,21 @@ export const useMemory = create<MemoryState>()(
       },
       invite: () => set({ stage: "invite", session: null }),
     }),
-    { name: "wayhome-memory-v1", version: 1 },
+    {
+      name: "wayhome-memory-v1",
+      version: 2,
+      migrate: (persisted, version) => {
+        const state = persisted as MemoryState;
+        if (version < 2 && Array.isArray(state?.entries)) {
+          const have = new Set(state.entries.map((e) => e.id));
+          state.entries = [
+            ...state.entries,
+            ...sampleEntriesV2.filter((e) => !have.has(e.id)),
+          ];
+        }
+        return state;
+      },
+    },
   ),
 );
 function eligible(s: MemoryState) {
