@@ -23,24 +23,20 @@ test("walkthrough shows each place with the turn the watch will give", async ({
 }) => {
   await openPractice(page);
   await expect(
-    page.getByRole("heading", { name: "Let's get to know your walk home." }),
+    page.getByRole("heading", { name: "Your walk home" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Look at my walk first" }).click();
+  await page.getByRole("button", { name: "See my walk" }).click();
   await expect(
-    page.getByRole("heading", { name: "You'll see the Community garden." }),
+    page.getByRole("heading", { name: "Community garden" }),
   ).toBeVisible();
   await expect(page.getByText(/green arch with flowers/)).toBeVisible();
-  await page.getByRole("button", { name: "Next place" }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(page.getByText("Turn right", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(page.getByText("Turn left", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
   await expect(
-    page.getByText("Turn right at the Community garden"),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Next place" }).click();
-  await expect(
-    page.getByText("Turn left at the Neighborhood bakery"),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Next place" }).click();
-  await expect(
-    page.getByRole("heading", { name: "And there's home." }),
+    page.getByRole("heading", { name: "Home", exact: true }),
   ).toBeVisible();
 });
 
@@ -50,10 +46,10 @@ test("errorless practice: a wrong pick shows the right place with its clue, then
   await openPractice(page);
   await page.getByRole("button", { name: "Practice with me" }).click();
   await expect(
-    page.getByRole("heading", { name: "Which one is the Community garden?" }),
+    page.getByRole("heading", { name: "Find the Community garden" }),
   ).toBeVisible();
   await pickPhoto(page, (src) => !src.includes("garden"));
-  await expect(page.getByText(/has the green arch with flowers/)).toBeVisible();
+  await expect(page.getByText("Tap the glowing one.")).toBeVisible();
   await expect(page.locator(".wp-photo-option.glow")).toHaveAccessibleName(
     "Community garden",
   );
@@ -62,12 +58,10 @@ test("errorless practice: a wrong pick shows the right place with its clue, then
   await page.getByRole("button", { name: "Next", exact: true }).click();
 
   await expect(
-    page.getByRole("heading", {
-      name: "Which one is the Neighborhood bakery?",
-    }),
+    page.getByRole("heading", { name: "Find the Neighborhood bakery" }),
   ).toBeVisible();
   await pickPhoto(page, (src) => src.includes("bakery"));
-  await expect(page.getByText("Yes, well spotted!")).toBeVisible();
+  await expect(page.getByText("Yes!", { exact: true })).toBeVisible();
 
   await page.goto("/#/caregiver/landmarks");
   const card = page.getByRole("region", { name: "Landmark familiarity" });
@@ -94,7 +88,7 @@ test("finishing a walk grows a flower and shows how familiar each place feels", 
     } else {
       const prompt = await page.locator("h1.wp-prompt").innerText();
       const order = ["garden", "bakery", "library", "home"];
-      const after = /After the (.+?),/.exec(prompt)?.[1] ?? "";
+      const after = /After the (.+?)\?/.exec(prompt)?.[1] ?? "";
       const named = order.find((o) => new RegExp(o, "i").test(after || prompt));
       const target = /first/.test(prompt)
         ? "garden"
@@ -105,7 +99,7 @@ test("finishing a walk grows a flower and shows how familiar each place feels", 
       if (await page.locator(".wp-photo-option.glow").count())
         await page.locator(".wp-photo-option.glow").click();
     }
-    const finish = page.getByRole("button", { name: /Finish my walk/ });
+    const finish = page.getByRole("button", { name: /^Finish/ });
     if (await finish.count()) {
       await finish.click();
       break;
@@ -113,9 +107,9 @@ test("finishing a walk grows a flower and shows how familiar each place feels", 
     await page.getByRole("button", { name: "Next", exact: true }).click();
   }
   await expect(
-    page.getByRole("heading", { name: /Lovely walk, Alex/ }),
+    page.getByRole("heading", { name: "Lovely walk!" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Back to my garden" }).click();
+  await page.getByRole("button", { name: "Done" }).click();
   await expect(
     page.getByRole("img", { name: /has 1 keepsakes/ }),
   ).toBeVisible();

@@ -1,3 +1,4 @@
+import { useOnWatch } from "../memory/watchMode";
 import { useStore } from "../store";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -8,10 +9,11 @@ import { Photo } from "../components/Photo";
 import { SOSButton } from "../components/SOSButton";
 export function JourneyInvitations() {
   const journeys = useCare((s) => s.journeys);
+  const watch = useOnWatch();
   if (!journeys.length) return null;
   return (
     <section className="journey-invitations">
-      <h2>Optional Memory Journeys</h2>
+      {!watch && <h2>Optional Memory Journeys</h2>}
       {journeys.map((j) => (
         <Link
           className="memory-choice quiet"

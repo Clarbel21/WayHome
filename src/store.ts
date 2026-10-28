@@ -257,6 +257,9 @@ interface State {
   saveCompanionName: (name: string) => boolean;
   move: () => void;
   nextLandmark: (expectedId?: string) => void;
+  /** The landmark the wearer said they couldn't see, so they can say "I see it now". */
+  missedLandmark: { id: string; index: number; position: number } | null;
+  seeItNow: () => void;
   resetRoute: () => void;
   reset: () => void;
   read: (id?: string) => void;
@@ -300,6 +303,11 @@ const defaults = () => ({
   battery: 86,
   position: 0,
   guideIndex: 0,
+  missedLandmark: null as {
+    id: string;
+    index: number;
+    position: number;
+  } | null,
   lastCheck: Date.now(),
   alerts: [] as Alert[],
 });
@@ -478,6 +486,10 @@ export const useStore = create<State>()(
                 : "Guidance is paused while your caregiver reviews the current concern. I can't confirm the route.",
           });
         } else {
+          const missed =
+            choice === "unrecognized" && s.mode === "GUIDED_RETURN"
+              ? s.landmarks.filter(navigable)[s.guideIndex]
+              : undefined;
           s.event(
             "LOST",
             choice === "unrecognized"
@@ -489,8 +501,30 @@ export const useStore = create<State>()(
               choice === "unrecognized"
                 ? "That's okay. We'll stop these directions. Your family can help."
                 : "It's okay to feel unsure. Take your time. I'm here with you.",
+            missedLandmark:
+              missed && get().mode === "REORIENTATION"
+                ? { id: missed.id, index: s.guideIndex, position: s.position }
+                : null,
           });
         }
+      },
+      seeItNow: () => {
+        const s = get();
+        const missed = s.missedLandmark;
+        if (s.mode !== "REORIENTATION" || !missed) return;
+        const approved = s.landmarks.filter(navigable);
+        if (approved[missed.index]?.id !== missed.id) {
+          set({ missedLandmark: null });
+          return;
+        }
+        s.event(
+          "GUIDE",
+          "Wearer spotted the landmark after all — guidance resumed",
+        );
+        if (get().mode !== "GUIDED_RETURN") return;
+        // Pick up where the walk stopped, then count the landmark as seen.
+        set({ guideIndex: missed.index, position: missed.position });
+        get().nextLandmark(missed.id);
       },
       checkInTimeout: (id, now = Date.now()) => {
         const s = get(),
@@ -610,6 +644,7 @@ export const useStore = create<State>()(
             ? current.incident.id
             : crypto.randomUUID();
         set((s) => ({
+          ...(event !== "LOST" ? { missedLandmark: null } : {}),
           ...(["GUIDE", "OKAY", "LOST", "HELP"].includes(event) &&
           s.mode !== "EMERGENCY_SIMULATED"
             ? { guidanceActive: event === "GUIDE" }

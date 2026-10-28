@@ -194,7 +194,8 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
   await page.getByRole("button", { name: "Memories", exact: true }).click();
   await expect(page.locator(".wos-memories")).toBeVisible();
   await page
-    .getByRole("button", { name: "Back to watch home", exact: true })
+    .locator(".wos-memories")
+    .getByRole("button", { name: "Close", exact: true })
     .click();
   await expect(page).toHaveURL(/#\/together$/);
   await expect(page.locator(".wos-memories")).toHaveCount(0);
@@ -203,7 +204,8 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
     .click();
   await expect(page.locator(".wos-memories")).toBeVisible();
   await page
-    .getByRole("button", { name: "Back to watch home", exact: true })
+    .locator(".wos-memories")
+    .getByRole("button", { name: "Close", exact: true })
     .click();
   await expect(page).toHaveURL(/#\/together$/);
   await page.getByRole("button", { name: "Go home", exact: true }).click();

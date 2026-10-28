@@ -2374,3 +2374,124 @@
 .wos-memories .on-watch .wp-hero-progress {
   font-size: 12px;
 }
+
+/* Watch: fewer words, bigger type for older eyes */
+.wos-memories .on-watch {
+  font-size: 16px;
+  text-align: center;
+}
+.wos-memories .on-watch h1,
+.wos-memories .on-watch h2,
+.wos-memories .on-watch .wp-prompt {
+  font-size: 21px;
+  line-height: 1.2;
+  text-align: center;
+  margin: 6px 0 10px;
+}
+.wos-memories .on-watch h3 {
+  font-size: 19px;
+}
+.wos-memories .on-watch p,
+.wos-memories .on-watch .wp-cue {
+  font-size: 16px;
+  line-height: 1.35;
+}
+.wos-memories .on-watch .memory-choice,
+.wos-memories .on-watch .button {
+  min-height: 54px;
+  font-size: 18px;
+  font-weight: 700;
+}
+.wos-memories .on-watch .memory-tile {
+  min-height: 60px;
+  font-size: 17px;
+  text-align: left;
+}
+.wos-memories .on-watch .memory-tile.tile-wayhome {
+  background: var(--wh-forest);
+  color: #fff;
+  width: 100%;
+  margin-bottom: 6px;
+}
+.wos-memories .on-watch .text-button {
+  font-size: 16px;
+  font-weight: 700;
+  min-height: 44px;
+}
+.wos-memories .on-watch .memory-topline .text-button {
+  font-size: 16px;
+  padding: 8px 14px;
+}
+.wos-memories .on-watch .watch-reveal {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--wh-ink);
+}
+.wos-memories .on-watch .garden-caption,
+.wos-memories .on-watch .music-artist + .music-prompt {
+  display: none;
+}
+.wos-memories .on-watch .music-artist {
+  font-size: 15px;
+}
+.wos-memories .on-watch .memory-question .sprout,
+.wos-memories .on-watch .memory-question > svg:first-child {
+  margin: 8px auto 0;
+}
+.wos-memories .on-watch .wp-walk-turn span,
+.wos-memories .on-watch .wp-turn-option span {
+  font-size: 17px;
+  font-weight: 700;
+}
+.wos-memories .on-watch .memory-skip {
+  margin: 8px auto 0;
+  display: block;
+}
+.wos-memories .on-watch .memory-safety-footer,
+.wos-memories .on-watch .memory-pause-reasons {
+  display: none;
+}
+.watch-area .watch .watch-screen.wos .wos-missed-name {
+  font-size: 20px;
+  text-align: center;
+}
+.watch-area .watch .watch-screen.wos .see-it-now {
+  font-size: 18px;
+  min-height: 56px;
+}
+.wos-memories .on-watch h1,
+.wos-memories .on-watch h2,
+.wos-memories .on-watch .wp-prompt {
+  font-weight: 800;
+  color: var(--wh-ink);
+}
+.wos-memories .on-watch .music-find {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.wos-memories .on-watch .wp-photo-option img {
+  max-height: 64px;
+}
+.watch-area .watch .watch-screen.wos .wos-question.big {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--wh-ink);
+  margin: 4px 0;
+}
+.wos-memories .on-watch .tile-suggested {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 800;
+  background: #fff;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.wos-memories .on-watch .journey-invitations {
+  display: grid;
+  gap: 6px;
+  margin-top: 6px;
+}

@@ -274,17 +274,21 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         <div className={`wos-photo ${walking ? "small" : ""}`}>
           <LandmarkPhoto landmark={landmark} />
         </div>
-        <small className="wos-kicker">
-          {walking ? t("headingTo") : t("lookFor")}
-        </small>
-        <strong>{landmark.name}</strong>
-        {!walking && zoneGuided && (
-          <p className="wos-question">
+        {/* Few, big words: the question names the place, so no repeats. */}
+        {!walking && zoneGuided ? (
+          <p className="wos-question big">
             {t("doYouSee", { name: landmark.name })}
           </p>
+        ) : (
+          <>
+            <small className="wos-kicker">
+              {walking ? t("headingTo") : t("lookFor")}
+            </small>
+            <strong>{landmark.name}</strong>
+          </>
         )}
-        <p>{landmark.instruction}</p>
-        {landmark.recognition && (
+        {!zoneGuided && <p>{landmark.instruction}</p>}
+        {landmark.recognition && !walking && (
           <p className="recognition-cue">{landmark.recognition}</p>
         )}
         {!zoneGuided && (
@@ -348,26 +352,53 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       </div>
     );
   } else if (s.mode === "REORIENTATION") {
+    const missed = s.missedLandmark
+      ? approved.find((l) => l.id === s.missedLandmark?.id)
+      : undefined;
+    screenKey = missed ? `missed-${missed.id}` : screenKey;
     screen = (
       <div className="watch-landmark wos-center wos-calm-screen">
         <div className="wos-breathe" aria-hidden="true">
           <span />
         </div>
         {speech(modeMessage(lang, s.mode, name))}
-        <small className="wos-kicker">{t("breathe")}</small>
-        {approved[0] && (
-          <div className="wos-photo small">
-            <LandmarkPhoto landmark={approved[0]} />
-          </div>
+        {missed ? (
+          <>
+            <div className="wos-photo small">
+              <LandmarkPhoto landmark={missed} />
+            </div>
+            <strong className="wos-missed-name">{missed.name}</strong>
+            <button
+              className="watch-action wos-primary see-it-now"
+              onClick={s.seeItNow}
+            >
+              <Check size={18} /> {t("seeItNow")}
+            </button>
+            <button
+              className="wos-secondary"
+              onClick={() => s.chooseAssistance("family")}
+            >
+              <Phone size={15} /> {t("helpFamily")}
+            </button>
+          </>
+        ) : (
+          <>
+            <small className="wos-kicker">{t("breathe")}</small>
+            {approved[0] && (
+              <div className="wos-photo small">
+                <LandmarkPhoto landmark={approved[0]} />
+              </div>
+            )}
+            <p>{t("takeTime")}</p>
+            {note}
+            <button
+              className="watch-action wos-primary"
+              onClick={() => s.chooseAssistance("family")}
+            >
+              <Phone size={17} /> {t("helpFamily")}
+            </button>
+          </>
         )}
-        <p>{t("takeTime")}</p>
-        {note}
-        <button
-          className="watch-action wos-primary"
-          onClick={() => s.chooseAssistance("family")}
-        >
-          <Phone size={17} /> {t("helpFamily")}
-        </button>
       </div>
     );
   } else if (s.mode === "CAREGIVER_HANDOVER") {

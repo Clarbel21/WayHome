@@ -146,3 +146,20 @@ test("zone moments are disabled while an SOS is open, with a reason", async ({
     bar.getByRole("button", { name: "Walk out of safe zone" }),
   ).toBeDisabled();
 });
+
+test("after 'I don't see it' the wearer can still say 'I see it now' and carry on", async ({
+  page,
+}) => {
+  await watch(page)
+    .getByRole("button", { name: "Go home", exact: true })
+    .click();
+  await expect(
+    watch(page).getByText("Do you see the Community garden?"),
+  ).toBeVisible({ timeout: 15_000 });
+  await watch(page).getByRole("button", { name: "I don't see it" }).click();
+  await expect(watch(page).getByText("Community garden")).toBeVisible();
+  await watch(page).getByRole("button", { name: "I see it now" }).click();
+  await expect(
+    watch(page).getByText("Do you see the Neighborhood bakery?"),
+  ).toBeVisible({ timeout: 15_000 });
+});

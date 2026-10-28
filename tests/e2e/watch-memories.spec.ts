@@ -18,7 +18,7 @@ test("Memory Garden runs on the watch screen and steps aside for safety", async 
   ).toBeVisible();
   await expect(screen.getByText("Teresa Teng · 1977")).toBeVisible();
   const find = screen.getByRole("link", {
-    name: "Find this song to play together",
+    name: "Find song",
   });
   await expect(find).toHaveAttribute(
     "href",
@@ -54,8 +54,8 @@ test("Familiar Faces shows a realistic person first and can return to the watch 
   await expect(screen.locator('img[src*="memory-jamie"]')).toBeVisible();
   await screen.getByRole("button", { name: "Tell me more" }).click();
   await expect(screen.getByText(/This is your son, Jamie/)).toBeVisible();
-  await screen.getByRole("button", { name: "Back to my memories" }).click();
-  await screen.getByRole("button", { name: "Back to watch home" }).click();
+  await screen.getByRole("button", { name: "Back", exact: true }).click();
+  await screen.getByRole("button", { name: "Close", exact: true }).click();
   await expect(screen).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Go home", exact: true }),

@@ -246,19 +246,15 @@ test("optional recommendations reflect caregiver choices without starting a game
   await page.getByLabel("Preferred interaction duration").selectOption("short");
   await page.goto("/#/memories");
   await page.getByRole("button", { name: "Let's begin", exact: true }).click();
+  await expect(page.locator(".tile-suggested")).toBeVisible();
   await expect(
-    page.getByText(/Your caregiver prefers a brief moment/),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Does this person look familiar?" }),
+    page.getByRole("heading", { name: "Look familiar?" }),
   ).not.toBeVisible();
   await page
     .getByRole("button", { name: "Familiar Faces", exact: true })
     .click();
-  await page.getByRole("button", { name: /Skip this activity/ }).click();
-  await expect(
-    page.getByText(/Perhaps a different kind of memory/),
-  ).toBeVisible();
+  await page.getByRole("button", { name: "Skip", exact: true }).click();
+  await expect(page.locator(".tile-suggested")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Familiar Faces", exact: true }),
   ).toBeVisible();

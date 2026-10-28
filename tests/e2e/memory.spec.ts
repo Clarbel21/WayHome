@@ -69,7 +69,7 @@ async function openHome(
   const begin = page.getByRole("button", { name: "Let's begin", exact: true });
   if (await begin.isVisible()) await begin.click();
   const back = page.getByRole("button", {
-    name: "Back to memories",
+    name: "Back",
     exact: true,
   });
   if (!preserve && (await back.isVisible())) await back.click();
@@ -83,7 +83,7 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
     .getByRole("button", { name: "Explore Memories", exact: true })
     .click();
   await expect(
-    page.getByText("Hi, I'm Sprout. Would you like to explore a memory?"),
+    page.getByRole("heading", { name: "Memory Garden", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Let's begin", exact: true }).click();
   await page
@@ -95,7 +95,7 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
   await expect(
     page.getByRole("img", { name: /has 1 keepsakes/ }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Back to my memories" }).click();
+  await page.getByRole("button", { name: "Done" }).click();
   await expect(
     page.getByRole("img", { name: /has 1 keepsakes/ }),
   ).toBeVisible();
@@ -106,19 +106,17 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
   await expect(
     page.getByText("The neighborhood park", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Back to my memories" }).click();
+  await page.getByRole("button", { name: "Done" }).click();
   await page
     .getByRole("button", { name: "Music Memories", exact: true })
     .click();
-  await expect(
-    page.getByText(/No audio is attached. Nothing is playing/),
-  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Find song" })).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Play recording" }),
   ).not.toBeVisible();
   await page.getByRole("button", { name: "More feelings" }).click();
   await page.getByRole("button", { name: "Nostalgic", exact: true }).click();
-  await page.getByRole("button", { name: "Back to my memories" }).click();
+  await page.getByRole("button", { name: "Done" }).click();
   await page.getByRole("button", { name: "More activities" }).click();
   await page
     .getByRole("button", { name: "Everyday Moments", exact: true })
@@ -135,10 +133,8 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
     .getByRole("button", { name: "Go for a walk", exact: true })
     .click();
   await page.getByRole("button", { name: "This feels familiar" }).click();
-  await expect(
-    page.getByText("That’s your familiar rhythm. Thank you for sharing."),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Back to my memories" }).click();
+  await expect(page.getByText("Well done.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Done" }).click();
   await page.getByRole("button", { name: "More activities" }).click();
   await page
     .getByRole("button", { name: "Memory Garden", exact: true })
@@ -151,9 +147,10 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
   await expect(
     page.getByRole("img", { name: /has 5 keepsakes/ }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Back to my memories" }).click();
+  await page.getByRole("button", { name: "Done" }).click();
   await page
-    .getByRole("button", { name: "Back to watch home", exact: true })
+    .locator(".wos-memories")
+    .getByRole("button", { name: "Close", exact: true })
     .click();
   await expect(page.locator(".wos-memories")).toHaveCount(0);
   await page.goto("/#/caregiver/library");
@@ -213,7 +210,7 @@ test("library approval, image/audio persistence, previews, edit/delete, metadata
     .getByRole("button", { name: "Familiar Faces", exact: true })
     .click();
   await expect(
-    page.getByText(/No approved memories in this activity yet/),
+    page.getByText("Nothing here yet.", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText("Aunt June", { exact: true })).not.toBeVisible();
   await page.goto("/#/caregiver/library");
@@ -339,7 +336,7 @@ test("cross-tab safety interrupts and preserves routine; renaming, skipping and 
   const wearer = await context.newPage();
   await openHome(wearer);
   await expect(
-    wearer.getByText("What would you like to explore with Buddy?"),
+    wearer.getByRole("button", { name: "Familiar Faces", exact: true }),
   ).toBeVisible();
   await wearer.getByRole("button", { name: "More activities" }).click();
   await wearer
@@ -376,12 +373,13 @@ test("cross-tab safety interrupts and preserves routine; renaming, skipping and 
   await expect(
     wearer.getByRole("listitem").filter({ hasText: "Take your keys" }),
   ).toBeVisible();
-  await wearer.getByRole("button", { name: /Skip this activity/ }).click();
+  await wearer.getByRole("button", { name: "Skip", exact: true }).click();
   await expect(
     wearer.getByRole("img", { name: /has 0 keepsakes/ }),
   ).toBeVisible();
   await wearer
-    .getByRole("button", { name: "Back to watch home", exact: true })
+    .locator(".wos-memories")
+    .getByRole("button", { name: "Close", exact: true })
     .click();
   await expect(wearer.locator(".wos-memories")).toHaveCount(0);
   await expect(

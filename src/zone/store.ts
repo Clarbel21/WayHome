@@ -65,6 +65,8 @@ interface ZoneState extends ZoneSettings {
   noAnswer: number;
   wanderTo: number | null;
   guideStartM: number | null;
+  /** Where a stopped walk started, kept so "I see it now" can carry on from there. */
+  resumeStartM: number | null;
   phase: ZonePhase;
   buzzAt: number;
   lastEvent: string;
@@ -91,6 +93,7 @@ const transient = () => ({
   noAnswer: 0,
   wanderTo: null as number | null,
   guideStartM: null as number | null,
+  resumeStartM: null as number | null,
   phase: "look" as ZonePhase,
   buzzAt: 0,
   lastEvent: "",

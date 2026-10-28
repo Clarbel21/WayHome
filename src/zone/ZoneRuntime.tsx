@@ -91,8 +91,11 @@ export function ZoneRuntime() {
       // Guided return: walk toward the current landmark, then ask "Do you see it?".
       // Guidance started from inside the zone (e.g. the watch's Go home tile): use a
       // fictional starting point inside the radius so the walk home is still shown.
+      const resuming =
+        guiding && z.guideStartM === null && z.resumeStartM !== null;
       const guideStart =
         z.guideStartM ??
+        (resuming ? z.resumeStartM : null) ??
         (guiding
           ? distance > 0
             ? distance
@@ -100,8 +103,12 @@ export function ZoneRuntime() {
           : null);
       if (guiding && guideStart !== null) {
         if (z.guideStartM === null) {
-          distance = guideStart;
-          patch.distanceM = guideStart;
+          // A resumed walk carries on from where the wearer stopped.
+          if (!resuming) {
+            distance = guideStart;
+            patch.distanceM = guideStart;
+          }
+          patch.resumeStartM = null;
           patch.phase = "walking";
           patch.guideStartM = guideStart;
           patch.prompt = false;
@@ -121,11 +128,18 @@ export function ZoneRuntime() {
       }
 
       // Guidance ended: arrived home, or stopped (I don't see it / cancel / SOS).
-      if (!guiding && z.guideStartM !== null) {
+      // "I see it now" on the last landmark (home) finishes the walk at once.
+      const resumedHome =
+        z.resumeStartM !== null &&
+        prevMode.current === "REORIENTATION" &&
+        s.mode === "NORMAL" &&
+        s.position === 6;
+      if ((!guiding && z.guideStartM !== null) || resumedHome) {
         const arrived =
-          prevMode.current === "GUIDED_RETURN" &&
-          s.mode === "NORMAL" &&
-          s.position === 6;
+          resumedHome ||
+          (prevMode.current === "GUIDED_RETURN" &&
+            s.mode === "NORMAL" &&
+            s.position === 6);
         if (arrived) {
           Object.assign(patch, {
             distanceM: 0,
@@ -135,6 +149,7 @@ export function ZoneRuntime() {
             prompt: false,
             reaskAt: null,
             guideStartM: null,
+            resumeStartM: null,
             phase: "look",
           });
           distance = 0;
@@ -143,8 +158,12 @@ export function ZoneRuntime() {
         } else {
           patch.guideStartM = null;
           patch.phase = "look";
+          // "I don't see it": remember the walk so "I see it now" can resume it.
+          patch.resumeStartM = s.missedLandmark ? z.guideStartM : null;
         }
       }
+      if (!guiding && z.resumeStartM !== null && !s.missedLandmark)
+        patch.resumeStartM = null;
 
       const active = patch.active ?? z.active;
       const stillGuiding =

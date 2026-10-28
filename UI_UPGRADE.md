@@ -112,3 +112,21 @@ Code: `src/memory/practice.ts` (engine), `src/memory/WayHomePractice.tsx` (scree
 - Realistic samples and caregiver-added entries are offered before the old placeholder samples.
 - Memory store migration v3 adds the new samples for existing users without touching their own entries. The backup image whitelist includes the new portraits.
 - Tests: `tests/memory-samples.test.ts` and `tests/e2e/watch-memories.spec.ts` are new, and the existing specs are updated for the watch flow. 97 unit tests and 70 browser tests pass.
+
+## Pass 8 — Fewer, bigger words on the watch; "I see it now"
+
+- **Watch Memory Garden uses short words in big type.** Each screen keeps only the photo, one question and large buttons:
+  - Invite: "Memory Garden" with Let's begin / Maybe later.
+  - Questions: "Look familiar?" and "How does it feel?"
+  - Answer: "This is your son, Jamie."
+  - Buttons: Back, Close, Skip, Done and Find song.
+  - Practice: "Find the Library", "After the bakery?", "Which way at …?", "Yes!" and "Lovely walk!"
+  - Removed from the watch: descriptions, sample tags, help lines, the long hero and the suggestion card. The suggested activity now shows as a small "Suggested" badge on its tile. Caregiver journeys show as plain buttons.
+  - The full Memory Garden page keeps its longer, guided wording.
+- Watch text sizes: headings 21px/800, body 16px, buttons 18px with a 54px minimum height, tiles 17px.
+- **Guided return screen:** the question "Do you see the Neighborhood bakery?" is now the headline, and the place name no longer repeats three times. During the walk the screen shows only the arrow and the place being walked to.
+- **"I don't see it" → "I see it now":** after "I don't see it", the watch keeps that landmark's photo and name and offers **I see it now**, along with Contact my family.
+  - Tapping it resumes the walk at the same stop and counts the landmark as seen. The map dot carries on from where it stopped. If the missed stop was home, the walk finishes.
+  - The option goes away if the wearer asks family for help or anything else happens.
+  - Store: `missedLandmark`, `seeItNow()`. Zone: `resumeStartM`.
+- Tests: `tests/see-it-now.test.ts` and a safe-zone e2e test are new, and the specs are updated for the short watch wording. 100 unit tests and 71 browser tests pass.

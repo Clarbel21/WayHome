@@ -10,14 +10,14 @@ test("Explore Memories opens and begins an activity on a fresh browser", async (
   await expect(page).toHaveURL(/#\/companion$/);
   await expect(page.locator(".wos-memories")).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Welcome to your Memory Garden." }),
+    page.getByRole("heading", { name: "Memory Garden", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Let's begin", exact: true }).click();
   await page
     .getByRole("button", { name: "Familiar Faces", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Does this person look familiar?" }),
+    page.getByRole("heading", { name: "Look familiar?" }),
   ).toBeVisible();
 });
 test("old saved wear data shows an actionable pause and can be reviewed without erasing progress", async ({
@@ -75,7 +75,9 @@ test("old saved wear data shows an actionable pause and can be reviewed without 
     .getByRole("link", { name: "Return to Memory Garden", exact: true })
     .click();
   await expect(
-    page.getByText("Hi, I'm Buddy. Would you like to explore a memory?"),
+    page
+      .locator(".wos-memories")
+      .getByRole("heading", { name: "Memory Garden", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Let's begin", exact: true }).click();
   await page

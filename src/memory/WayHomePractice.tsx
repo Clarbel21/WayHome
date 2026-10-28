@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { navigable, useStore, type Landmark } from "../store";
 import { useMediaURL } from "./media";
+import { useOnWatch } from "./watchMode";
 import { planRoute, type Turn } from "../zone/route";
 import { safetyReady, useMemory } from "./store";
 import {
@@ -106,6 +107,7 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
   const turns = planRoute(route.length).turns;
   const short = useMemory((m) => m.preferences.duration === "short");
   const [stage, setStage] = useState<Stage>({ name: "intro" });
+  const watch = useOnWatch();
   const first = s.settings.wearer.split(" ")[0];
   const byId = (id: string) => {
     const l = route.find((x) => x.id === id);
@@ -164,12 +166,18 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
   if (stage.name === "intro")
     return (
       <div className="wp-practice">
-        <span className="eyebrow">PRACTICE MY WAY HOME</span>
-        <h1>Let's get to know your walk home.</h1>
-        <p className="wp-lead">
-          These are the places you pass on the way home. When they feel
-          familiar, they're easier to spot when you're out walking.
-        </p>
+        {watch ? (
+          <h1>Your walk home</h1>
+        ) : (
+          <>
+            <span className="eyebrow">PRACTICE MY WAY HOME</span>
+            <h1>Let's get to know your walk home.</h1>
+            <p className="wp-lead">
+              These are the places you pass on the way home. When they feel
+              familiar, they're easier to spot when you're out walking.
+            </p>
+          </>
+        )}
         <RouteStrip route={route} />
         <div className="memory-choices">
           <button className="memory-choice" onClick={startQuiz}>
@@ -179,11 +187,12 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
             className="memory-choice quiet"
             onClick={() => setStage({ name: "walk", step: 0 })}
           >
-            <Footprints size={20} aria-hidden="true" /> Look at my walk first
+            <Footprints size={20} aria-hidden="true" />{" "}
+            {watch ? "See my walk" : "Look at my walk first"}
           </button>
         </div>
         <button className="text-button" onClick={onExit}>
-          <ArrowLeft size={16} /> Back to my garden
+          <ArrowLeft size={16} /> {watch ? "Back" : "Back to my garden"}
         </button>
       </div>
     );
@@ -207,14 +216,22 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
           <TurnIcon turn={turns[i] ?? "straight"} />
           <span>
             {i === 0
-              ? "Start by going straight ahead"
-              : `${turns[i] === "left" ? "Turn left" : turns[i] === "right" ? "Turn right" : "Go straight on"} at the ${route[i - 1].name}`}
+              ? watch
+                ? "Go straight"
+                : "Start by going straight ahead"
+              : `${turns[i] === "left" ? "Turn left" : turns[i] === "right" ? "Turn right" : "Go straight on"}${watch ? "" : ` at the ${route[i - 1].name}`}`}
           </span>
         </div>
         <figure className="wp-walk-photo">
           <PlaceImage photo={l.photo} photoId={l.photoId} alt={l.name} />
         </figure>
-        <h1>{last ? "And there's home." : `You'll see the ${l.name}.`}</h1>
+        <h1>
+          {watch
+            ? l.name
+            : last
+              ? "And there's home."
+              : `You'll see the ${l.name}.`}
+        </h1>
         <p className="wp-cue">
           <Lightbulb size={18} aria-hidden="true" /> Look for {cueFor(l)}.
         </p>
@@ -231,14 +248,14 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
           </button>
           {last ? (
             <button className="memory-choice" onClick={startQuiz}>
-              Practice with me <ArrowRight size={18} />
+              {watch ? "Practice" : "Practice with me"} <ArrowRight size={18} />
             </button>
           ) : (
             <button
               className="memory-choice"
               onClick={() => setStage({ name: "walk", step: i + 1 })}
             >
-              Next place <ArrowRight size={18} />
+              {watch ? "Next" : "Next place"} <ArrowRight size={18} />
             </button>
           )}
         </div>
@@ -253,35 +270,39 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
         <div className="wp-bloom" aria-hidden="true">
           <Sparkles size={30} />
         </div>
-        <h1>Lovely walk, {first}.</h1>
-        <p className="wp-lead">
-          You looked at {stage.looked} places on your way home today. A new
-          flower is growing in your garden.
-        </p>
-        <ul className="wp-familiar-list">
-          {route.map((l) => {
-            const level = familiarityLevel(practice.familiarity[l.id]);
-            return (
-              <li key={l.id}>
-                <PlaceImage photo={l.photo} photoId={l.photoId} />
-                <span>{l.name}</span>
-                <em className={`wp-level ${level}`}>
-                  {level === "well"
-                    ? "Feels familiar"
-                    : level === "new"
-                      ? "Next time"
-                      : "Let's look again soon"}
-                </em>
-              </li>
-            );
-          })}
-        </ul>
+        <h1>{watch ? "Lovely walk!" : `Lovely walk, ${first}.`}</h1>
+        {!watch && (
+          <p className="wp-lead">
+            You looked at {stage.looked} places on your way home today. A new
+            flower is growing in your garden.
+          </p>
+        )}
+        {!watch && (
+          <ul className="wp-familiar-list">
+            {route.map((l) => {
+              const level = familiarityLevel(practice.familiarity[l.id]);
+              return (
+                <li key={l.id}>
+                  <PlaceImage photo={l.photo} photoId={l.photoId} />
+                  <span>{l.name}</span>
+                  <em className={`wp-level ${level}`}>
+                    {level === "well"
+                      ? "Feels familiar"
+                      : level === "new"
+                        ? "Next time"
+                        : "Let's look again soon"}
+                  </em>
+                </li>
+              );
+            })}
+          </ul>
+        )}
         <div className="memory-choices">
           <button className="memory-choice" onClick={startQuiz}>
             Practice again
           </button>
           <button className="memory-choice quiet" onClick={onExit}>
-            Back to my garden
+            {watch ? "Done" : "Back to my garden"}
           </button>
         </div>
       </div>
@@ -292,8 +313,15 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
   const target = byId(q.landmarkId);
   const answered = stage.done;
   const total = stage.queue.length;
-  const prompt =
-    q.kind === "spot"
+  const prompt = watch
+    ? q.kind === "spot"
+      ? `Find the ${target.name}`
+      : q.kind === "next"
+        ? q.afterId === "start"
+          ? "Which comes first?"
+          : `After the ${byId(q.afterId).name}?`
+        : `Which way at the ${target.name}?`
+    : q.kind === "spot"
       ? `Which one is the ${target.name}?`
       : q.kind === "next"
         ? q.afterId === "start"
@@ -379,19 +407,27 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
           className="text-button wp-clue-button"
           onClick={() => setStage({ ...stage, clue: true })}
         >
-          <Lightbulb size={16} /> Show me a clue
+          <Lightbulb size={16} /> {watch ? "Clue" : "Show me a clue"}
         </button>
       )}
       {stage.clue && !answered && (
         <p className="wp-cue" role="status">
           <Lightbulb size={18} aria-hidden="true" />
-          {wrongPick
+          {watch
             ? q.kind === "turn"
-              ? `At the ${target.name} you ${turnWord[q.answer]}. Tap the glowing arrow.`
-              : `That one is the ${byId(wrongPick).name}. The ${target.name} has ${target.cue} — it's glowing now.`
-            : q.kind === "turn"
-              ? `Think of the walk: after the ${target.name} you head toward the next place.`
-              : `Look for ${target.cue}.`}
+              ? wrongPick
+                ? "Tap the glowing arrow."
+                : "Think of the next place."
+              : wrongPick
+                ? "Tap the glowing one."
+                : `Look for ${target.cue}.`
+            : wrongPick
+              ? q.kind === "turn"
+                ? `At the ${target.name} you ${turnWord[q.answer]}. Tap the glowing arrow.`
+                : `That one is the ${byId(wrongPick).name}. The ${target.name} has ${target.cue} — it's glowing now.`
+              : q.kind === "turn"
+                ? `Think of the walk: after the ${target.name} you head toward the next place.`
+                : `Look for ${target.cue}.`}
         </p>
       )}
 
@@ -454,20 +490,29 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
         <div className="wp-feedback" role="status">
           <p>
             <strong>
-              {stage.hinted ? "That's it." : "Yes, well spotted!"}
-            </strong>{" "}
-            {q.kind === "turn"
-              ? `At the ${target.name} you ${turnWord[q.answer]}.`
-              : `The ${target.name} — look for ${target.cue}.`}
+              {stage.hinted
+                ? "That's it."
+                : watch
+                  ? "Yes!"
+                  : "Yes, well spotted!"}
+            </strong>
+            {!watch &&
+              (q.kind === "turn"
+                ? ` At the ${target.name} you ${turnWord[q.answer]}.`
+                : ` The ${target.name} — look for ${target.cue}.`)}
           </p>
           <button className="memory-choice" onClick={next}>
-            {stage.index + 1 >= total ? "Finish my walk" : "Next"}{" "}
+            {stage.index + 1 >= total
+              ? watch
+                ? "Finish"
+                : "Finish my walk"
+              : "Next"}{" "}
             <ArrowRight size={18} />
           </button>
         </div>
       )}
       <button className="text-button" onClick={onExit}>
-        <House size={16} /> Stop for now
+        <House size={16} /> {watch ? "Stop" : "Stop for now"}
       </button>
     </div>
   );

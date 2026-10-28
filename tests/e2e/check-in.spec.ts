@@ -45,11 +45,9 @@ test("help, recognition and failed recognition stop guidance", async ({
   await page
     .getByRole("button", { name: "I don't see it", exact: true })
     .click();
+  // Directions stop, but the wearer can still say they spotted it after all.
   await expect(
-    page.getByText(
-      "That's okay. We'll stop these directions. Your family can help.",
-      { exact: true },
-    ),
+    page.getByRole("button", { name: "I see it now", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "I see it", exact: true }),

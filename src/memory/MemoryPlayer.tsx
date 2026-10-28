@@ -17,6 +17,7 @@ import {
   ListChecks,
   Flower2,
   Footprints,
+  X,
 } from "lucide-react";
 import { useStore } from "../store";
 import { Sprout } from "../components/Sprout";
@@ -32,6 +33,7 @@ import {
 import { useMediaURL } from "./media";
 import { suggestActivity } from "./suggestions";
 import { GardenVisualization } from "./GardenVisualization";
+import { OnWatch, useOnWatch } from "./watchMode";
 export function MemoryImage({
   entry,
   hidden = false,
@@ -40,6 +42,7 @@ export function MemoryImage({
   hidden?: boolean;
 }) {
   const media = useMediaURL(entry.imageId);
+  const watch = useOnWatch();
   return media.error ? (
     <p className="memory-notice">{media.error}</p>
   ) : media.url || entry.image ? (
@@ -54,7 +57,7 @@ export function MemoryImage({
               : entry.title
         }
       />
-      {entry.sample && <small>Fictional sample illustration</small>}
+      {entry.sample && !watch && <small>Fictional sample illustration</small>}
     </div>
   ) : (
     <p className="memory-notice">
@@ -67,6 +70,7 @@ function MusicPlayer({ entry }: { entry: MemoryEntry }) {
   const media = useMediaURL(entry.audioId);
   const sound = useMemory((s) => s.preferences.sound);
   const audio = useRef<HTMLAudioElement>(null);
+  const watch = useOnWatch();
   const [playing, setPlaying] = useState(false);
   useEffect(() => {
     const element = audio.current;
@@ -88,7 +92,7 @@ function MusicPlayer({ entry }: { entry: MemoryEntry }) {
       <p className="music-artist">
         {entry.artist || "A personal music memory"}
       </p>
-      {entry.description && !entry.audioId && (
+      {entry.description && !entry.audioId && !watch && (
         <p className="music-prompt">{entry.description}</p>
       )}
       {entry.audioId ? (
@@ -136,10 +140,12 @@ function MusicPlayer({ entry }: { entry: MemoryEntry }) {
         </>
       ) : (
         <>
-          <p className="memory-notice">
-            No audio is attached. Nothing is playing. Think of a familiar tune
-            or hum together.
-          </p>
+          {!watch && (
+            <p className="memory-notice">
+              No audio is attached. Nothing is playing. Think of a familiar tune
+              or hum together.
+            </p>
+          )}
           {songSearch(entry) && (
             <a
               className="memory-choice quiet music-find"
@@ -147,8 +153,8 @@ function MusicPlayer({ entry }: { entry: MemoryEntry }) {
               target="_blank"
               rel="noreferrer"
             >
-              <Play size={18} aria-hidden="true" /> Find this song to play
-              together
+              <Play size={18} aria-hidden="true" />{" "}
+              {watch ? "Find song" : "Find this song to play together"}
             </a>
           )}
         </>
@@ -163,6 +169,7 @@ export function MemoryActivityPlayer() {
   const m = useMemory();
   const name = useStore((s) => s.settings.companionName);
   const [moreFeelings, setMoreFeelings] = useState(false);
+  const watch = useOnWatch();
   const session = m.session!;
   const entry = m.entries.find((e) => e.id === session.entryId && e.approved);
   const kind = session.kind;
@@ -183,14 +190,20 @@ export function MemoryActivityPlayer() {
   const done = session.completed;
   return (
     <>
-      <div className="memory-activity-title">
-        <span className="eyebrow">{activityNames[kind]}</span>
-        {entry?.sample && <span className="subtle-tag">FICTIONAL SAMPLE</span>}
-      </div>
+      {!watch && (
+        <div className="memory-activity-title">
+          <span className="eyebrow">{activityNames[kind]}</span>
+          {entry?.sample && (
+            <span className="subtle-tag">FICTIONAL SAMPLE</span>
+          )}
+        </div>
+      )}
       {kind === "faces" && entry && (
         <>
           <MemoryImage entry={entry} hidden={!session.revealed} />
-          <h2>Does this person look familiar?</h2>
+          <h2>
+            {watch ? "Look familiar?" : "Does this person look familiar?"}
+          </h2>
           {!session.revealed ? (
             <div className="memory-choices">
               <button
@@ -214,13 +227,15 @@ export function MemoryActivityPlayer() {
             </div>
           ) : (
             <div className="memory-reveal" role="status">
-              <p>
+              <p className={watch ? "watch-reveal" : undefined}>
                 {entry.relationship
                   ? `This is your ${entry.relationship}, ${entry.title}.`
-                  : `This is ${entry.title}.`}{" "}
-                {entry.description}
+                  : `This is ${entry.title}.`}
+                {!watch && ` ${entry.description}`}
               </p>
-              <small>Thank you for sharing a moment with {name}.</small>
+              {!watch && (
+                <small>Thank you for sharing a moment with {name}.</small>
+              )}
             </div>
           )}
         </>
@@ -228,7 +243,11 @@ export function MemoryActivityPlayer() {
       {kind === "places" && entry && (
         <>
           <MemoryImage entry={entry} />
-          <h2>Does this place bring back any memories?</h2>
+          <h2>
+            {watch
+              ? "Look familiar?"
+              : "Does this place bring back any memories?"}
+          </h2>
           {!session.revealed ? (
             <div className="memory-choices">
               <button
@@ -253,11 +272,15 @@ export function MemoryActivityPlayer() {
           ) : (
             <div className="memory-reveal" role="status">
               <h3>{entry.title}</h3>
-              <p>
-                {entry.description ||
-                  "A familiar place can hold a little happiness. There is no need to remember every detail."}
-              </p>
-              <small>A shared memory, separate from navigation.</small>
+              {!watch && (
+                <>
+                  <p>
+                    {entry.description ||
+                      "A familiar place can hold a little happiness. There is no need to remember every detail."}
+                  </p>
+                  <small>A shared memory, separate from navigation.</small>
+                </>
+              )}
             </div>
           )}
         </>
@@ -265,7 +288,9 @@ export function MemoryActivityPlayer() {
       {kind === "music" && entry && (
         <>
           <MusicPlayer entry={entry} />
-          <h2>How does this song make you feel?</h2>
+          <h2>
+            {watch ? "How does it feel?" : "How does this song make you feel?"}
+          </h2>
           {!done ? (
             <div className="memory-choices">
               {(moreFeelings
@@ -289,8 +314,12 @@ export function MemoryActivityPlayer() {
             </div>
           ) : (
             <div className="memory-reveal" role="status">
-              <p>Thank you for sharing. Every feeling is welcome.</p>
-              {entry.description && <p>{entry.description}</p>}
+              <p>
+                {watch
+                  ? "Thank you."
+                  : "Thank you for sharing. Every feeling is welcome."}
+              </p>
+              {entry.description && !watch && <p>{entry.description}</p>}
             </div>
           )}
         </>
@@ -298,7 +327,9 @@ export function MemoryActivityPlayer() {
       {kind === "routine" && entry && (
         <>
           <h2>{entry.title}</h2>
-          <p>Choose what comes next, in an order that feels right to you.</p>
+          {!watch && (
+            <p>Choose what comes next, in an order that feels right to you.</p>
+          )}
           <ol className="routine-order">
             {session.order.map((i) => (
               <li key={i}>{entry.steps[i]}</li>
@@ -323,7 +354,7 @@ export function MemoryActivityPlayer() {
               </div>
               {session.order.length > 0 && (
                 <button className="text-button" onClick={m.undoStep}>
-                  Change my last choice
+                  {watch ? "Undo" : "Change my last choice"}
                 </button>
               )}
               {session.order.length === entry.steps.length && (
@@ -335,8 +366,12 @@ export function MemoryActivityPlayer() {
           )}
           {done && (
             <div className="memory-reveal" role="status">
-              <p>That’s your familiar rhythm. Thank you for sharing.</p>
-              {entry.description && <p>{entry.description}</p>}
+              <p>
+                {watch
+                  ? "Well done."
+                  : "That’s your familiar rhythm. Thank you for sharing."}
+              </p>
+              {entry.description && !watch && <p>{entry.description}</p>}
             </div>
           )}
         </>
@@ -344,10 +379,12 @@ export function MemoryActivityPlayer() {
       {kind === "garden" && (
         <>
           <GardenVisualization />
-          <h2>A little joy, growing gently.</h2>
-          <p>
-            Your garden is always here. Nothing is lost when you take a break.
-          </p>
+          <h2>{watch ? "Grow something" : "A little joy, growing gently."}</h2>
+          {!watch && (
+            <p>
+              Your garden is always here. Nothing is lost when you take a break.
+            </p>
+          )}
           {!done && (
             <div className="memory-choices">
               <button
@@ -376,16 +413,19 @@ export function MemoryActivityPlayer() {
         <div className="memory-finish">
           {kind !== "garden" && <GardenVisualization />}
           <p>
-            <Leaf size={20} />A keepsake has grown in your garden.
+            <Leaf size={20} />
+            {watch
+              ? "Your garden grew."
+              : "A keepsake has grown in your garden."}
           </p>
           <button className="memory-choice" onClick={m.home}>
-            Back to my memories <ArrowRight size={18} />
+            {watch ? "Done" : "Back to my memories"} <ArrowRight size={18} />
           </button>
         </div>
       )}
       {!done && (
         <button className="text-button memory-skip" onClick={m.skip}>
-          Skip this activity — that's okay
+          {watch ? "Skip" : "Skip this activity — that's okay"}
         </button>
       )}
     </>
@@ -435,57 +475,59 @@ export function MemoryGardenExperience({
         aria-live="assertive"
       >
         <h1>Memory Garden is paused</h1>
-        <h2>Memories can wait. We're here with you.</h2>
-        <p>
-          {m.session
-            ? "Your saved activity and garden are preserved."
-            : "No activity has started yet. Your garden is unchanged."}
-        </p>
-        <div className="memory-pause-reasons" role="status">
-          <h3>Why it hasn't opened yet</h3>
-          <ul>
-            {(s.mode === "EMERGENCY_SIMULATED" ||
-              (s.incident && s.incident.stage !== "resolved")) && (
-              <li>
-                A simulated help request still needs caregiver resolution and
-                verification.
-              </li>
-            )}
-            {!s.connected && <li>The simulated device is disconnected.</li>}
-            {s.wearStatus !== "likely_worn" && (
-              <li>
-                The attachment readings need a caregiver check. Wear status is{" "}
-                {s.wearStatus.replaceAll("_", " ")}.
-              </li>
-            )}
-            {s.signals.gpsConfidence < 0.6 && (
-              <li>The simulated location is uncertain.</li>
-            )}
-            {s.mode === "GUIDED_RETURN" && <li>Guided return is active.</li>}
-            {s.mode === "REORIENTATION" && (
-              <li>A route or reorientation check is active.</li>
-            )}
-            {s.mode === "CAREGIVER_HANDOVER" && (
-              <li>A caregiver assistance request is active.</li>
-            )}
-            {s.mode === "CHECK_IN" && (
-              <li>A check-in or device review is still needed.</li>
-            )}
-          </ul>
-          <p>
-            Open caregiver review to check the demo readings, then return here.
-            Activities will not clear a safety alert automatically.
-          </p>
-          <Link className="button" to="/caregiver/emergency">
-            Open caregiver review (demo)
-          </Link>
-        </div>
         {onWatch ? (
           <button className="memory-choice quiet" onClick={onClose}>
-            Back to watch home
+            <X size={20} aria-hidden="true" /> Close
           </button>
         ) : (
           <>
+            <h2>Memories can wait. We're here with you.</h2>
+            <p>
+              {m.session
+                ? "Your saved activity and garden are preserved."
+                : "No activity has started yet. Your garden is unchanged."}
+            </p>
+            <div className="memory-pause-reasons" role="status">
+              <h3>Why it hasn't opened yet</h3>
+              <ul>
+                {(s.mode === "EMERGENCY_SIMULATED" ||
+                  (s.incident && s.incident.stage !== "resolved")) && (
+                  <li>
+                    A simulated help request still needs caregiver resolution
+                    and verification.
+                  </li>
+                )}
+                {!s.connected && <li>The simulated device is disconnected.</li>}
+                {s.wearStatus !== "likely_worn" && (
+                  <li>
+                    The attachment readings need a caregiver check. Wear status
+                    is {s.wearStatus.replaceAll("_", " ")}.
+                  </li>
+                )}
+                {s.signals.gpsConfidence < 0.6 && (
+                  <li>The simulated location is uncertain.</li>
+                )}
+                {s.mode === "GUIDED_RETURN" && (
+                  <li>Guided return is active.</li>
+                )}
+                {s.mode === "REORIENTATION" && (
+                  <li>A route or reorientation check is active.</li>
+                )}
+                {s.mode === "CAREGIVER_HANDOVER" && (
+                  <li>A caregiver assistance request is active.</li>
+                )}
+                {s.mode === "CHECK_IN" && (
+                  <li>A check-in or device review is still needed.</li>
+                )}
+              </ul>
+              <p>
+                Open caregiver review to check the demo readings, then return
+                here. Activities will not clear a safety alert automatically.
+              </p>
+              <Link className="button" to="/caregiver/emergency">
+                Open caregiver review (demo)
+              </Link>
+            </div>
             <Wearable compact={embedded} />
             {!embedded && (
               <Link className="button light" to="/companion">
@@ -497,192 +539,248 @@ export function MemoryGardenExperience({
       </section>
     );
   return (
-    <section
-      ref={screen}
-      className={`memory-experience ${embedded ? "embedded" : ""} ${onWatch ? "on-watch" : ""}`}
-    >
-      <div className="memory-topline">
-        {m.stage === "activity" ? (
-          <button
-            className="text-button"
-            onClick={() => {
-              m.home();
-              setEmpty("");
-            }}
-          >
-            <ArrowLeft size={18} />
-            Back to memories
-          </button>
-        ) : onWatch ? (
-          <button
-            className="text-button"
-            onClick={() => {
-              m.exit();
-              onClose?.();
-            }}
-          >
-            <ArrowLeft size={18} />
-            Back to watch home
-          </button>
-        ) : (
-          <Link className="text-button" to={parent} onClick={m.exit}>
-            <ArrowLeft size={18} />
-            Back to wearable
-          </Link>
-        )}
-        {onWatch ? null : !embedded ? (
-          <Link className="text-button" to={parent} onClick={m.exit}>
-            Exit memories
-          </Link>
-        ) : (
-          <button className="text-button" onClick={m.exit}>
-            Exit activity
-          </button>
-        )}
-      </div>
-      {s.incident?.deviceReviewPending && s.reviewedIncident && (
-        <p className="memory-notice">
-          SOS is resolved. Local memories can continue after caregiver review.
-          Device warnings remain; navigation still needs review.
-        </p>
-      )}
-      {!onWatch && (
-        <div className="memory-host">
-          <Sprout small />
-          <span>Here with {s.settings.companionName}</span>
-        </div>
-      )}
-      {m.stage === "invite" ? (
-        <div className="memory-question">
-          <span className="eyebrow">A LITTLE TIME TOGETHER</span>
-          <h1>Welcome to your Memory Garden.</h1>
-          <p>
-            Hi, I'm {s.settings.companionName}. Would you like to explore a
-            memory?
-          </p>
-          <h2>Would you like to look at some happy memories together?</h2>
-          <div className="memory-choices">
-            <button className="memory-choice" onClick={m.begin}>
-              Let's begin
-            </button>
-            {onWatch ? (
-              <button
-                className="memory-choice quiet"
-                onClick={() => {
-                  m.exit();
-                  onClose?.();
-                }}
-              >
-                Maybe later
-              </button>
-            ) : (
-              <Link
-                className="memory-choice quiet"
-                to={parent}
-                onClick={m.exit}
-              >
-                Maybe later
-              </Link>
-            )}
-          </div>
-        </div>
-      ) : m.stage === "activity" && m.session ? (
-        m.session.paused ? (
-          <div className="memory-question">
-            <h2>Your memory is here, just as you left it.</h2>
-            <p>Would you like to continue?</p>
-            <div className="memory-choices">
-              <button className="memory-choice" onClick={m.resume}>
-                Resume activity
-              </button>
-              <button className="memory-choice quiet" onClick={m.home}>
-                Choose something else
-              </button>
-            </div>
-          </div>
-        ) : (
-          <MemoryActivityPlayer />
-        )
-      ) : practicing ? (
-        <WayHomePractice onExit={() => setPracticing(false)} />
-      ) : (
-        <div className="memory-question memory-home">
-          <WayHomeHero onStart={() => setPracticing(true)} />
-          <h1 className="memory-section-title">
-            A memory, a feeling, a little joy.
-          </h1>
-          <JourneyInvitations />
-          <p>What would you like to explore with {s.settings.companionName}?</p>
-          {suggestion && (
-            <div className="memory-suggestion">
-              <span className="eyebrow">AN OPTIONAL IDEA</span>
-              <p>{suggestion.reason}</p>
-              <strong>Optional idea: {activityNames[suggestion.kind]}</strong>
-              <small>
-                Choose an activity below. Nothing starts automatically.
-              </small>
-            </div>
-          )}
-          <div className="memory-choices memory-tiles">
-            {visible.map((kind) => (
-              <button
-                className={`memory-choice memory-tile tile-${kind}`}
-                key={kind}
-                onClick={() => {
-                  setEmpty("");
-                  if (
-                    !m.start(
-                      kind,
-                      kind === suggestion?.kind
-                        ? suggestion.entryId
-                        : undefined,
-                    )
-                  )
-                    setEmpty(
-                      "No approved memories in this activity yet. Your caregiver can add one in Memory Library.",
-                    );
-                }}
-              >
-                <ActivityIcon kind={kind} />
-                <span>{activityNames[kind]}</span>
-                <ArrowRight size={18} />
-              </button>
-            ))}
-          </div>
-          {options.length > 3 && (
+    <OnWatch.Provider value={onWatch}>
+      <section
+        ref={screen}
+        className={`memory-experience ${embedded ? "embedded" : ""} ${onWatch ? "on-watch" : ""}`}
+      >
+        <div className="memory-topline">
+          {m.stage === "activity" ? (
             <button
               className="text-button"
               onClick={() => {
-                setCategoryPage(categoryPage === 0 ? 1 : 0);
+                m.home();
                 setEmpty("");
               }}
             >
-              {categoryPage === 0 ? "More activities" : "Earlier activities"}{" "}
-              <ArrowRight size={16} />
+              <ArrowLeft size={18} />
+              {onWatch ? "Back" : "Back to memories"}
+            </button>
+          ) : onWatch ? (
+            <button
+              className="text-button"
+              onClick={() => {
+                m.exit();
+                onClose?.();
+              }}
+            >
+              <X size={18} />
+              Close
+            </button>
+          ) : (
+            <Link className="text-button" to={parent} onClick={m.exit}>
+              <ArrowLeft size={18} />
+              Back to wearable
+            </Link>
+          )}
+          {onWatch ? null : !embedded ? (
+            <Link className="text-button" to={parent} onClick={m.exit}>
+              Exit memories
+            </Link>
+          ) : (
+            <button className="text-button" onClick={m.exit}>
+              Exit activity
             </button>
           )}
-          {empty && (
-            <p role="status" className="memory-notice">
-              {empty}
-            </p>
-          )}
-          <GardenVisualization />
-          <p className="memory-help">
-            Take as much or as little time as you like. You can always skip or
-            leave.
+        </div>
+        {s.incident?.deviceReviewPending && s.reviewedIncident && !onWatch && (
+          <p className="memory-notice">
+            SOS is resolved. Local memories can continue after caregiver review.
+            Device warnings remain; navigation still needs review.
           </p>
-        </div>
-      )}
-      {!onWatch && (
-        <div className="memory-safety-footer">
-          <SOSButton />
-          <small>
-            Educational prototype. No real emergency calls. Activities are for
-            connection, not diagnosis or treatment.
-          </small>
-        </div>
-      )}
-    </section>
+        )}
+        {!onWatch && (
+          <div className="memory-host">
+            <Sprout small />
+            <span>Here with {s.settings.companionName}</span>
+          </div>
+        )}
+        {m.stage === "invite" ? (
+          <div className="memory-question">
+            {onWatch ? (
+              <>
+                <Sprout small />
+                <h1>Memory Garden</h1>
+              </>
+            ) : (
+              <>
+                <span className="eyebrow">A LITTLE TIME TOGETHER</span>
+                <h1>Welcome to your Memory Garden.</h1>
+                <p>
+                  Hi, I'm {s.settings.companionName}. Would you like to explore
+                  a memory?
+                </p>
+                <h2>Would you like to look at some happy memories together?</h2>
+              </>
+            )}
+            <div className="memory-choices">
+              <button className="memory-choice" onClick={m.begin}>
+                Let's begin
+              </button>
+              {onWatch ? (
+                <button
+                  className="memory-choice quiet"
+                  onClick={() => {
+                    m.exit();
+                    onClose?.();
+                  }}
+                >
+                  Maybe later
+                </button>
+              ) : (
+                <Link
+                  className="memory-choice quiet"
+                  to={parent}
+                  onClick={m.exit}
+                >
+                  Maybe later
+                </Link>
+              )}
+            </div>
+          </div>
+        ) : m.stage === "activity" && m.session ? (
+          m.session.paused ? (
+            <div className="memory-question">
+              <h2>
+                {onWatch
+                  ? "Continue?"
+                  : "Your memory is here, just as you left it."}
+              </h2>
+              {!onWatch && <p>Would you like to continue?</p>}
+              <div className="memory-choices">
+                <button className="memory-choice" onClick={m.resume}>
+                  Resume activity
+                </button>
+                <button className="memory-choice quiet" onClick={m.home}>
+                  {onWatch ? "Something else" : "Choose something else"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <MemoryActivityPlayer />
+          )
+        ) : practicing ? (
+          <WayHomePractice onExit={() => setPracticing(false)} />
+        ) : (
+          <div className="memory-question memory-home">
+            {onWatch ? (
+              <button
+                className="memory-choice memory-tile tile-wayhome"
+                onClick={() => setPracticing(true)}
+              >
+                <span className="memory-tile-icon" aria-hidden="true">
+                  <Footprints size={22} />
+                </span>
+                <span>Practice my way home</span>
+                <ArrowRight size={18} />
+              </button>
+            ) : (
+              <>
+                <WayHomeHero onStart={() => setPracticing(true)} />
+                <h1 className="memory-section-title">
+                  A memory, a feeling, a little joy.
+                </h1>
+                <JourneyInvitations />
+                <p>
+                  What would you like to explore with {s.settings.companionName}
+                  ?
+                </p>
+              </>
+            )}
+            {suggestion && !onWatch && (
+              <div className="memory-suggestion">
+                <span className="eyebrow">AN OPTIONAL IDEA</span>
+                <p>{suggestion.reason}</p>
+                <strong>Optional idea: {activityNames[suggestion.kind]}</strong>
+                <small>
+                  Choose an activity below. Nothing starts automatically.
+                </small>
+              </div>
+            )}
+            <div className="memory-choices memory-tiles">
+              {visible.map((kind) => (
+                <button
+                  className={`memory-choice memory-tile tile-${kind}`}
+                  key={kind}
+                  aria-describedby={
+                    onWatch && kind === suggestion?.kind
+                      ? "watch-suggested"
+                      : undefined
+                  }
+                  onClick={() => {
+                    setEmpty("");
+                    if (
+                      !m.start(
+                        kind,
+                        kind === suggestion?.kind
+                          ? suggestion.entryId
+                          : undefined,
+                      )
+                    )
+                      setEmpty(
+                        onWatch
+                          ? "Nothing here yet."
+                          : "No approved memories in this activity yet. Your caregiver can add one in Memory Library.",
+                      );
+                  }}
+                >
+                  <ActivityIcon kind={kind} />
+                  <span>{activityNames[kind]}</span>
+                  {onWatch && kind === suggestion?.kind && (
+                    <em
+                      className="tile-suggested"
+                      id="watch-suggested"
+                      aria-hidden="true"
+                    >
+                      Suggested
+                    </em>
+                  )}
+                  <ArrowRight size={18} />
+                </button>
+              ))}
+            </div>
+            {options.length > 3 && (
+              <button
+                className="text-button"
+                onClick={() => {
+                  setCategoryPage(categoryPage === 0 ? 1 : 0);
+                  setEmpty("");
+                }}
+              >
+                {categoryPage === 0
+                  ? "More activities"
+                  : onWatch
+                    ? "Back"
+                    : "Earlier activities"}{" "}
+                <ArrowRight size={16} />
+              </button>
+            )}
+            {onWatch && <JourneyInvitations />}
+            {empty && (
+              <p role="status" className="memory-notice">
+                {empty}
+              </p>
+            )}
+            <GardenVisualization />
+            {!onWatch && (
+              <p className="memory-help">
+                Take as much or as little time as you like. You can always skip
+                or leave.
+              </p>
+            )}
+          </div>
+        )}
+        {!onWatch && (
+          <div className="memory-safety-footer">
+            <SOSButton />
+            <small>
+              Educational prototype. No real emergency calls. Activities are for
+              connection, not diagnosis or treatment.
+            </small>
+          </div>
+        )}
+      </section>
+    </OnWatch.Provider>
   );
 }
 export function MemoryGardenHome() {
