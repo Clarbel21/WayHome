@@ -821,6 +821,260 @@
 .reduce-motion .experience-mode-picker button {
   transition: none;
 }
+
+/* ============================================================ legibility pass
+   WayHome is used at a distance and by older wearers. The watch therefore
+   uses a warmer humanist face, larger type and a larger share of the stage. */
+.companion-page.shared-experience,
+.care-workspace {
+  font-family: "Segoe UI", "Trebuchet MS", system-ui, sans-serif;
+  font-size: 15px;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+.shared-experience .watch-area .watch .watch-screen.wos {
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  color: #173328;
+}
+.shared-experience .device-caption h2,
+.shared-experience .stage-heading h1,
+.shared-experience .brand {
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+}
+.shared-experience .device-caption h2 {
+  font-size: 17px;
+  letter-spacing: -0.25px;
+}
+.shared-experience .device-caption > span {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+/* Watch essentials never fall into caption-sized text. */
+.shared-experience .watch-area .watch .watch-screen.wos {
+  padding: 12px 14px 14px;
+  gap: 8px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .watch-status,
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .watch-status
+  > span:last-child,
+.shared-experience .watch-area .watch .watch-screen.wos .wos-wear {
+  font-size: 12px;
+  font-weight: 700;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-hello {
+  gap: 9px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-hello .sprout {
+  width: 62px;
+  height: 60px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-hello .speech {
+  max-width: none;
+  font-size: 18px;
+  font-weight: 750;
+  line-height: 1.22;
+  letter-spacing: -0.2px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .speech {
+  font-size: 19px;
+  font-weight: 750;
+  line-height: 1.24;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-tiles {
+  gap: 10px;
+  margin-top: 10px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-tile {
+  min-height: 106px;
+  aspect-ratio: auto;
+  padding: 8px;
+  border-radius: 21px;
+  gap: 6px;
+  font-size: 16.5px;
+  font-weight: 750;
+  line-height: 1.22;
+  letter-spacing: -0.15px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-tile svg {
+  width: 40px;
+  height: 40px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos button,
+.shared-experience .watch-area .watch .watch-screen.wos .watch-action {
+  min-height: 50px;
+  font-size: 16px;
+  line-height: 1.25;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-mode-button {
+  min-height: 42px;
+  padding: 7px 12px;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .sos-hold {
+  min-height: 50px;
+  font-size: 17px;
+  letter-spacing: 0.02em;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .sos-hold > span {
+  font-size: 12.5px;
+  font-weight: 650;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-note,
+.shared-experience .watch-area .watch .watch-screen.wos .wos-center > p,
+.shared-experience .watch-area .watch .watch-screen.wos .wos-center > small,
+.shared-experience .watch-area .watch .watch-screen.wos .wos-bubble {
+  font-size: 14px;
+  line-height: 1.42;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-kicker,
+.shared-experience .watch-area .watch .watch-screen.wos .wos-profile-label,
+.shared-experience .watch-area .watch .watch-screen.wos .wos-mode-notice {
+  font-size: 12px;
+}
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-mode-picker
+  > strong {
+  font-size: 20px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-mode-choice {
+  min-height: 62px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-mode-choice small {
+  font-size: 12.5px;
+  line-height: 1.25;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-guide > strong,
+.shared-experience .watch-area .watch .watch-screen.wos .wos-question {
+  font-size: 21px;
+  line-height: 1.2;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-guide > p,
+.shared-experience .watch-area .watch .watch-screen.wos .wos-guide > small,
+.shared-experience .watch-area .watch .watch-screen.wos .wos-direction small {
+  font-size: 13px;
+  line-height: 1.35;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-direction b {
+  font-size: 20px;
+}
+.shared-experience .explore-memories {
+  max-width: 380px;
+  min-height: 48px;
+  font-size: 16px;
+}
+
+/* Phone typography remains denser than the watch, but no important control is tiny. */
+.shared-experience .care-phone {
+  font-family: "Segoe UI", "Trebuchet MS", system-ui, sans-serif;
+}
+.shared-experience .phone-scroll {
+  font-size: 13px;
+}
+.shared-experience .phone-greeting strong {
+  font-size: 20px;
+  font-weight: 700;
+}
+.shared-experience .phone-greeting p,
+.shared-experience .phone-status-label {
+  font-size: 10px;
+}
+.shared-experience .phone-status h3 {
+  font-size: 24px;
+  font-weight: 750;
+  line-height: 1.16;
+}
+.shared-experience .phone-status p,
+.shared-experience .phone-action-card p,
+.shared-experience .location-caption small {
+  font-size: 12.5px;
+}
+.shared-experience .phone-action-card h3,
+.shared-experience .location-caption strong {
+  font-size: 15px;
+}
+.shared-experience .phone-action-card .button {
+  font-size: 14px;
+  font-weight: 700;
+}
+.shared-experience .phone-bottom-nav button {
+  font-size: 11px;
+  font-weight: 600;
+}
+.shared-experience .care-phone .phone-mode-control header strong {
+  font-size: 13px;
+}
+.shared-experience .care-phone .phone-mode-control header small {
+  font-size: 10px;
+}
+.shared-experience .care-phone .phone-mode-options button {
+  min-height: 46px;
+  font-size: 11px;
+}
+.shared-experience .phone-action-popup strong {
+  font-size: 13px;
+}
+.shared-experience .phone-action-popup p {
+  font-size: 11.5px;
+}
+
+/* Give the watch the space visible in the reference screenshot without
+   reintroducing vertical page scrolling. */
+@media (min-width: 760px) {
+  .shared-experience:not(.large-text) .shared-devices {
+    width: min(100%, 1080px);
+    max-width: 1080px;
+    grid-template-columns: minmax(300px, 0.9fr) minmax(350px, 1.1fr);
+    gap: clamp(24px, 3vw, 44px);
+  }
+  .shared-experience:not(.large-text) .watch-area {
+    width: clamp(340px, 37vw, 390px);
+    max-width: 390px;
+  }
+  .shared-experience:not(.large-text) .explore-memories {
+    width: min(100%, 380px);
+  }
+}
+@media (min-width: 1000px) and (min-height: 650px) {
+  .shared-experience:not(.large-text) .watch-area .watch {
+    height: min(100%, 560px);
+    max-height: 560px;
+  }
+}
+@media (max-width: 759px) {
+  .shared-experience .watch-area {
+    width: min(100%, 360px);
+  }
+}
+.shared-experience.large-text .watch-area .watch .watch-screen.wos .speech,
+.shared-experience.large-text
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-hello
+  .speech {
+  font-size: 22px;
+}
+.shared-experience.large-text .watch-area .watch .watch-screen.wos .wos-tile {
+  font-size: 19px;
+}
+.shared-experience.large-text .watch-area .watch .watch-screen.wos button,
+.shared-experience.large-text
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .watch-action {
+  font-size: 18px;
+}
 .watch-area .watch .watch-screen.wos .wos-focus-home {
   gap: 7px;
 }
