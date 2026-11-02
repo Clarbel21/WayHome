@@ -40,7 +40,7 @@ import { Sprout } from "./Sprout";
 import { useLang, useT, modeMessage, noteText } from "../i18n";
 export { Photo } from "./Photo";
 
-type TalkReply = "intro" | "comfort" | "where" | "who";
+type TalkReply = "intro" | "comfort" | "where" | "who" | "nice";
 
 // The wearer sees exactly one screen at a time, chosen from the safety mode.
 // Every action calls the existing store; this component holds no safety logic.
@@ -134,6 +134,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const landmark = approved[s.guideIndex];
   const name = s.settings.companionName;
   const caregiver = s.settings.caregiver;
+  const experienceMode = s.settings.experienceMode;
   const guidanceBlocked =
     !s.connected || !s.worn || s.signals.gpsConfidence < 0.6;
   useEffect(() => {
@@ -274,7 +275,9 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   } else if (s.mode === "GUIDED_RETURN") {
     screenKey = `guide-${landmark?.id ?? "none"}`;
     screen = landmark ? (
-      <div className="watch-landmark wos-guide">
+      <div
+        className={`watch-landmark wos-guide ${experienceMode === "focus" ? "is-focus" : ""}`}
+      >
         <div className="wos-guide-top">
           <span>
             {t("stopOf", { n: s.guideIndex + 1, total: approved.length })}
@@ -290,16 +293,18 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             ))}
           </span>
         </div>
-        {walking && (
+        {(walking || experienceMode === "focus") && (
           <div className="wos-direction" aria-live="polite">
             <DirectionIcon />
             <span>
               <b>{directionText}</b>
               <small>
-                {t("legToward", {
-                  m: Math.round(legRemaining),
-                  name: landmark.name,
-                })}
+                {walking
+                  ? t("legToward", {
+                      m: Math.round(legRemaining),
+                      name: landmark.name,
+                    })
+                  : t("towardLandmark", { name: landmark.name })}
               </small>
               <i className="wos-leg-bar" aria-hidden="true">
                 <i style={{ width: `${Math.round(legDone * 100)}%` }} />
@@ -323,11 +328,13 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             <strong>{landmark.name}</strong>
           </>
         )}
-        {!zoneGuided && <p>{landmark.instruction}</p>}
-        {landmark.recognition && !walking && (
+        {!zoneGuided && experienceMode !== "focus" && (
+          <p>{landmark.instruction}</p>
+        )}
+        {landmark.recognition && !walking && experienceMode !== "focus" && (
           <p className="recognition-cue">{landmark.recognition}</p>
         )}
-        {!zoneGuided && (
+        {!zoneGuided && experienceMode !== "focus" && (
           <small>
             {t("approx", {
               m: Math.max(
@@ -357,13 +364,17 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         >
           {t("iDontSeeIt")}
         </button>
-        <div className="wos-row">
-          <button
-            className="wos-ghost"
-            onClick={() => s.chooseAssistance("family")}
-          >
-            <Phone size={14} /> {t("callMyFamily")}
-          </button>
+        <div
+          className={`wos-row ${experienceMode === "focus" ? "focus-actions" : ""}`}
+        >
+          {experienceMode !== "focus" && (
+            <button
+              className="wos-ghost"
+              onClick={() => s.chooseAssistance("family")}
+            >
+              <Phone size={14} /> {t("callMyFamily")}
+            </button>
+          )}
           <button
             className="wos-ghost cancel-guidance"
             onClick={s.cancelGuidance}
@@ -611,18 +622,48 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         </button>
       </div>
     );
-  } else if (talk) {
-    screenKey = `talk-${talk}`;
+  } else if (experienceMode === "focus") {
+    screenKey = "focus-home";
+    screen = (
+      <div className="wos-center wos-focus-home">
+        <span className="wos-profile-label">FOCUS MODE</span>
+        <div className="wos-focus-icon" aria-hidden="true">
+          <ArrowUp size={34} />
+        </div>
+        <strong>{t("focusTitle")}</strong>
+        <p>{t("focusBody")}</p>
+        <button
+          className="watch-action wos-primary wos-focus-primary"
+          onClick={() => s.chooseAssistance("home")}
+        >
+          <House size={22} /> {t("focusHome")}
+        </button>
+        <button
+          className="wos-secondary"
+          onClick={() => s.chooseAssistance("family")}
+        >
+          <Phone size={18} /> {t("callFamily")}
+        </button>
+      </div>
+    );
+  } else if (experienceMode === "dialogue" || talk) {
+    const activeTalk = talk ?? "intro";
+    screenKey = `talk-${activeTalk}`;
     const reply =
-      talk === "comfort"
+      activeTalk === "comfort"
         ? t("talkComfort")
-        : talk === "where"
+        : activeTalk === "where"
           ? t("talkWhereReply")
-          : talk === "who"
+          : activeTalk === "who"
             ? t("talkWhoReply", { caregiver })
-            : t("talkIntro");
+            : activeTalk === "nice"
+              ? t("talkSomethingNiceReply")
+              : t("talkIntro");
     screen = (
       <div className="wos-talk">
+        {experienceMode === "dialogue" && (
+          <span className="wos-profile-label">DIALOGUE MODE</span>
+        )}
         <div className="wos-talk-head">
           <Sprout small />
           <p className="wos-bubble">{reply}</p>
@@ -637,9 +678,21 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           <button className="wos-chip" onClick={() => setTalk("comfort")}>
             <Sparkles size={15} /> {t("somethingComforting")}
           </button>
-          <button className="wos-back" onClick={() => setTalk(null)}>
-            <ChevronLeft size={16} /> {t("backHome")}
+          <button className="wos-chip" onClick={() => setTalk("nice")}>
+            <MessageCircle size={15} /> {t("talkSomethingNice")}
           </button>
+          {experienceMode === "dialogue" ? (
+            <button
+              className="wos-back"
+              onClick={() => s.chooseAssistance("home")}
+            >
+              <House size={16} /> {t("focusHome")}
+            </button>
+          ) : (
+            <button className="wos-back" onClick={() => setTalk(null)}>
+              <ChevronLeft size={16} /> {t("backHome")}
+            </button>
+          )}
         </div>
       </div>
     );
@@ -682,7 +735,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
 
   return (
     <div
-      className={`watch-area mode-${s.mode.toLowerCase()} ${s.attachment} ${compact ? "compact" : ""} ${buzzing ? "buzz" : ""} ${ringing ? "find-ring" : ""} ${zonePrompt ? "zone-alert" : ""}`}
+      className={`watch-area mode-${s.mode.toLowerCase()} experience-${experienceMode} ${s.attachment} ${compact ? "compact" : ""} ${buzzing ? "buzz" : ""} ${ringing ? "find-ring" : ""} ${zonePrompt ? "zone-alert" : ""}`}
     >
       <div className="watch-strap top" />
       <div className="watch" ref={watchRef}>

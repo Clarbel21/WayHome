@@ -396,10 +396,47 @@ export function PolicyHistory() {
 }
 export function PhoneSettings() {
   const s = useStore();
+  const profiles = [
+    {
+      id: "normal",
+      name: "Normal",
+      detail: "All companion, memory, contact and wayfinding features.",
+    },
+    {
+      id: "focus",
+      name: "Focus",
+      detail: "A simpler screen with one clear wayfinding step at a time.",
+    },
+    {
+      id: "dialogue",
+      name: "Dialogue",
+      detail: `Conversation with ${s.settings.companionName} comes first.`,
+    },
+  ] as const;
   return (
     <section className="care-manager">
       <h2>Caregiver settings</h2>
       <CompanionPersonalization />
+      <fieldset className="experience-mode-picker">
+        <legend>Wearer interface</legend>
+        <p>Choose the experience that feels most comfortable today.</p>
+        <div>
+          {profiles.map((profile) => (
+            <button
+              type="button"
+              key={profile.id}
+              aria-pressed={s.settings.experienceMode === profile.id}
+              onClick={() => s.settingsUpdate({ experienceMode: profile.id })}
+            >
+              <strong>{profile.name} mode</strong>
+              <small>{profile.detail}</small>
+            </button>
+          ))}
+        </div>
+        <small>
+          Safety check-ins and SOS remain available in every interface.
+        </small>
+      </fieldset>
       {(
         [
           ["wearer", "Wearer name"],

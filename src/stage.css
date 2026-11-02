@@ -46,6 +46,48 @@
 .phone-workspace-link {
   min-height: 44px;
 }
+.experience-mode-picker {
+  border: 0;
+  padding: 0;
+  margin: 18px 0;
+}
+.experience-mode-picker legend {
+  font-weight: 800;
+  color: var(--wh-ink);
+}
+.experience-mode-picker > p,
+.experience-mode-picker > small {
+  display: block;
+  margin: 5px 0 10px;
+  color: #52685e;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+.experience-mode-picker > div {
+  display: grid;
+  gap: 8px;
+}
+.experience-mode-picker button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid #cbd7c7;
+  border-radius: 14px;
+  background: var(--wh-surface);
+  color: var(--wh-ink);
+  text-align: left;
+}
+.experience-mode-picker button[aria-pressed="true"] {
+  border-color: var(--wh-forest);
+  background: var(--wh-pale);
+  box-shadow: inset 4px 0 0 var(--wh-forest);
+}
+.experience-mode-picker button small {
+  color: #52685e;
+  line-height: 1.35;
+}
 .phone-section-picker {
   display: flex;
   flex-direction: column;

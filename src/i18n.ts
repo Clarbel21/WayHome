@@ -72,6 +72,13 @@ const en: Dict = {
   talkWho: "Who is my family?",
   talkWhoReply: "{caregiver} cares about you and is one tap away.",
   somethingComforting: "Something comforting",
+  talkSomethingNice: "Tell me something nice",
+  talkSomethingNiceReply:
+    "I'm glad you're here with me. We can take this moment slowly together.",
+  focusTitle: "One step at a time",
+  focusBody: "I’ll show one clear direction and a familiar place.",
+  focusHome: "Guide me home",
+  towardLandmark: "Toward {name}",
   backHome: "Back to my watch",
   openGarden: "Look at my memories",
   returnHome: "Maybe later",
@@ -226,6 +233,13 @@ const id: Dict = {
   talkWhoReply:
     "{caregiver} menyayangimu dan bisa dihubungi dengan satu sentuhan.",
   somethingComforting: "Sesuatu yang menenangkan",
+  talkSomethingNice: "Ceritakan sesuatu yang menyenangkan",
+  talkSomethingNiceReply:
+    "Aku senang kamu di sini bersamaku. Kita jalani saat ini pelan-pelan.",
+  focusTitle: "Satu langkah setiap kali",
+  focusBody: "Aku akan menunjukkan satu arah dan tempat yang dikenal.",
+  focusHome: "Pandu saya pulang",
+  towardLandmark: "Menuju {name}",
   backHome: "Kembali ke jam saya",
   openGarden: "Lihat kenangan saya",
   returnHome: "Nanti saja",

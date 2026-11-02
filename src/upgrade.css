@@ -542,6 +542,48 @@
   justify-content: flex-start;
   padding-left: 14px;
 }
+.watch-area .watch .watch-screen.wos .wos-profile-label {
+  display: inline-block;
+  margin-bottom: 5px;
+  color: #567062;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+.watch-area .watch .watch-screen.wos .wos-focus-home {
+  gap: 7px;
+}
+.watch-area .watch .watch-screen.wos .wos-focus-home > strong {
+  font-size: 21px;
+}
+.watch-area .watch .watch-screen.wos .wos-focus-home > p {
+  margin: 0 0 5px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.watch-area .watch .watch-screen.wos .wos-focus-icon {
+  width: 66px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: var(--wh-forest);
+  color: #fff;
+}
+.watch-area .watch .watch-screen.wos .wos-focus-primary {
+  width: 100%;
+  min-height: 66px;
+  font-size: 17px;
+}
+.watch-area .watch .watch-screen.wos .wos-guide.is-focus .wos-direction {
+  min-height: 62px;
+}
+.watch-area .watch .watch-screen.wos .wos-guide.is-focus .wos-direction b {
+  font-size: 18px;
+}
+.watch-area .watch .watch-screen.wos .wos-guide.is-focus .focus-actions {
+  grid-template-columns: 1fr;
+}
 
 /* ------------------------------------------------------------ arrival */
 .watch-area .watch .watch-screen.wos .wos-arrived-badge {

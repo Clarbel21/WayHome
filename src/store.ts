@@ -198,6 +198,7 @@ interface Settings {
   notifications: boolean;
   largeText: boolean;
   reducedMotion: boolean;
+  experienceMode: "normal" | "focus" | "dialogue";
 }
 interface State {
   recordActivity: (title: string) => void;
@@ -345,6 +346,7 @@ export const useStore = create<State>()(
         notifications: true,
         largeText: false,
         reducedMotion: false,
+        experienceMode: "normal",
       },
       recordActivity: (title) =>
         set((s) => ({
@@ -1251,6 +1253,11 @@ export const useStore = create<State>()(
           settings: {
             ...current.settings,
             ...saved?.settings,
+            experienceMode: ["normal", "focus", "dialogue"].includes(
+              saved?.settings?.experienceMode ?? "",
+            )
+              ? (saved!.settings!.experienceMode as Settings["experienceMode"])
+              : "normal",
             companionName:
               validCompanionName(saved?.settings?.companionName ?? "") ??
               DEFAULT_COMPANION_NAME,

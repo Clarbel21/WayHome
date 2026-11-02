@@ -46,7 +46,7 @@ describe("deterministic wearable simulation", () => {
   });
   it("supports landmark CRUD, alert reads, and preserves profile on reset", () => {
     const s = useStore.getState();
-    s.settingsUpdate({ wearer: "Taylor" });
+    s.settingsUpdate({ wearer: "Taylor", experienceMode: "focus" });
     s.saveLandmark({
       id: "new",
       name: "Cafe",
@@ -63,6 +63,7 @@ describe("deterministic wearable simulation", () => {
     s.reset();
     expect(useStore.getState().alerts).toHaveLength(0);
     expect(useStore.getState().settings.wearer).toBe("Taylor");
+    expect(useStore.getState().settings.experienceMode).toBe("focus");
   });
 });
 
@@ -184,6 +185,7 @@ describe("emergency priority and personalization", () => {
     expect(restored.settings.companionName).toBe("Sprout");
     expect(restored.settings.wearer).toBe("Legacy Alex");
     expect(restored.settings.voice).toBe(true);
+    expect(restored.settings.experienceMode).toBe("normal");
     expect(restored.mode).toBe("CHECK_IN");
   });
 });
