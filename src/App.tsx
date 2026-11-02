@@ -841,9 +841,11 @@ function MemoriesRoute() {
 
 function Companion() {
   const navigate = useNavigate();
-  const location = useLocation();
   const s = useStore();
   const t = useT();
+  const [deviceView, setDeviceView] = useState<
+    "together" | "watch" | "caregiver"
+  >("together");
   return (
     <div
       className={`companion-page shared-experience ${s.settings.largeText ? "large-text" : ""} ${s.settings.reducedMotion ? "reduce-motion" : ""}`}
@@ -873,58 +875,91 @@ function Companion() {
             <em>{t("stageEm")}</em>
           </h1>
           <p>A little reassurance, wherever the day takes you.</p>
-        </div>
-        <div className="shared-devices">
-          <section
-            className="caregiver-interface"
-            aria-labelledby="caregiver-view-title"
+          <nav
+            className="experience-view-switcher"
+            aria-label="Choose interface view"
           >
-            <div className="device-caption">
-              <span>01 / CAREGIVER</span>
-              <h2 id="caregiver-view-title">{t("littleCloser")}</h2>
-              <p>{s.settings.caregiver}'s phone interface</p>
-            </div>
-            <CaregiverPhone />
-          </section>
-          <section
-            className="wearer-interface"
-            aria-labelledby="wearer-view-title"
-          >
-            <div className="device-caption">
-              <span>02 / COMPANION</span>
-              <h2 id="wearer-view-title" tabIndex={-1}>
-                {t("familiarFriend")}
-              </h2>
-              <p>{s.settings.wearer}'s interface</p>
-            </div>
-            <Wearable />
             <button
               type="button"
-              className="button explore-memories"
-              aria-describedby={
-                !safetyReady() ? "memories-availability" : undefined
-              }
-              onClick={() => {
-                // While an alert or guidance owns the watch, explain the pause
-                // on its own page instead of covering the safety screen.
-                if (s.mode !== "NORMAL") return navigate("/memories");
-                useWatchUi.getState().openMemories();
-              }}
+              aria-pressed={deviceView === "together"}
+              onClick={() => setDeviceView("together")}
             >
-              <Leaf size={23} />
-              {t("exploreMemories")}
+              <Monitor size={15} /> {t("viewTogether")}
             </button>
-            {!safetyReady() && (
-              <p
-                id="memories-availability"
-                className="companion-memory-notice"
-                role="status"
+            <button
+              type="button"
+              aria-pressed={deviceView === "watch"}
+              onClick={() => setDeviceView("watch")}
+            >
+              <Watch size={15} /> {t("viewWatch")}
+            </button>
+            <button
+              type="button"
+              aria-pressed={deviceView === "caregiver"}
+              onClick={() => setDeviceView("caregiver")}
+            >
+              <Phone size={15} /> {t("viewCaregiver")}
+            </button>
+            <Link to="/demo">
+              <Radio size={15} /> {t("viewDemo")}
+            </Link>
+          </nav>
+        </div>
+        <div className={`shared-devices view-${deviceView}`}>
+          {deviceView !== "watch" && (
+            <section
+              className="caregiver-interface"
+              aria-labelledby="caregiver-view-title"
+            >
+              <div className="device-caption">
+                <span>01 / CAREGIVER</span>
+                <h2 id="caregiver-view-title">{t("littleCloser")}</h2>
+                <p>{s.settings.caregiver}'s phone interface</p>
+              </div>
+              <CaregiverPhone />
+            </section>
+          )}
+          {deviceView !== "caregiver" && (
+            <section
+              className="wearer-interface"
+              aria-labelledby="wearer-view-title"
+            >
+              <div className="device-caption">
+                <span>02 / COMPANION</span>
+                <h2 id="wearer-view-title" tabIndex={-1}>
+                  {t("familiarFriend")}
+                </h2>
+                <p>{s.settings.wearer}'s interface</p>
+              </div>
+              <Wearable />
+              <button
+                type="button"
+                className="button explore-memories"
+                aria-describedby={
+                  !safetyReady() ? "memories-availability" : undefined
+                }
+                onClick={() => {
+                  // While an alert or guidance owns the watch, explain the pause
+                  // on its own page instead of covering the safety screen.
+                  if (s.mode !== "NORMAL") return navigate("/memories");
+                  useWatchUi.getState().openMemories();
+                }}
               >
-                Memory Garden is paused. Select Explore Memories to see why and
-                open caregiver review.
-              </p>
-            )}
-          </section>
+                <Leaf size={23} />
+                {t("exploreMemories")}
+              </button>
+              {!safetyReady() && (
+                <p
+                  id="memories-availability"
+                  className="companion-memory-notice"
+                  role="status"
+                >
+                  Memory Garden is paused. Select Explore Memories to see why
+                  and open caregiver review.
+                </p>
+              )}
+            </section>
+          )}
         </div>
         <div className="stage-toolbar">
           <DemoStage />

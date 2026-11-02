@@ -18,6 +18,7 @@ type Dict = Record<string, string>;
 // Keys are short ids; {name}-style placeholders are filled by t().
 const en: Dict = {
   goHome: "Help me home",
+  homeHint: "Follow familiar places",
   callFamily: "Call someone I trust",
   talk: "Let's talk",
   memories: "My memories",
@@ -91,6 +92,11 @@ const en: Dict = {
   backHome: "Back to my watch",
   openGarden: "Look at my memories",
   returnHome: "Maybe later",
+  viewTogether: "Together",
+  viewWatch: "Watch",
+  viewCaregiver: "Caregiver",
+  viewDemo: "Demo",
+  nearHome: "Near home",
   offline: "Offline",
   // phone
   allCalm: "All calm",
@@ -188,6 +194,7 @@ const en: Dict = {
 
 const id: Dict = {
   goHome: "Bantu saya pulang",
+  homeHint: "Ikuti tempat yang dikenal",
   callFamily: "Telepon orang yang saya percaya",
   talk: "Mari bicara",
   memories: "Kenangan saya",
@@ -261,6 +268,11 @@ const id: Dict = {
   backHome: "Kembali ke jam saya",
   openGarden: "Lihat kenangan saya",
   returnHome: "Nanti saja",
+  viewTogether: "Bersama",
+  viewWatch: "Jam",
+  viewCaregiver: "Pendamping",
+  viewDemo: "Demo",
+  nearHome: "Dekat rumah",
   offline: "Offline",
   allCalm: "Semua tenang",
   needsAttention: "Perlu perhatian",

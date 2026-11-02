@@ -14,6 +14,7 @@ import {
   ShieldAlert,
   WifiOff,
   ChevronLeft,
+  ChevronRight,
   Sparkles,
   HandHelping,
   MapPin,
@@ -39,7 +40,10 @@ import { ResolveSOSButton } from "./ResolveSOSButton";
 import { SOSButton } from "./SOSButton";
 import { Sprout } from "./Sprout";
 import { useLang, useT, modeMessage, noteText } from "../i18n";
-import { useCaregiverPopups } from "../services/caregiverPopup";
+import {
+  useCaregiverPopups,
+  type CaregiverPopupLevel,
+} from "../services/caregiverPopup";
 export { Photo } from "./Photo";
 
 type TalkReply = "intro" | "comfort" | "where" | "who" | "nice";
@@ -141,10 +145,13 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const name = s.settings.companionName;
   const caregiver = s.settings.caregiver;
   const experienceMode = s.settings.experienceMode;
-  const reportWatchAction = (label: string, urgent = false) =>
+  const reportWatchAction = (
+    label: string,
+    level: CaregiverPopupLevel = "awareness",
+  ) =>
     useCaregiverPopups
       .getState()
-      .notify(`${wearerFirst} used the watch`, label, urgent);
+      .notify(`${wearerFirst} used the watch`, label, level);
   const captureWatchAction = (event: MouseEvent<HTMLDivElement>) => {
     const button = (event.target as HTMLElement).closest("button");
     if (
@@ -158,7 +165,12 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       button.getAttribute("aria-label") ||
       button.textContent?.replace(/\s+/g, " ").trim();
     if (!label) return;
-    reportWatchAction(label.slice(0, 90), /SOS|help|call/i.test(label));
+    const level: CaregiverPopupLevel = /SOS|emergency|urgent help/i.test(label)
+      ? "urgent"
+      : /home|mode|guidance|okay|not yet|see it|arrived|help|call/i.test(label)
+        ? "awareness"
+        : "routine";
+    reportWatchAction(label.slice(0, 90), level);
   };
   const guidanceBlocked =
     !s.connected || !s.worn || s.signals.gpsConfidence < 0.6;
@@ -785,33 +797,55 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     screenKey = "home";
     screen = (
       <div className="wos-home">
+        <div className="wos-orientation" aria-label={t("nearHome")}>
+          <span>
+            <MapPin size={15} /> {t("nearHome")}
+          </span>
+          <span>
+            {new Intl.DateTimeFormat(lang === "id" ? "id-ID" : "en-US", {
+              weekday: "long",
+            }).format(now)}
+          </span>
+        </div>
         <div className="wos-hello">
           <Sprout small />
           {speech(modeMessage(lang, "NORMAL", name))}
         </div>
         {note}
-        <div className="wos-tiles" role="group" aria-label="Wearer actions">
+        <div
+          className="wos-home-actions"
+          role="group"
+          aria-label="Wearer actions"
+        >
           <button
-            className="wos-tile home"
+            className="wos-home-primary"
             onClick={() => s.chooseAssistance("home")}
           >
-            <House size={26} />
-            <span>{t("goHome")}</span>
+            <span className="wos-home-primary-icon">
+              <House size={27} />
+            </span>
+            <span>
+              <strong>{t("goHome")}</strong>
+              <small>{t("homeHint")}</small>
+            </span>
           </button>
-          <button
-            className="wos-tile family"
-            onClick={() => s.chooseAssistance("family")}
-          >
-            <Phone size={26} />
-            <span>{t("callFamily")}</span>
-          </button>
-          <button className="wos-tile talk" onClick={() => setTalk("intro")}>
-            <MessageCircle size={26} />
-            <span>{t("talk")}</span>
-          </button>
-          <button className="wos-tile garden" onClick={watchUi.openMemories}>
-            <Leaf size={26} />
+          <div className="wos-home-secondary">
+            <button
+              className="family"
+              onClick={() => s.chooseAssistance("family")}
+            >
+              <Phone size={22} />
+              <span>{t("callFamily")}</span>
+            </button>
+            <button className="talk" onClick={() => setTalk("intro")}>
+              <MessageCircle size={22} />
+              <span>{t("talk")}</span>
+            </button>
+          </div>
+          <button className="wos-home-memory" onClick={watchUi.openMemories}>
+            <Leaf size={20} />
             <span>{t("memories")}</span>
+            <ChevronRight size={18} />
           </button>
         </div>
       </div>

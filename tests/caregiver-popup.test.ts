@@ -15,6 +15,7 @@ describe("caregiver phone popups", () => {
     const popup = useCaregiverPopups.getState().popups[0];
     expect(popup.title).toBe("Alex used the watch");
     expect(popup.detail).toBe("Changed watch to Focus mode");
+    expect(popup.level).toBe("awareness");
     expect(popup.urgent).toBe(false);
     expect(
       JSON.parse(localStorage.getItem("wayhome-caregiver-popup-v1") ?? "{}").id,
@@ -26,10 +27,21 @@ describe("caregiver phone popups", () => {
       .getState()
       .notify("SOS sent from the watch", "Urgent help requested", true);
     const popup = useCaregiverPopups.getState().popups[0];
+    expect(popup.level).toBe("urgent");
     expect(popup.urgent).toBe(true);
 
     useCaregiverPopups.getState().dismiss(popup.id);
     expect(useCaregiverPopups.getState().popups).toHaveLength(0);
+  });
+
+  it("supports quiet routine updates without marking them urgent", () => {
+    useCaregiverPopups
+      .getState()
+      .notify("Alex used the watch", "Opened memories", "routine");
+
+    const popup = useCaregiverPopups.getState().popups[0];
+    expect(popup.level).toBe("routine");
+    expect(popup.urgent).toBe(false);
   });
 
   it("keeps only the three newest popups", () => {

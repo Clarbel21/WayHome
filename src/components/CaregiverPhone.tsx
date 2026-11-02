@@ -302,16 +302,22 @@ export function CaregiverPhone() {
 function CaregiverPopupCard({ popup }: { popup: CaregiverPopup }) {
   const dismiss = useCaregiverPopups((state) => state.dismiss);
   useEffect(() => {
-    const timer = window.setTimeout(() => dismiss(popup.id), 5200);
+    const duration =
+      popup.level === "urgent" ? 8000 : popup.level === "routine" ? 2600 : 5000;
+    const timer = window.setTimeout(() => dismiss(popup.id), duration);
     return () => window.clearTimeout(timer);
-  }, [dismiss, popup.id]);
+  }, [dismiss, popup.id, popup.level]);
   return (
     <article
-      className={`phone-action-popup ${popup.urgent ? "urgent" : ""}`}
-      role={popup.urgent ? "alert" : "status"}
+      className={`phone-action-popup level-${popup.level}`}
+      role={popup.level === "urgent" ? "alert" : "status"}
     >
       <span className="phone-popup-icon" aria-hidden="true">
-        {popup.urgent ? <AlertTriangle size={18} /> : <Watch size={18} />}
+        {popup.level === "urgent" ? (
+          <AlertTriangle size={18} />
+        ) : (
+          <Watch size={18} />
+        )}
       </span>
       <span>
         <small>WAYHOME · NOW</small>
@@ -431,6 +437,58 @@ function PhoneToday() {
       </section>
 
       {!isEmergency && (
+        <section
+          className="phone-location-card phone-location-primary"
+          aria-label="Simulated location overview"
+        >
+          <ZoneMap />
+          <div className="location-caption">
+            <MapPin size={17} />
+            <div>
+              <strong>{t("lastKnown")}</strong>
+              <small>
+                {zone.distanceM > 0
+                  ? `About ${(zone.distanceM / 1000).toFixed(2)} km from home (simulated)`
+                  : simulatedLocation(s.position)}
+              </small>
+              <small>
+                Simulated GPS confidence ·{" "}
+                {Math.round(s.signals.gpsConfidence * 100)}%
+              </small>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {!isEmergency && (
+        <section className="phone-quick-actions" aria-label="Caregiver actions">
+          <button className="button" disabled={waiting} onClick={sendCheckIn}>
+            {t("sendCheckIn")}
+          </button>
+          <button
+            className={`button light ${find.ringing ? "is-ringing" : ""}`}
+            disabled={!s.connected && !find.ringing}
+            title={!s.connected ? t("findOffline") : undefined}
+            aria-pressed={Boolean(find.ringing)}
+            onClick={() =>
+              find.ringing
+                ? useFind.getState().stop()
+                : useFind.getState().start(s.settings.caregiver)
+            }
+          >
+            {find.ringing ? <BellOff size={16} /> : <BellRing size={16} />}
+            {find.ringing ? t("findStop") : t("findBand")}
+          </button>
+          {waiting && <p>{t("respondFirst")}</p>}
+          {find.ringing && (
+            <p className="phone-find-note" role="status">
+              {t("findNote")}
+            </p>
+          )}
+        </section>
+      )}
+
+      {!isEmergency && (
         <section className="phone-mode-control" aria-label="Watch mode control">
           <header>
             <span className="phone-mode-symbol" aria-hidden="true">
@@ -548,35 +606,6 @@ function PhoneToday() {
                 <p>{t("reassureBody")}</p>
               </>
             )}
-            <div className="phone-action-row">
-              <button
-                className="button"
-                disabled={waiting}
-                onClick={sendCheckIn}
-              >
-                {t("sendCheckIn")}
-              </button>
-              <button
-                className={`button light ${find.ringing ? "is-ringing" : ""}`}
-                disabled={!s.connected && !find.ringing}
-                title={!s.connected ? t("findOffline") : undefined}
-                aria-pressed={Boolean(find.ringing)}
-                onClick={() =>
-                  find.ringing
-                    ? useFind.getState().stop()
-                    : useFind.getState().start(s.settings.caregiver)
-                }
-              >
-                {find.ringing ? <BellOff size={16} /> : <BellRing size={16} />}
-                {find.ringing ? t("findStop") : t("findBand")}
-              </button>
-            </div>
-            {waiting && <p>{t("respondFirst")}</p>}
-            {find.ringing && (
-              <p className="phone-find-note" role="status">
-                {t("findNote")}
-              </p>
-            )}
           </section>
           {s.mode === "GUIDED_RETURN" && zone.guideStartM !== null && (
             <ZoneLadder />
@@ -590,27 +619,6 @@ function PhoneToday() {
           {t("lowBattery", { n: s.battery, wearer: first })}
         </p>
       )}
-      <section
-        className="phone-location-card"
-        aria-label="Simulated location overview"
-      >
-        <ZoneMap />
-        <div className="location-caption">
-          <MapPin size={17} />
-          <div>
-            <strong>{t("lastKnown")}</strong>
-            <small>
-              {zone.distanceM > 0
-                ? `About ${(zone.distanceM / 1000).toFixed(2)} km from home (simulated)`
-                : simulatedLocation(s.position)}
-            </small>
-            <small>
-              Simulated GPS confidence ·{" "}
-              {Math.round(s.signals.gpsConfidence * 100)}%
-            </small>
-          </div>
-        </div>
-      </section>
       <div className="phone-readings four">
         <div className={s.connected ? "ok" : "bad"}>
           <Wifi size={17} />

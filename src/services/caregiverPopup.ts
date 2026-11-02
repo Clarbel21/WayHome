@@ -6,11 +6,18 @@ export type CaregiverPopup = {
   detail: string;
   time: number;
   urgent: boolean;
+  level: CaregiverPopupLevel;
 };
+
+export type CaregiverPopupLevel = "routine" | "awareness" | "urgent";
 
 type CaregiverPopupState = {
   popups: CaregiverPopup[];
-  notify: (title: string, detail: string, urgent?: boolean) => void;
+  notify: (
+    title: string,
+    detail: string,
+    level?: CaregiverPopupLevel | boolean,
+  ) => void;
   dismiss: (id: string) => void;
   clear: () => void;
 };
@@ -28,13 +35,20 @@ function addPopup(popup: CaregiverPopup) {
 
 export const useCaregiverPopups = create<CaregiverPopupState>((set) => ({
   popups: [],
-  notify: (title, detail, urgent = false) => {
+  notify: (title, detail, requestedLevel = "awareness") => {
+    const level =
+      typeof requestedLevel === "boolean"
+        ? requestedLevel
+          ? "urgent"
+          : "awareness"
+        : requestedLevel;
     const popup: CaregiverPopup = {
       id: crypto.randomUUID(),
       title,
       detail,
       time: Date.now(),
-      urgent,
+      urgent: level === "urgent",
+      level,
     };
     addPopup(popup);
     try {
@@ -54,7 +68,11 @@ if (typeof window !== "undefined") {
   window.addEventListener("storage", (event) => {
     if (event.key !== KEY || !event.newValue) return;
     try {
-      const popup = JSON.parse(event.newValue) as CaregiverPopup;
+      const stored = JSON.parse(event.newValue) as CaregiverPopup;
+      const popup = {
+        ...stored,
+        level: stored.level ?? (stored.urgent ? "urgent" : "awareness"),
+      };
       if (Date.now() - popup.time < 15000) addPopup(popup);
     } catch {
       /* Ignore malformed cross-tab messages. */
