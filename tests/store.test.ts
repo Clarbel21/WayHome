@@ -68,6 +68,22 @@ describe("deterministic wearable simulation", () => {
 });
 
 describe("emergency priority and personalization", () => {
+  it("notifies the caregiver only when the wearer changes interface mode", () => {
+    const s = useStore.getState();
+    s.setExperienceMode("focus", "caregiver");
+    expect(useStore.getState().settings.experienceMode).toBe("focus");
+    expect(useStore.getState().alerts).toHaveLength(0);
+
+    s.setExperienceMode("dialogue", "wearer");
+    const changed = useStore.getState();
+    expect(changed.settings.experienceMode).toBe("dialogue");
+    expect(changed.alerts[0]).toMatchObject({
+      title: "Alex Chen changed the watch to Dialogue mode",
+      read: false,
+      urgent: false,
+    });
+  });
+
   it("logs SOS immediately from every S0–S5 state and keeps S5 latched", () => {
     const modes = [
       "NORMAL",

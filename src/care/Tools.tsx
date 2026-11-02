@@ -426,7 +426,7 @@ export function PhoneSettings() {
               type="button"
               key={profile.id}
               aria-pressed={s.settings.experienceMode === profile.id}
-              onClick={() => s.settingsUpdate({ experienceMode: profile.id })}
+              onClick={() => s.setExperienceMode(profile.id, "caregiver")}
             >
               <strong>{profile.name} mode</strong>
               <small>{profile.detail}</small>
@@ -434,7 +434,9 @@ export function PhoneSettings() {
           ))}
         </div>
         <small>
-          Safety check-ins and SOS remain available in every interface.
+          The wearer can also change this on the watch. You will receive an
+          update when they do. Safety check-ins and SOS remain available in
+          every interface.
         </small>
       </fieldset>
       {(

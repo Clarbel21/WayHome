@@ -550,6 +550,44 @@
   font-weight: 800;
   letter-spacing: 0.12em;
 }
+.watch-area .watch .watch-screen.wos .wos-mode-picker > strong {
+  font-size: 18px;
+  margin: 4px 0 7px;
+}
+.watch-area .watch .watch-screen.wos .wos-mode-choice {
+  min-height: 54px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 14px;
+  text-align: left;
+}
+.watch-area .watch .watch-screen.wos .wos-mode-choice[aria-pressed="true"] {
+  background: #dce8d2;
+  color: var(--wh-forest);
+  box-shadow: inset 4px 0 0 var(--wh-forest);
+}
+.watch-area .watch .watch-screen.wos .wos-mode-choice small {
+  font-size: 11px;
+  opacity: 0.82;
+}
+.watch-area .watch .watch-screen.wos .wos-mode-button {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-right: auto;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: transparent;
+  color: #405b4c;
+  box-shadow: inset 0 0 0 1px #cbd7c7;
+  font-size: 10.5px;
+  font-weight: 700;
+}
 .watch-area .watch .watch-screen.wos .wos-focus-home {
   gap: 7px;
 }

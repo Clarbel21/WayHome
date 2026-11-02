@@ -279,7 +279,7 @@
     margin-left: 8px;
   }
   .shared-experience:not(.large-text) .shared-devices {
-    grid-template-columns: minmax(0, 0.45fr) minmax(0, 0.55fr);
+    grid-template-columns: minmax(0, 0.55fr) minmax(0, 0.45fr);
     align-items: stretch;
     gap: clamp(24px, 4vw, 70px);
     width: min(100%, 1150px);

@@ -876,11 +876,22 @@ function Companion() {
         </div>
         <div className="shared-devices">
           <section
+            className="caregiver-interface"
+            aria-labelledby="caregiver-view-title"
+          >
+            <div className="device-caption">
+              <span>01 / CAREGIVER</span>
+              <h2 id="caregiver-view-title">{t("littleCloser")}</h2>
+              <p>{s.settings.caregiver}'s phone interface</p>
+            </div>
+            <CaregiverPhone />
+          </section>
+          <section
             className="wearer-interface"
             aria-labelledby="wearer-view-title"
           >
             <div className="device-caption">
-              <span>01 / COMPANION</span>
+              <span>02 / COMPANION</span>
               <h2 id="wearer-view-title" tabIndex={-1}>
                 {t("familiarFriend")}
               </h2>
@@ -913,17 +924,6 @@ function Companion() {
                 open caregiver review.
               </p>
             )}
-          </section>
-          <section
-            className="caregiver-interface"
-            aria-labelledby="caregiver-view-title"
-          >
-            <div className="device-caption">
-              <span>02 / CAREGIVER</span>
-              <h2 id="caregiver-view-title">{t("littleCloser")}</h2>
-              <p>{s.settings.caregiver}'s phone interface</p>
-            </div>
-            <CaregiverPhone />
           </section>
         </div>
         <div className="stage-toolbar">
@@ -1083,14 +1083,14 @@ function Guided() {
         </section>
         <section className="card demo-twin guided-devices">
           <div>
-            <div className="eyebrow">WHAT ALEX SEES</div>
-            <Wearable compact />
-          </div>
-          <div>
             <div className="eyebrow">
               WHAT {s.settings.caregiver.split(" ")[0].toUpperCase()} SEES
             </div>
             <CaregiverPhone />
+          </div>
+          <div>
+            <div className="eyebrow">WHAT ALEX SEES</div>
+            <Wearable compact />
           </div>
         </section>
       </div>

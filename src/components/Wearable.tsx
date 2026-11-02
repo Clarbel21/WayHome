@@ -17,6 +17,7 @@ import {
   Sparkles,
   HandHelping,
   MapPin,
+  SlidersHorizontal,
   ArrowUp,
   CornerUpRight,
   CornerUpLeft,
@@ -50,10 +51,14 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const t = useT();
   const location = useLocation();
   const [talk, setTalk] = useState<TalkReply | null>(null);
+  const [showModePicker, setShowModePicker] = useState(false);
   const [arrived, setArrived] = useState(false);
   const prevMode = useRef(s.mode);
   useEffect(() => {
-    if (s.mode !== "NORMAL") setTalk(null);
+    if (s.mode !== "NORMAL") {
+      setTalk(null);
+      setShowModePicker(false);
+    }
     if (
       prevMode.current === "GUIDED_RETURN" &&
       s.mode === "NORMAL" &&
@@ -622,6 +627,51 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         </button>
       </div>
     );
+  } else if (showModePicker) {
+    screenKey = "choose-experience-mode";
+    const choices = [
+      {
+        id: "normal" as const,
+        label: t("normalMode"),
+        hint: t("normalModeHint"),
+      },
+      {
+        id: "focus" as const,
+        label: t("focusMode"),
+        hint: t("focusModeHint"),
+      },
+      {
+        id: "dialogue" as const,
+        label: t("dialogueMode"),
+        hint: t("dialogueModeHint", { companion: name }),
+      },
+    ];
+    screen = (
+      <div className="wos-center wos-mode-picker">
+        <SlidersHorizontal size={27} aria-hidden="true" />
+        <strong>{t("chooseMode")}</strong>
+        <div className="watch-controls wos-list">
+          {choices.map((choice) => (
+            <button
+              key={choice.id}
+              className="watch-action wos-mode-choice"
+              aria-pressed={experienceMode === choice.id}
+              onClick={() => {
+                s.setExperienceMode(choice.id, "wearer");
+                setTalk(null);
+                setShowModePicker(false);
+              }}
+            >
+              <strong>{choice.label}</strong>
+              <small>{choice.hint}</small>
+            </button>
+          ))}
+          <button className="wos-back" onClick={() => setShowModePicker(false)}>
+            <ChevronLeft size={16} /> {t("backHome")}
+          </button>
+        </div>
+      </div>
+    );
   } else if (experienceMode === "focus") {
     screenKey = "focus-home";
     screen = (
@@ -779,6 +829,14 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             {screen}
           </div>
           <div className="wos-footer">
+          {s.mode === "NORMAL" && !watchUi.memories && !showModePicker && (
+              <button
+                className="wos-mode-button"
+                onClick={() => setShowModePicker(true)}
+              >
+                <SlidersHorizontal size={14} /> {t("changeMode")}
+              </button>
+            )}
             {s.guidanceActive &&
               s.mode !== "GUIDED_RETURN" &&
               s.mode !== "EMERGENCY_SIMULATED" && (

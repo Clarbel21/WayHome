@@ -185,6 +185,7 @@ export interface FamilyRequest {
   acknowledgedAt?: number;
   respondedAt?: number;
 }
+export type ExperienceMode = "normal" | "focus" | "dialogue";
 interface Settings {
   repeatCheckInSeconds: number;
   nonurgentCheckInSeconds: number;
@@ -198,7 +199,7 @@ interface Settings {
   notifications: boolean;
   largeText: boolean;
   reducedMotion: boolean;
-  experienceMode: "normal" | "focus" | "dialogue";
+  experienceMode: ExperienceMode;
 }
 interface State {
   recordActivity: (title: string) => void;
@@ -267,6 +268,10 @@ interface State {
   saveLandmark: (landmark: Landmark) => void;
   deleteLandmark: (id: string) => void;
   settingsUpdate: (patch: Partial<Settings>) => void;
+  setExperienceMode: (
+    mode: ExperienceMode,
+    source?: "caregiver" | "wearer",
+  ) => void;
 }
 function landmarkUpdate(s: State, landmarks: Landmark[]): Partial<State> {
   const target = s.landmarks.filter(navigable)[s.guideIndex]?.id;
@@ -1195,6 +1200,24 @@ export const useStore = create<State>()(
         ),
       settingsUpdate: (patch) =>
         set((s) => ({ settings: { ...s.settings, ...patch } })),
+      setExperienceMode: (mode, source = "caregiver") =>
+        set((s) => ({
+          settings: { ...s.settings, experienceMode: mode },
+          ...(source === "wearer"
+            ? {
+                alerts: [
+                  {
+                    id: crypto.randomUUID(),
+                    title: `${s.settings.wearer} changed the watch to ${mode[0].toUpperCase()}${mode.slice(1)} mode`,
+                    time: Date.now(),
+                    read: false,
+                    urgent: false,
+                  },
+                  ...s.alerts,
+                ].slice(0, 100),
+              }
+            : {}),
+        })),
     }),
     {
       name: "wayhome-v1",
