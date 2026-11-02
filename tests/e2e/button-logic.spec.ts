@@ -32,9 +32,7 @@ test("help has a working way back and a blocked check-in offers recovery", async
     });
   for (const contrast of contrasts)
     expect(contrast).toBeGreaterThanOrEqual(4.5);
-  await page
-    .getByRole("button", { name: "Back to check-in", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Go back", exact: true }).click();
   await expect(
     page.getByText("How are you feeling?", { exact: true }),
   ).toBeVisible();
@@ -88,7 +86,7 @@ test("removal handover provides a request, response and device recovery path", a
   await page.getByRole("button", { name: /Simulate Wearable Removal/ }).click();
   await page.goto("/#/companion");
   await page
-    .getByRole("button", { name: "Contact my family", exact: true })
+    .getByRole("button", { name: "Call someone I trust", exact: true })
     .click();
   await expect(
     page.getByText("Waiting for caregiver response", { exact: true }),
@@ -166,7 +164,7 @@ test("withdrawing a landmark stops recognition across tabs instead of silently s
     page.getByRole("button", { name: "I see it", exact: true }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "Contact my family", exact: true }),
+    page.getByRole("button", { name: "Call someone I trust", exact: true }),
   ).toBeVisible();
 });
 

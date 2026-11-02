@@ -129,7 +129,7 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
           Practice is paused while a safety check is open. Your place is kept.
         </p>
         <button className="memory-choice quiet" onClick={onExit}>
-          Back to my garden
+          Back to my memories
         </button>
       </div>
     );
@@ -143,7 +143,7 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
           can add them under Familiar landmarks.
         </p>
         <button className="memory-choice quiet" onClick={onExit}>
-          Back to my garden
+          Back to my memories
         </button>
       </div>
     );
@@ -192,7 +192,7 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
           </button>
         </div>
         <button className="text-button" onClick={onExit}>
-          <ArrowLeft size={16} /> {watch ? "Back" : "Back to my garden"}
+          <ArrowLeft size={16} /> {watch ? "Go back" : "Back to my memories"}
         </button>
       </div>
     );
@@ -244,7 +244,7 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
                 : setStage({ name: "walk", step: i - 1 })
             }
           >
-            <ArrowLeft size={18} /> Back
+            <ArrowLeft size={18} /> Go back
           </button>
           {last ? (
             <button className="memory-choice" onClick={startQuiz}>
@@ -302,7 +302,7 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
             Practice again
           </button>
           <button className="memory-choice quiet" onClick={onExit}>
-            {watch ? "Done" : "Back to my garden"}
+            {watch ? "I'm done" : "Back to my memories"}
           </button>
         </div>
       </div>
@@ -512,7 +512,7 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
         </div>
       )}
       <button className="text-button" onClick={onExit}>
-        <House size={16} /> {watch ? "Stop" : "Stop for now"}
+        <House size={16} /> {watch ? "I know my way" : "I'm done for now"}
       </button>
     </div>
   );

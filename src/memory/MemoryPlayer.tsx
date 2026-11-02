@@ -419,13 +419,14 @@ export function MemoryActivityPlayer() {
               : "A keepsake has grown in your garden."}
           </p>
           <button className="memory-choice" onClick={m.home}>
-            {watch ? "Done" : "Back to my memories"} <ArrowRight size={18} />
+            {watch ? "I'm done" : "Back to my memories"}{" "}
+            <ArrowRight size={18} />
           </button>
         </div>
       )}
       {!done && (
         <button className="text-button memory-skip" onClick={m.skip}>
-          {watch ? "Skip" : "Skip this activity — that's okay"}
+          {watch ? "Maybe later" : "Maybe later — that's okay"}
         </button>
       )}
     </>
@@ -531,7 +532,7 @@ export function MemoryGardenExperience({
             <Wearable compact={embedded} />
             {!embedded && (
               <Link className="button light" to="/companion">
-                Back to Companion Mode
+                Back to my companion
               </Link>
             )}
           </>
@@ -554,7 +555,7 @@ export function MemoryGardenExperience({
               }}
             >
               <ArrowLeft size={18} />
-              {onWatch ? "Back" : "Back to memories"}
+              {onWatch ? "Go back" : "Back to my memories"}
             </button>
           ) : onWatch ? (
             <button
@@ -570,7 +571,7 @@ export function MemoryGardenExperience({
           ) : (
             <Link className="text-button" to={parent} onClick={m.exit}>
               <ArrowLeft size={18} />
-              Back to wearable
+              Back to my watch
             </Link>
           )}
           {onWatch ? null : !embedded ? (

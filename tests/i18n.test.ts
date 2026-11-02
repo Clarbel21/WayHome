@@ -45,4 +45,11 @@ describe("language layer", () => {
     expect(timeAgo("en", now - 5 * 60_000, now)).toBe("5 min ago");
     expect(timeAgo("id", now - 5 * 60_000, now)).toBe("5 mnt lalu");
   });
+
+  it("uses calm, first-person wording for wearer choices", () => {
+    expect(translate("en", "cancelGuidance")).toBe("I know my way");
+    expect(translate("en", "helpConfused")).toBe("I'm not sure where I am");
+    expect(translate("en", "returnHome")).toBe("Maybe later");
+    expect(translate("id", "cancelGuidance")).toBe("Saya tahu jalannya");
+  });
 });

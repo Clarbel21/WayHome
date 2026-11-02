@@ -253,7 +253,7 @@ test("optional recommendations reflect caregiver choices without starting a game
   await page
     .getByRole("button", { name: "Familiar Faces", exact: true })
     .click();
-  await page.getByRole("button", { name: "Skip", exact: true }).click();
+  await page.getByRole("button", { name: "Maybe later", exact: true }).click();
   await expect(page.locator(".tile-suggested")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Familiar Faces", exact: true }),

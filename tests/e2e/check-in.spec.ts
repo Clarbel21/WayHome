@@ -28,12 +28,16 @@ test("help, recognition and failed recognition stop guidance", async ({
 }) => {
   await start(page);
   await page.getByRole("button", { name: "I need help", exact: true }).click();
-  for (const label of ["Help me get home", "Contact my family", "I'm confused"])
+  for (const label of [
+    "Please guide me home",
+    "Call someone I trust",
+    "I'm not sure where I am",
+  ])
     await expect(
       page.getByRole("button", { name: label, exact: true }),
     ).toBeVisible();
   await page
-    .getByRole("button", { name: "Help me get home", exact: true })
+    .getByRole("button", { name: "Please guide me home", exact: true })
     .click();
   await expect(
     page.getByText("Community garden", { exact: true }),
@@ -60,7 +64,7 @@ test("family handover acknowledgment and simulated response synchronize tabs", a
   await start(page);
   await page.getByRole("button", { name: "I need help", exact: true }).click();
   await page
-    .getByRole("button", { name: "Contact my family", exact: true })
+    .getByRole("button", { name: "Call someone I trust", exact: true })
     .click();
   await expect(
     page.getByText("Waiting for caregiver response", { exact: true }),
@@ -94,7 +98,9 @@ test("confusion offers support without a recognition test", async ({
 }) => {
   await start(page);
   await page.getByRole("button", { name: "I need help", exact: true }).click();
-  await page.getByRole("button", { name: "I'm confused", exact: true }).click();
+  await page
+    .getByRole("button", { name: "I'm not sure where I am", exact: true })
+    .click();
   await expect(
     page.getByText(
       "It's okay to feel unsure. Take your time. I'm here with you.",
@@ -103,7 +109,7 @@ test("confusion offers support without a recognition test", async ({
   ).toBeVisible();
   await expect(page.locator(".watch-landmark img")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Contact my family", exact: true }),
+    page.getByRole("button", { name: "Call someone I trust", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "I see it", exact: true }),

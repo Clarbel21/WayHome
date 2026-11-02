@@ -75,7 +75,7 @@ test("guided walk shows stop progress and ends on a welcome-home screen", async 
     await w.getByRole("button", { name: "I see it", exact: true }).click();
   await expect(w.getByText("Welcome home.", { exact: true })).toBeVisible();
   await w
-    .getByRole("button", { name: "Back to wearable home", exact: true })
+    .getByRole("button", { name: "Back to my watch", exact: true })
     .click();
   await expect(
     w.getByRole("button", { name: "Go home", exact: true }),

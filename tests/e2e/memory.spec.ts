@@ -350,7 +350,7 @@ test("cross-tab safety interrupts and preserves routine; renaming, skipping and 
   // Safety owns the watch: the Memory Garden steps aside for guidance.
   await expect(wearer.locator(".wos-memories")).toHaveCount(0);
   await expect(
-    wearer.getByRole("button", { name: "Cancel guidance", exact: true }),
+    wearer.getByRole("button", { name: "I know my way", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: /Trigger Simulated SOS/ }).click();
   await expect(
@@ -373,7 +373,9 @@ test("cross-tab safety interrupts and preserves routine; renaming, skipping and 
   await expect(
     wearer.getByRole("listitem").filter({ hasText: "Take your keys" }),
   ).toBeVisible();
-  await wearer.getByRole("button", { name: "Skip", exact: true }).click();
+  await wearer
+    .getByRole("button", { name: "Maybe later", exact: true })
+    .click();
   await expect(
     wearer.getByRole("img", { name: /has 0 keepsakes/ }),
   ).toBeVisible();

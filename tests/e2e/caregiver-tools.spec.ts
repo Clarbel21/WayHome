@@ -173,11 +173,9 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
     .click();
   await page.getByRole("button", { name: "I'm okay", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Open Memory Garden", exact: true }),
+    page.getByRole("button", { name: "Look at my memories", exact: true }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Return to wearable home", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Maybe later", exact: true }).click();
   await page.getByRole("button", { name: "Talk", exact: true }).click();
   await page
     .getByRole("button", { name: "Something comforting", exact: true })
@@ -188,7 +186,7 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
     }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Back to wearable home", exact: true })
+    .getByRole("button", { name: "Back to my watch", exact: true })
     .click();
   // Memories open on the watch itself and close back to the watch home.
   await page.getByRole("button", { name: "Memories", exact: true }).click();
@@ -215,13 +213,13 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
     .getByRole("button", { name: "Simulate low GPS confidence", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Cancel guidance", exact: true }),
+    page.getByRole("button", { name: "I know my way", exact: true }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Cancel guidance", exact: true })
+    .getByRole("button", { name: "I know my way", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Cancel guidance", exact: true }),
+    page.getByRole("button", { name: "I know my way", exact: true }),
   ).toHaveCount(0);
   await expect(
     page.getByText(
@@ -335,12 +333,12 @@ for (const [width, height] of [
     await page.getByRole("button", { name: "I'm okay", exact: true }).click();
     await fits();
     await page
-      .getByRole("button", { name: "Return to wearable home", exact: true })
+      .getByRole("button", { name: "Maybe later", exact: true })
       .click();
     await page.getByRole("button", { name: "Go home", exact: true }).click();
     await fits();
     await page
-      .getByRole("button", { name: "Cancel guidance", exact: true })
+      .getByRole("button", { name: "I know my way", exact: true })
       .click();
     await page
       .getByRole("button", { name: "Send a check-in", exact: true })

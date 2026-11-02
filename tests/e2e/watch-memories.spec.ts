@@ -37,7 +37,7 @@ test("Memory Garden runs on the watch screen and steps aside for safety", async 
   await care.getByRole("button", { name: /Start Guided Return/ }).click();
   await expect(page.locator(".wos-memories")).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "Cancel guidance", exact: true }),
+    page.getByRole("button", { name: "I know my way", exact: true }),
   ).toBeVisible();
 });
 
