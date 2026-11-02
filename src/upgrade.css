@@ -3062,3 +3062,54 @@
   gap: 6px;
   margin-top: 6px;
 }
+
+/* Final contrast and device-scale correction. Keep this after the legacy
+   watch rules so generic primary-button colors cannot leak into light cards. */
+.shared-experience .watch-area .watch .watch-screen.wos .wos-mode-choice {
+  color: #173328;
+  background: #f8faf5;
+  border-color: #cbd8c5;
+}
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-mode-choice
+  strong {
+  color: #173328;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-mode-choice small {
+  color: #52685e;
+  opacity: 1;
+}
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-mode-choice[aria-pressed="true"] {
+  color: #173328;
+  background: #dce8d2;
+  border-color: #789878;
+}
+
+/* A watch should read as a watch—not a second phone. The caregiver phone
+   remains the larger device in both side-by-side and stacked presentations. */
+.shared-experience:not(.large-text) .watch-area {
+  width: min(100%, 300px);
+  max-width: 300px;
+}
+.shared-experience:not(.large-text) .explore-memories {
+  width: min(100%, 300px);
+}
+@media (min-width: 760px) {
+  .shared-experience:not(.large-text) .shared-devices {
+    grid-template-columns: minmax(320px, 1.1fr) minmax(280px, 0.9fr);
+    gap: clamp(26px, 4vw, 56px);
+  }
+}
+@media (max-width: 759px) {
+  .shared-experience:not(.large-text) .watch-area,
+  .shared-experience:not(.large-text) .explore-memories {
+    width: min(100%, 300px);
+  }
+}
