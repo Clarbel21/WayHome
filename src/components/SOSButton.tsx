@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store";
 import { useT } from "../i18n";
+import { useCaregiverPopups } from "../services/caregiverPopup";
 export function SOSButton() {
   const event = useStore((s) => s.event);
   const t = useT();
@@ -35,6 +36,9 @@ export function SOSButton() {
       if (!sent.current) {
         sent.current = true;
         event("SOS");
+        useCaregiverPopups
+          .getState()
+          .notify("SOS sent from the watch", "Urgent help requested", true);
       }
       cancel();
     }, 2000);
@@ -47,12 +51,16 @@ export function SOSButton() {
     ) {
       sent.current = true;
       event("SOS");
+      useCaregiverPopups
+        .getState()
+        .notify("SOS sent from the watch", "Urgent help requested", true);
     }
     cancel();
   };
   return (
     <button
       className={`sos-hold ${holding ? "holding" : ""}`}
+      data-caregiver-skip-notification="true"
       onPointerDown={(e) => {
         if (e.button !== 0 || !e.isPrimary) return;
         e.currentTarget.setPointerCapture(e.pointerId);

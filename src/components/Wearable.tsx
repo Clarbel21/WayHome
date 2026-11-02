@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import {
   Battery,
   BatteryLow,
@@ -39,6 +39,7 @@ import { ResolveSOSButton } from "./ResolveSOSButton";
 import { SOSButton } from "./SOSButton";
 import { Sprout } from "./Sprout";
 import { useLang, useT, modeMessage, noteText } from "../i18n";
+import { useCaregiverPopups } from "../services/caregiverPopup";
 export { Photo } from "./Photo";
 
 type TalkReply = "intro" | "comfort" | "where" | "who" | "nice";
@@ -140,6 +141,25 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const name = s.settings.companionName;
   const caregiver = s.settings.caregiver;
   const experienceMode = s.settings.experienceMode;
+  const reportWatchAction = (label: string, urgent = false) =>
+    useCaregiverPopups
+      .getState()
+      .notify(`${wearerFirst} used the watch`, label, urgent);
+  const captureWatchAction = (event: MouseEvent<HTMLDivElement>) => {
+    const button = (event.target as HTMLElement).closest("button");
+    if (
+      !button ||
+      button.disabled ||
+      button.dataset.caregiverSkipNotification === "true"
+    )
+      return;
+    const label =
+      button.dataset.caregiverAction ||
+      button.getAttribute("aria-label") ||
+      button.textContent?.replace(/\s+/g, " ").trim();
+    if (!label) return;
+    reportWatchAction(label.slice(0, 90), /SOS|help|call/i.test(label));
+  };
   const guidanceBlocked =
     !s.connected || !s.worn || s.signals.gpsConfidence < 0.6;
   useEffect(() => {
@@ -634,38 +654,53 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         id: "normal" as const,
         label: t("normalMode"),
         hint: t("normalModeHint"),
+        icon: Heart,
       },
       {
         id: "focus" as const,
         label: t("focusMode"),
         hint: t("focusModeHint"),
+        icon: ArrowUp,
       },
       {
         id: "dialogue" as const,
         label: t("dialogueMode"),
         hint: t("dialogueModeHint", { companion: name }),
+        icon: MessageCircle,
       },
     ];
     screen = (
       <div className="wos-center wos-mode-picker">
         <SlidersHorizontal size={27} aria-hidden="true" />
         <strong>{t("chooseMode")}</strong>
+        <small className="wos-mode-notice">{t("modeChangeNotice")}</small>
         <div className="watch-controls wos-list">
-          {choices.map((choice) => (
-            <button
-              key={choice.id}
-              className="watch-action wos-mode-choice"
-              aria-pressed={experienceMode === choice.id}
-              onClick={() => {
-                s.setExperienceMode(choice.id, "wearer");
-                setTalk(null);
-                setShowModePicker(false);
-              }}
-            >
-              <strong>{choice.label}</strong>
-              <small>{choice.hint}</small>
-            </button>
-          ))}
+          {choices.map((choice) => {
+            const Icon = choice.icon;
+            const selected = experienceMode === choice.id;
+            return (
+              <button
+                key={choice.id}
+                className="watch-action wos-mode-choice"
+                aria-pressed={selected}
+                data-caregiver-action={`Changed watch to ${choice.label} mode`}
+                onClick={() => {
+                  s.setExperienceMode(choice.id, "wearer");
+                  setTalk(null);
+                  setShowModePicker(false);
+                }}
+              >
+                <span className="wos-mode-choice-icon">
+                  <Icon size={17} />
+                </span>
+                <span>
+                  <strong>{choice.label}</strong>
+                  <small>{choice.hint}</small>
+                </span>
+                {selected && <Check size={16} className="wos-mode-check" />}
+              </button>
+            );
+          })}
           <button className="wos-back" onClick={() => setShowModePicker(false)}>
             <ChevronLeft size={16} /> {t("backHome")}
           </button>
@@ -786,6 +821,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   return (
     <div
       className={`watch-area mode-${s.mode.toLowerCase()} experience-${experienceMode} ${s.attachment} ${compact ? "compact" : ""} ${buzzing ? "buzz" : ""} ${ringing ? "find-ring" : ""} ${zonePrompt ? "zone-alert" : ""}`}
+      onClickCapture={captureWatchAction}
     >
       <div className="watch-strap top" />
       <div className="watch" ref={watchRef}>
@@ -829,7 +865,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             {screen}
           </div>
           <div className="wos-footer">
-          {s.mode === "NORMAL" && !watchUi.memories && !showModePicker && (
+            {s.mode === "NORMAL" && !watchUi.memories && !showModePicker && (
               <button
                 className="wos-mode-button"
                 onClick={() => setShowModePicker(true)}

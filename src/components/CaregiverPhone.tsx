@@ -12,6 +12,10 @@ import {
 } from "../memory/MemoryLibrary";
 import { useCare } from "../care/store";
 import { useFind } from "../services/find";
+import {
+  useCaregiverPopups,
+  type CaregiverPopup,
+} from "../services/caregiverPopup";
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -31,6 +35,10 @@ import {
   SlidersHorizontal,
   History,
   Settings,
+  Watch,
+  X,
+  MessageCircle,
+  ArrowUp,
 } from "lucide-react";
 import { status, useStore, simulatedLocation, navigable } from "../store";
 import { useLang, useT, timeAgo } from "../i18n";
@@ -123,6 +131,7 @@ export function CaregiverPhone() {
             <Battery size={17} />
           </span>
         </div>
+        <CaregiverPopupLayer />
         {view !== "today" && (isEmergency || waiting) && (
           <button
             className={`phone-priority-banner ${isEmergency ? "emergency" : ""}`}
@@ -290,6 +299,48 @@ export function CaregiverPhone() {
   );
 }
 
+function CaregiverPopupCard({ popup }: { popup: CaregiverPopup }) {
+  const dismiss = useCaregiverPopups((state) => state.dismiss);
+  useEffect(() => {
+    const timer = window.setTimeout(() => dismiss(popup.id), 5200);
+    return () => window.clearTimeout(timer);
+  }, [dismiss, popup.id]);
+  return (
+    <article
+      className={`phone-action-popup ${popup.urgent ? "urgent" : ""}`}
+      role={popup.urgent ? "alert" : "status"}
+    >
+      <span className="phone-popup-icon" aria-hidden="true">
+        {popup.urgent ? <AlertTriangle size={18} /> : <Watch size={18} />}
+      </span>
+      <span>
+        <small>WAYHOME · NOW</small>
+        <strong>{popup.title}</strong>
+        <p>{popup.detail}</p>
+      </span>
+      <button
+        type="button"
+        aria-label="Dismiss notification"
+        onClick={() => dismiss(popup.id)}
+      >
+        <X size={15} />
+      </button>
+    </article>
+  );
+}
+
+function CaregiverPopupLayer() {
+  const popups = useCaregiverPopups((state) => state.popups);
+  if (!popups.length) return null;
+  return (
+    <div className="phone-popup-layer" aria-live="polite">
+      {popups.slice(0, 2).map((popup) => (
+        <CaregiverPopupCard key={popup.id} popup={popup} />
+      ))}
+    </div>
+  );
+}
+
 const statusId: Record<string, string> = {
   "No active alerts": "Tidak ada peringatan",
   "Check-in Needed": "Perlu disapa",
@@ -378,6 +429,40 @@ function PhoneToday() {
           <span className="phone-live-dot" aria-hidden="true" />
         )}
       </section>
+
+      {!isEmergency && (
+        <section className="phone-mode-control" aria-label="Watch mode control">
+          <header>
+            <span className="phone-mode-symbol" aria-hidden="true">
+              <SlidersHorizontal size={16} />
+            </span>
+            <span>
+              <strong>Watch experience</strong>
+              <small>Chosen by caregiver · wearer changes are reported</small>
+            </span>
+          </header>
+          <div className="phone-mode-options">
+            {(
+              [
+                ["normal", "Normal", Heart],
+                ["focus", "Focus", ArrowUp],
+                ["dialogue", "Dialogue", MessageCircle],
+              ] as const
+            ).map(([id, label, Icon]) => (
+              <button
+                type="button"
+                key={id}
+                aria-pressed={s.settings.experienceMode === id}
+                onClick={() => s.setExperienceMode(id, "caregiver")}
+              >
+                <Icon size={15} />
+                <span>{label}</span>
+                {s.settings.experienceMode === id && <Check size={13} />}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {isEmergency ? (
         <section className="phone-action-card urgent">
