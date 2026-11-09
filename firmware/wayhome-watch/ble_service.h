@@ -25,12 +25,19 @@ void publishWearMotion();
 void publishAttachment();
 void publishSos();
 
+// Update the GPS characteristic value without notifying. Used when the
+// wearer walks a step locally: the web reacts to the companion command
+// (0x07) instead, because guided-return steps must pass its safety gates.
+void syncGpsValue();
+
 // Companion-command channel (CHAR_COMPANION_UUID, 2-byte payload):
 //   code 0x02 = wearer answered "I'm okay"        (arg 0)
 //   code 0x03 = wearer chose "I'd like some help" (arg 0)
 //   code 0x04 = wearer picked an assistance option
 //               arg: 0 = guide me home, 1 = call family, 2 = confused
 //   code 0x05 = wearer went back to the question  (arg 0)
+//   code 0x06 = wearer pressed "Help me home"     (arg 0)
+//   code 0x07 = wearer walked a route step (arg = new step index 0-6)
 void publishCheckIn(uint8_t code, uint8_t arg);
 
 // Ask for a full snapshot re-push (used right after a client connects,

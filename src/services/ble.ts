@@ -30,6 +30,8 @@ const CMD_ANSWER_OKAY = 0x02; // watch → web
 const CMD_ANSWER_HELP = 0x03; // watch → web
 const CMD_ASSISTANCE = 0x04; // watch → web, byte1: 0 home, 1 family, 2 confused
 const CMD_BACK_TO_QUESTION = 0x05; // watch → web
+const CMD_GO_HOME = 0x06; // watch → web: "Help me home" pressed
+const CMD_LANDMARK_STEP = 0x07; // watch → web, byte1: new step index 0–6
 const ASSISTANCE_CHOICES = ["home", "family", "confused"] as const;
 
 // --- Pure payload → event mappers (exported for tests) ---
@@ -69,7 +71,8 @@ export function attachmentEvent(value: DataView): DeviceEvent | null {
 
 /**
  * Companion-command payload from the watch: byte0 picks the message.
- * 0x02 okay, 0x03 help, 0x04 assistance (byte1), 0x05 back to question.
+ * 0x02 okay, 0x03 help, 0x04 assistance (byte1), 0x05 back, 0x06 go home,
+ * 0x07 landmark step (byte1 = new step index).
  */
 export function companionEvent(value: DataView): DeviceEvent | null {
   if (value.byteLength < 1) return null;
@@ -85,6 +88,13 @@ export function companionEvent(value: DataView): DeviceEvent | null {
     }
     case CMD_BACK_TO_QUESTION:
       return { type: "checkin_back" };
+    case CMD_GO_HOME:
+      return { type: "go_home" };
+    case CMD_LANDMARK_STEP: {
+      if (value.byteLength < 2) return null;
+      const step = value.getUint8(1);
+      return { type: "landmark_step", step: Math.max(0, Math.min(6, step)) };
+    }
     default:
       return null;
   }

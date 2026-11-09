@@ -142,6 +142,12 @@ void publishGps() {
   if (watch.bleConnected) chrGps->notify();
 }
 
+void syncGpsValue() {
+  if (chrGps == nullptr) return;
+  uint8_t gps = watch.gpsProgress;
+  chrGps->setValue(&gps, 1);
+}
+
 void publishWearMotion() {
   if (chrWearMotion == nullptr) return;
   uint8_t wear = wearMotionByte();

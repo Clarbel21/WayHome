@@ -188,7 +188,13 @@ void tile_cb(lv_event_t *e) {
   if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
   int which = (int)(intptr_t)lv_event_get_user_data(e);
   switch (which) {
-    case 0: refresh_route_widgets(); load_screen(scrRoute); break;
+    case 0:
+      // Tell the web app to start guided return (it applies its own
+      // safety gates); the watch opens the route screen right away.
+      ble::publishCheckIn(0x06, 0);
+      refresh_route_widgets();
+      load_screen(scrRoute);
+      break;
     case 1: load_screen(scrCall); break;
     case 2: load_screen(scrTalk); break;
     default: load_screen(scrMemories); break;
@@ -204,7 +210,10 @@ void walk_step_cb(lv_event_t *e) {
   LV_UNUSED(e);
   if (watch.gpsProgress < 6) {
     watch.gpsProgress++;
-    ble::publishGps();
+    // No gps notify here: guided-return steps on the web must pass its
+    // safety gates, so the web reacts to the companion command instead.
+    ble::syncGpsValue();
+    ble::publishCheckIn(0x07, watch.gpsProgress);
     refresh_route_widgets();
   }
 }

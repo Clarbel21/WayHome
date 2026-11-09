@@ -83,6 +83,16 @@ test("companion payload maps check-in answers and ignores unknown codes", () => 
   expect(companionEvent(view([0x04, 0x09]))).toBeNull(); // unknown choice
   expect(companionEvent(view([0x05]))).toEqual({ type: "checkin_back" });
   expect(companionEvent(view([0x01]))).toBeNull(); // web→watch direction
+  expect(companionEvent(view([0x06]))).toEqual({ type: "go_home" });
+  expect(companionEvent(view([0x07, 3]))).toEqual({
+    type: "landmark_step",
+    step: 3,
+  });
+  expect(companionEvent(view([0x07, 9]))).toEqual({
+    type: "landmark_step",
+    step: 6,
+  }); // clamped
+  expect(companionEvent(view([0x07]))).toBeNull(); // missing step byte
   expect(companionEvent(view([]))).toBeNull();
 });
 
@@ -135,6 +145,36 @@ test("watch check-in answers resolve the same flow as the web wearer screen", ()
   applyDeviceEvent({ type: "checkin_answer", answer: "help" });
   applyDeviceEvent({ type: "checkin_back" });
   expect(state().checkIn?.stage).toBe("question");
+});
+
+test("the watch's Help me home starts guided return and steps advance it", () => {
+  // Guidance only starts for a connected, confidently-worn device.
+  useStore.setState({
+    connected: true,
+    wearStatus: "likely_worn",
+    signals: { ...state().signals, gpsConfidence: 0.9 },
+  });
+
+  applyDeviceEvent({ type: "go_home" });
+  expect(state().mode).toBe("GUIDED_RETURN");
+  expect(state().guideIndex).toBe(0);
+
+  applyDeviceEvent({ type: "landmark_step", step: 1 });
+  expect(state().guideIndex).toBe(1);
+  expect(state().position).toBe(1);
+});
+
+test("a walked step outside guidance just moves the route marker", () => {
+  useStore.setState({
+    connected: true,
+    wearStatus: "likely_worn",
+    signals: { ...state().signals, gpsConfidence: 0.9 },
+    position: 0,
+  });
+
+  applyDeviceEvent({ type: "landmark_step", step: 1 });
+  expect(state().position).toBe(1);
+  expect(state().mode).toBe("NORMAL");
 });
 
 // --- BleDevice against a fake Web Bluetooth stack ---

@@ -9,6 +9,8 @@ export type DeviceEvent =
   | { type: "checkin_answer"; answer: "okay" | "help" }
   | { type: "assistance"; choice: "home" | "family" | "confused" }
   | { type: "checkin_back" }
+  | { type: "go_home" }
+  | { type: "landmark_step"; step: number }
   | { type: "connection"; connected: boolean };
 export interface DeviceService {
   readonly mode: "simulated" | "ble";
@@ -36,6 +38,15 @@ export function applyDeviceEvent(e: DeviceEvent) {
   if (e.type === "checkin_answer") s.answerCheckIn(e.answer);
   if (e.type === "assistance") s.chooseAssistance(e.choice);
   if (e.type === "checkin_back") s.returnToCheckIn();
+  // "Help me home" on the watch starts guided return through the same
+  // path as the web wearer's "Please guide me home" answer.
+  if (e.type === "go_home") s.chooseAssistance("home");
+  // A walked step advances recognition during guided return (respecting
+  // the safety gates); outside guidance it just moves the route marker.
+  if (e.type === "landmark_step") {
+    if (useStore.getState().mode === "GUIDED_RETURN") s.nextLandmark();
+    else s.move();
+  }
   if (e.type === "connection") s.setConnection(e.connected);
 }
 // Default adapter for demos without paired hardware. The watch firmware

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useStore } from "../store";
+import { bleDevice } from "../services/ble";
 export const points: L.LatLngTuple[] = [
   [1.3015, 103.819],
   [1.3024, 103.8198],
@@ -158,7 +159,13 @@ export function RouteMap() {
               s.mode === "EMERGENCY_SIMULATED" ||
               s.signals.gpsConfidence < 0.6
             }
-            onClick={s.move}
+            onClick={() => {
+              s.move();
+              // Keep the paired watch's route screen in sync (no-op unpaired).
+              void bleDevice
+                .writeGpsProgress(useStore.getState().position)
+                .catch(() => {});
+            }}
           >
             Move one step
           </button>
