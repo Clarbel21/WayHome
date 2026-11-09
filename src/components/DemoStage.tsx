@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Footprints,
+  Heart,
   MapPinOff,
   PauseCircle,
   SatelliteDish,
@@ -47,6 +48,16 @@ export function DemoStage() {
     start();
   };
   const moments: Moment[] = [
+    {
+      id: "check-in",
+      label: { en: "Feeling check-in", id: "Sapaan perasaan" },
+      watch: {
+        en: "Answer on the watch. Your response appears on the caregiver's phone.",
+        id: "Jawab di jam. Jawaban Anda muncul di ponsel pendamping.",
+      },
+      icon: Heart,
+      run: () => s.event("CHECK"),
+    },
     {
       id: "zone-out",
       label: { en: "Walk out of safe zone", id: "Keluar zona aman" },
@@ -169,49 +180,46 @@ export function DemoStage() {
       tone: "sos",
     },
   ];
+  const groups = [
+    {
+      label: lang === "id" ? "Momen sehari-hari" : "Everyday moments",
+      ids: ["check-in", "walk", "zone-out", "zone-lost"],
+    },
+    {
+      label:
+        lang === "id" ? "Saat dukungan dibutuhkan" : "A little more support",
+      ids: ["deviation", "inactivity", "gps", "zone-ffwd"],
+    },
+    {
+      label: lang === "id" ? "Perangkat & bantuan" : "Device & assistance",
+      ids: ["remove", "offline", "battery", "sos"],
+    },
+  ];
+  const blocked = (m: Moment) =>
+    (sos && !m.allowedInSos) ||
+    (m.needsCalm && incidentOpen) ||
+    (m.id === "zone-ffwd" && !zone.active);
   return (
     <div className="demo-stage">
-      <div
-        className="demo-stage-chips"
-        role="toolbar"
-        aria-label="Demo moments"
-      >
-        <span className="demo-stage-label">
-          {lang === "id" ? "Coba momen" : "Try a moment"}
-        </span>
-        {moments.map((m) => (
-          <button
-            key={m.id}
-            type="button"
-            className={`demo-chip ${m.tone ?? ""} ${m.id.startsWith("zone") ? "zone" : ""} ${last?.id === m.id ? "active" : ""}`}
-            disabled={
-              (sos && !m.allowedInSos) ||
-              (m.needsCalm && incidentOpen) ||
-              (m.id === "zone-ffwd" && !zone.active)
-            }
-            title={
-              m.needsCalm && incidentOpen
-                ? "Resolve and verify the SOS first (Help received on the watch)"
-                : undefined
-            }
-            onClick={() => {
-              m.run();
-              setLast(m);
-            }}
-          >
-            <m.icon size={15} aria-hidden="true" />
-            {m.label[lang]}
-          </button>
-        ))}
+      <div className="demo-stage-top">
+        <div className="demo-stage-copy">
+          <p>{lang === "id" ? "COBA SENDIRI" : "YOUR TURN TO EXPLORE"}</p>
+          <h2>
+            {lang === "id"
+              ? "Satu momen. Dua sisi."
+              : "One moment. Both sides."}
+          </h2>
+          <span>
+            {lang === "id"
+              ? "Pilih situasi. Lalu coba tombol di perangkat."
+              : "Choose a situation, then try the controls on either device."}
+          </span>
+        </div>
         <button
           type="button"
           className="demo-chip reset"
-          disabled={sos || (!!s.incident && s.incident.stage !== "resolved")}
-          title={
-            sos
-              ? "Resolve and verify the SOS in Emergency Assistance first"
-              : undefined
-          }
+          disabled={incidentOpen}
+          title={incidentOpen ? "Resolve and verify the SOS first" : undefined}
           onClick={() => {
             s.reset();
             setLast(null);
@@ -221,7 +229,66 @@ export function DemoStage() {
           {lang === "id" ? "Atur ulang" : "Reset demo"}
         </button>
       </div>
+      <div
+        className="demo-stage-chips"
+        role="toolbar"
+        aria-label="Demo moments"
+      >
+        {groups.map((group) => (
+          <div
+            className="demo-moment-group"
+            role="group"
+            aria-label={group.label}
+            key={group.label}
+          >
+            <p>{group.label}</p>
+            <div>
+              {group.ids.map((key) => {
+                const m = moments.find((item) => item.id === key)!;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    className={
+                      "demo-chip " +
+                      (m.tone ?? "") +
+                      (last?.id === m.id ? " active" : "")
+                    }
+                    aria-pressed={last?.id === m.id}
+                    disabled={blocked(m)}
+                    title={
+                      m.needsCalm && incidentOpen
+                        ? "Resolve and verify the SOS first (Help received on the watch)"
+                        : undefined
+                    }
+                    onClick={() => {
+                      m.run();
+                      setLast(m);
+                      requestAnimationFrame(() =>
+                        document
+                          .querySelector(".demo-redesign .shared-devices")
+                          ?.scrollIntoView({
+                            block: "start",
+                            behavior: s.settings.reducedMotion
+                              ? "instant"
+                              : "smooth",
+                          }),
+                      );
+                    }}
+                  >
+                    <m.icon size={17} aria-hidden="true" />
+                    {m.label[lang]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
       <p className="demo-stage-caption" aria-live="polite">
+        <span className="demo-caption-mark" aria-hidden="true">
+          ↳
+        </span>
         {last
           ? last.watch[lang]
           : incidentOpen && !sos

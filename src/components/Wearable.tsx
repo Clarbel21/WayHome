@@ -1,5 +1,12 @@
-import { Link, useLocation } from "react-router-dom";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { WatchWelcome, type WelcomePage } from "./WatchWelcome";
+import { useMemory, safetyReady } from "../memory/store";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
 import {
   Battery,
   BatteryLow,
@@ -9,16 +16,12 @@ import {
   Heart,
   House,
   Leaf,
-  MessageCircle,
   Phone,
   ShieldAlert,
   WifiOff,
   ChevronLeft,
-  ChevronRight,
-  Sparkles,
   HandHelping,
   MapPin,
-  SlidersHorizontal,
   ArrowUp,
   CornerUpRight,
   CornerUpLeft,
@@ -27,8 +30,12 @@ import { useZone, legTarget } from "../zone/store";
 import { planRoute } from "../zone/route";
 import { useWatchUi } from "./watchUi";
 import { MemoryGardenExperience } from "../memory/MemoryPlayer";
-import { useStore, navigable } from "../store";
-import { attachmentNames, wearLabels } from "../services/safety";
+import { useStore, navigable, resetListeners } from "../store";
+import {
+  attachmentNames,
+  wearLabels,
+  verificationBlockers,
+} from "../services/safety";
 import {
   startRingtone,
   stopRingtone,
@@ -38,7 +45,7 @@ import {
 import { LandmarkPhoto } from "./LandmarkPhoto";
 import { ResolveSOSButton } from "./ResolveSOSButton";
 import { SOSButton } from "./SOSButton";
-import { Sprout } from "./Sprout";
+import { WatchMascot } from "./WatchMascot";
 import { useLang, useT, modeMessage, noteText } from "../i18n";
 import {
   useCaregiverPopups,
@@ -46,23 +53,21 @@ import {
 } from "../services/caregiverPopup";
 export { Photo } from "./Photo";
 
-type TalkReply = "intro" | "comfort" | "where" | "who" | "nice";
-
 // The wearer sees exactly one screen at a time, chosen from the safety mode.
 // Every action calls the existing store; this component holds no safety logic.
 export function Wearable({ compact = false }: { compact?: boolean }) {
   const s = useStore();
   const lang = useLang((l) => l.lang);
   const t = useT();
-  const location = useLocation();
-  const [talk, setTalk] = useState<TalkReply | null>(null);
-  const [showModePicker, setShowModePicker] = useState(false);
+  const [homePage, setHomePage] = useState<WelcomePage>("idle");
+  const [homePrompt, setHomePrompt] = useState(false);
   const [arrived, setArrived] = useState(false);
   const prevMode = useRef(s.mode);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const watchInput = useRef(false);
   useEffect(() => {
     if (s.mode !== "NORMAL") {
-      setTalk(null);
-      setShowModePicker(false);
+      setHomePage("idle");
     }
     if (
       prevMode.current === "GUIDED_RETURN" &&
@@ -73,6 +78,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     if (s.mode !== "NORMAL") setArrived(false);
     prevMode.current = s.mode;
   }, [s.mode, s.position]);
+  useEffect(() => setHomePrompt(false), [s.mode, s.incident?.revision]);
   const acknowledged =
     s.checkIn?.response === "okay" &&
     s.checkIn.source !== "caregiver" &&
@@ -80,6 +86,41 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     s.mode !== "EMERGENCY_SIMULATED";
   const z = useZone();
   const watchUi = useWatchUi();
+  useEffect(() => {
+    const resetPresentation = () => {
+      setHomePage("idle");
+      setHomePrompt(false);
+      setArrived(false);
+      useWatchUi.getState().closeMemories();
+    };
+    resetListeners.add(resetPresentation);
+    return () => {
+      resetListeners.delete(resetPresentation);
+    };
+  }, []);
+  const returnToMain = () => {
+    useFind.getState().stop();
+    if (
+      s.mode !== "NORMAL" ||
+      (s.incident && s.incident.stage !== "resolved")
+    ) {
+      setHomePrompt(true);
+      return;
+    }
+    if (watchUi.memories && useMemory.getState().stage !== "invite") {
+      if (useMemory.getState().session?.completed) useMemory.getState().home();
+      else useMemory.getState().exit();
+    }
+    watchUi.closeMemories();
+    s.dismissAcknowledgment();
+    setArrived(false);
+    setHomePage("idle");
+    setHomePrompt(false);
+  };
+  const openMemories = () => {
+    if (safetyReady()) useMemory.getState().begin();
+    watchUi.openMemories();
+  };
   // Safety always wins: if anything needs the wearer's attention, leave the
   // Memory Garden so the alert or guidance owns the screen.
   useEffect(() => {
@@ -145,12 +186,6 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const name = s.settings.companionName;
   const caregiver = s.settings.caregiver;
   const experienceMode = s.settings.experienceMode;
-  const experienceModeLabel =
-    experienceMode === "focus"
-      ? t("focusMode")
-      : experienceMode === "dialogue"
-        ? t("dialogueMode")
-        : t("normalMode");
   const reportWatchAction = (
     label: string,
     level: CaregiverPopupLevel = "awareness",
@@ -160,12 +195,13 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       .notify(`${wearerFirst} used the watch`, label, level);
   const captureWatchAction = (event: MouseEvent<HTMLDivElement>) => {
     const button = (event.target as HTMLElement).closest("button");
-    if (
-      !button ||
-      button.disabled ||
-      button.dataset.caregiverSkipNotification === "true"
-    )
-      return;
+    if (!button || button.disabled) return;
+    // Keep keyboard focus in the watch even when a friendly tap stays local.
+    watchInput.current = true;
+    window.setTimeout(() => {
+      watchInput.current = false;
+    }, 0);
+    if (button.dataset.caregiverSkipNotification === "true") return;
     const label =
       button.dataset.caregiverAction ||
       button.getAttribute("aria-label") ||
@@ -212,7 +248,9 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   ]);
 
   const note =
-    s.interactionNote && s.mode !== "EMERGENCY_SIMULATED" ? (
+    s.interactionNote &&
+    s.mode !== "EMERGENCY_SIMULATED" &&
+    !s.interactionNote.startsWith("These are simulated directions.") ? (
       <p className="wos-note" role="status">
         {noteText(lang, s.interactionNote)}
       </p>
@@ -278,13 +316,11 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         <p className="wos-sos-who">
           {seen ? t("sosAcked", { caregiver }) : t("sosWaiting", { caregiver })}
         </p>
-        <div className="sos-message">
-          <p>
-            {t("sosNotified", { caregiver, emergency: s.settings.emergency })}
-          </p>
-          <small>{t("sosNoReal")}</small>
-        </div>
-        <p className="wos-calm">{t("stayHere")}</p>
+        <small className="watch-simulation">
+          {lang === "id"
+            ? "Demo · tidak ada panggilan sungguhan"
+            : "Demo · no real calls"}
+        </small>
         <ResolveSOSButton />
       </div>
     );
@@ -359,35 +395,9 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           <LandmarkPhoto landmark={landmark} />
         </div>
         {/* Few, big words: the question names the place, so no repeats. */}
-        {!walking && zoneGuided ? (
-          <p className="wos-question big">
-            {t("doYouSee", { name: landmark.name })}
-          </p>
-        ) : (
-          <>
-            <small className="wos-kicker">
-              {walking ? t("headingTo") : t("lookFor")}
-            </small>
-            <strong>{landmark.name}</strong>
-          </>
-        )}
-        {!zoneGuided && experienceMode !== "focus" && (
-          <p>{landmark.instruction}</p>
-        )}
-        {landmark.recognition && !walking && experienceMode !== "focus" && (
-          <p className="recognition-cue">{landmark.recognition}</p>
-        )}
-        {!zoneGuided && experienceMode !== "focus" && (
-          <small>
-            {t("approx", {
-              m: Math.max(
-                10,
-                ((landmark.gridPosition ?? s.guideIndex) + 1) * 40 -
-                  s.position * 10,
-              ),
-            })}
-          </small>
-        )}
+        <p className="wos-question big">
+          {walking ? landmark.name : t("doYouSee", { name: landmark.name })}
+        </p>
         {guidanceBlocked && (
           <p role="status" className="wos-warn">
             {t("guidancePaused")}
@@ -407,28 +417,25 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         >
           {t("iDontSeeIt")}
         </button>
-        <div
-          className={`wos-row ${experienceMode === "focus" ? "focus-actions" : ""}`}
-        >
-          {experienceMode !== "focus" && (
-            <button
-              className="wos-ghost"
-              onClick={() => s.chooseAssistance("family")}
-            >
-              <Phone size={14} /> {t("callMyFamily")}
-            </button>
-          )}
+        <details className="wos-more-options">
+          <summary>{t("otherChoices")}</summary>
+          <button
+            className="wos-ghost"
+            onClick={() => s.chooseAssistance("family")}
+          >
+            <Phone size={18} /> {t("callMyFamily")}
+          </button>
           <button
             className="wos-ghost cancel-guidance"
             onClick={s.cancelGuidance}
           >
             {t("cancelGuidance")}
           </button>
-        </div>
+        </details>
       </div>
     ) : (
       <div className="watch-landmark wos-center">
-        <Sprout small />
+        <WatchMascot />
         <p>{t("noLandmarks")}</p>
         <button className="watch-action" onClick={() => s.event("HELP")}>
           {t("contactCaregiver")}
@@ -495,42 +502,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     const status = s.familyRequest?.status;
     screen = (
       <div className="watch-landmark wos-center wos-handover">
-        {speech(modeMessage(lang, s.mode, name))}
-        <div className={`avatar ${status ?? "none"}`}>
-          {caregiver.slice(0, 1)}
-        </div>
-        <strong>{caregiver}</strong>
-        {s.familyRequest && (
-          <ol className="wos-steps" aria-label="Family request progress">
-            <li className="done">
-              <Check size={13} /> {t("stepSent")}
-            </li>
-            <li className={status !== "waiting" ? "done" : "current"}>
-              {status !== "waiting" ? (
-                <Check size={13} />
-              ) : (
-                <span className="dot" />
-              )}{" "}
-              {t("stepSeen")}
-            </li>
-            <li
-              className={
-                status === "responded"
-                  ? "done"
-                  : status === "acknowledged"
-                    ? "current"
-                    : ""
-              }
-            >
-              {status === "responded" ? (
-                <Check size={13} />
-              ) : (
-                <span className="dot" />
-              )}{" "}
-              {t("stepComing")}
-            </li>
-          </ol>
-        )}
+        <WatchMascot />
         {!s.familyRequest && (
           <button
             className="watch-action wos-primary"
@@ -539,16 +511,6 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             <Phone size={17} /> {t("helpFamily")}
           </button>
         )}
-        <p>
-          {!s.familyRequest
-            ? t("needsReview")
-            : status === "responded"
-              ? t("caregiverResponded", { caregiver })
-              : t("waitingCaregiver")}
-        </p>
-        {status === "acknowledged" && <p>{t("caregiverSeen")}</p>}
-        <small>{s.familyRequest ? t("notifSent") : t("notifNone")}</small>
-        {note}
         {status === "responded" && (
           <button
             className="watch-action wos-primary"
@@ -563,7 +525,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     screenKey = "help-options";
     screen = (
       <div className="wos-center">
-        <Sprout small />
+        <WatchMascot />
         {speech(t("howHelp"))}
         {note}
         <div className="watch-controls wos-list">
@@ -594,9 +556,8 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   } else if (s.mode === "CHECK_IN" && !acknowledged) {
     screen = (
       <div className="wos-center">
-        <Sprout small />
+        <WatchMascot />
         {speech(modeMessage(lang, s.mode, name))}
-        <small className="wos-kicker">{t("checkInHint")}</small>
         {note}
         <div className="watch-controls wos-answer">
           <button
@@ -617,29 +578,43 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     screenKey = "memories";
     screen = (
       <div className="wos-memories">
-        <MemoryGardenExperience
-          onClose={() => {
-            watchUi.closeMemories();
-            s.dismissAcknowledgment();
-          }}
-        />
+        {safetyReady() ? (
+          <MemoryGardenExperience onClose={returnToMain} />
+        ) : (
+          <div className="wos-center watch-memory-paused">
+            <WatchMascot />
+            <h2>
+              {lang === "id" ? "Kenangan bisa menunggu." : "Memories can wait."}
+            </h2>
+            <p>
+              {lang === "id"
+                ? "Minta pendamping memeriksa perangkat."
+                : "Ask your caregiver to check the device."}
+            </p>
+            <button
+              className="watch-action"
+              onClick={() => s.chooseAssistance("family")}
+            >
+              <Phone size={20} />
+              {t("callPerson", { name: caregiver.split(" ")[0] })}
+            </button>
+          </div>
+        )}
       </div>
     );
   } else if (acknowledged) {
     screenKey = "acknowledged";
     screen = (
-      <div className="wos-center">
-        <Sprout small />
-        {speech(modeMessage(lang, "NORMAL", name))}
-        {note}
-        <div className="watch-controls wos-list">
-          <button className="watch-action" onClick={watchUi.openMemories}>
-            <Leaf size={17} /> {t("openGarden")}
-          </button>
-          <button className="wos-back" onClick={s.dismissAcknowledgment}>
-            {t("returnHome")}
-          </button>
-        </div>
+      <div className="wos-center watch-thanks">
+        <WatchMascot />
+        {speech(
+          lang === "id" ? "Terima kasih." : "Thank you, " + wearerFirst + ".",
+        )}
+        {s.mode !== "NORMAL" && note}
+        <button className="watch-action" onClick={openMemories}>
+          <Leaf size={22} />
+          {t("openGarden")}
+        </button>
       </div>
     );
   } else if (arrived) {
@@ -652,7 +627,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         <strong className="wos-arrived-title">
           {lang === "id" ? "Selamat datang di rumah." : "Welcome home."}
         </strong>
-        <Sprout small />
+        <WatchMascot />
         {speech(modeMessage(lang, "NORMAL", name))}
         <button
           className="watch-action wos-primary"
@@ -665,208 +640,110 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         </button>
       </div>
     );
-  } else if (showModePicker) {
-    screenKey = "choose-experience-mode";
-    const choices = [
-      {
-        id: "normal" as const,
-        label: t("normalMode"),
-        hint: t("normalModeHint"),
-        icon: Heart,
-      },
-      {
-        id: "focus" as const,
-        label: t("focusMode"),
-        hint: t("focusModeHint"),
-        icon: ArrowUp,
-      },
-      {
-        id: "dialogue" as const,
-        label: t("dialogueMode"),
-        hint: t("dialogueModeHint", { companion: name }),
-        icon: MessageCircle,
-      },
-    ];
-    screen = (
-      <div className="wos-center wos-mode-picker">
-        <SlidersHorizontal size={27} aria-hidden="true" />
-        <strong>{t("chooseMode")}</strong>
-        <small className="wos-mode-notice">{t("modeChangeNotice")}</small>
-        <div className="watch-controls wos-list">
-          {choices.map((choice) => {
-            const Icon = choice.icon;
-            const selected = experienceMode === choice.id;
-            return (
-              <button
-                key={choice.id}
-                className="watch-action wos-mode-choice"
-                aria-pressed={selected}
-                data-caregiver-action={`Changed watch to ${choice.label} mode`}
-                onClick={() => {
-                  s.setExperienceMode(choice.id, "wearer");
-                  setTalk(null);
-                  setShowModePicker(false);
-                }}
-              >
-                <span className="wos-mode-choice-icon">
-                  <Icon size={17} />
-                </span>
-                <span>
-                  <strong>{choice.label}</strong>
-                  <small>{choice.hint}</small>
-                </span>
-                {selected && <Check size={16} className="wos-mode-check" />}
-              </button>
-            );
-          })}
-          <button className="wos-back" onClick={() => setShowModePicker(false)}>
-            <ChevronLeft size={16} /> {t("backHome")}
-          </button>
-        </div>
-      </div>
-    );
-  } else if (experienceMode === "focus") {
-    screenKey = "focus-home";
-    screen = (
-      <div className="wos-center wos-focus-home">
-        <span className="wos-profile-label">FOCUS MODE</span>
-        <div className="wos-focus-icon" aria-hidden="true">
-          <ArrowUp size={34} />
-        </div>
-        <strong>{t("focusTitle")}</strong>
-        <p>{t("focusBody")}</p>
-        <button
-          className="watch-action wos-primary wos-focus-primary"
-          onClick={() => s.chooseAssistance("home")}
-        >
-          <House size={22} /> {t("focusHome")}
-        </button>
-        <button
-          className="wos-secondary"
-          onClick={() => s.chooseAssistance("family")}
-        >
-          <Phone size={18} /> {t("callFamily")}
-        </button>
-      </div>
-    );
-  } else if (experienceMode === "dialogue" || talk) {
-    const activeTalk = talk ?? "intro";
-    screenKey = `talk-${activeTalk}`;
-    const reply =
-      activeTalk === "comfort"
-        ? t("talkComfort")
-        : activeTalk === "where"
-          ? t("talkWhereReply")
-          : activeTalk === "who"
-            ? t("talkWhoReply", { caregiver })
-            : activeTalk === "nice"
-              ? t("talkSomethingNiceReply")
-              : t("talkIntro");
-    screen = (
-      <div className="wos-talk">
-        {experienceMode === "dialogue" && (
-          <span className="wos-profile-label">DIALOGUE MODE</span>
-        )}
-        <div className="wos-talk-head">
-          <Sprout small />
-          <p className="wos-bubble">{reply}</p>
-        </div>
-        <div className="watch-controls wos-list">
-          <button className="wos-chip" onClick={() => setTalk("where")}>
-            {t("talkWhere")}
-          </button>
-          <button className="wos-chip" onClick={() => setTalk("who")}>
-            {t("talkWho")}
-          </button>
-          <button className="wos-chip" onClick={() => setTalk("comfort")}>
-            <Sparkles size={15} /> {t("somethingComforting")}
-          </button>
-          <button className="wos-chip" onClick={() => setTalk("nice")}>
-            <MessageCircle size={15} /> {t("talkSomethingNice")}
-          </button>
-          {experienceMode === "dialogue" ? (
-            <button
-              className="wos-back"
-              onClick={() => s.chooseAssistance("home")}
-            >
-              <House size={16} /> {t("focusHome")}
-            </button>
-          ) : (
-            <button className="wos-back" onClick={() => setTalk(null)}>
-              <ChevronLeft size={16} /> {t("backHome")}
-            </button>
-          )}
-        </div>
-      </div>
-    );
   } else {
-    screenKey = "home";
+    screenKey = "home-" + homePage;
     screen = (
-      <div className="wos-home">
-        <div className="wos-orientation" aria-label={t("nearHome")}>
-          <span>
-            <MapPin size={15} /> {t("nearHome")}
-          </span>
-          <span>
-            {new Intl.DateTimeFormat(lang === "id" ? "id-ID" : "en-US", {
-              weekday: "long",
-            }).format(now)}
-          </span>
-        </div>
-        <div className="wos-hello">
-          <Sprout small />
-          {speech(modeMessage(lang, "NORMAL", name))}
-        </div>
-        {note}
-        <div
-          className="wos-home-actions"
-          role="group"
-          aria-label="Wearer actions"
-        >
+      <WatchWelcome
+        page={homePage}
+        onPage={setHomePage}
+        onMemories={openMemories}
+      />
+    );
+  }
+
+  const homeNeedsReview = verificationBlockers(s).length > 0;
+  if (homePrompt) {
+    screenKey = "return-" + s.mode;
+    screen = (
+      <div className="watch-return-prompt wos-center">
+        <WatchMascot />
+        <p>
+          {s.mode === "EMERGENCY_SIMULATED"
+            ? lang === "id"
+              ? "SOS masih aktif."
+              : "Your SOS is still active."
+            : s.mode === "GUIDED_RETURN"
+              ? lang === "id"
+                ? "Mau mengakhiri panduan?"
+                : "Would you like to end directions?"
+              : s.mode === "CHECK_IN"
+                ? lang === "id"
+                  ? "Bagaimana perasaanmu?"
+                  : homeNeedsReview
+                    ? "Your caregiver needs to check the watch."
+                    : "How are you feeling?"
+                : s.mode === "CAREGIVER_HANDOVER"
+                  ? s.familyRequest?.status === "responded"
+                    ? caregiver.split(" ")[0] + " has responded."
+                    : "Waiting for " + caregiver.split(" ")[0] + "."
+                  : lang === "id"
+                    ? "Seseorang masih memerlukan kabar darimu."
+                    : "There is still a request to finish."}
+        </p>
+        {s.mode === "GUIDED_RETURN" ? (
           <button
-            className="wos-home-primary"
-            onClick={() => s.chooseAssistance("home")}
+            className="watch-action"
+            onClick={() => {
+              s.cancelGuidance();
+              setHomePrompt(false);
+              setHomePage("idle");
+            }}
           >
-            <span className="wos-home-primary-icon">
-              <House size={27} />
-            </span>
-            <span>
-              <strong>{t("goHome")}</strong>
-              <small>{t("homeHint")}</small>
-            </span>
+            {t("cancelGuidance")}
           </button>
-          <div className="wos-home-secondary">
-            <button
-              className="family"
-              onClick={() => s.chooseAssistance("family")}
-            >
-              <Phone size={22} />
-              <span>{t("callFamily")}</span>
-            </button>
-            <button className="talk" onClick={() => setTalk("intro")}>
-              <MessageCircle size={22} />
-              <span>{t("talk")}</span>
-            </button>
-          </div>
-          <button className="wos-home-memory" onClick={watchUi.openMemories}>
-            <Leaf size={20} />
-            <span>{t("memories")}</span>
-            <ChevronRight size={18} />
+        ) : s.mode === "CHECK_IN" ? (
+          <button
+            className="watch-action"
+            onClick={() => {
+              if (homeNeedsReview) s.chooseAssistance("family");
+              else s.answerCheckIn("okay");
+              setHomePrompt(false);
+            }}
+          >
+            {homeNeedsReview
+              ? t("callPerson", { name: caregiver.split(" ")[0] })
+              : t("okay")}
           </button>
-        </div>
+        ) : s.mode === "CAREGIVER_HANDOVER" &&
+          s.familyRequest?.status === "responded" ? (
+          <button
+            className="watch-action"
+            onClick={() => {
+              s.answerCheckIn("okay");
+              setHomePrompt(false);
+            }}
+          >
+            {t("continueAfter")}
+          </button>
+        ) : s.mode === "EMERGENCY_SIMULATED" ? (
+          <ResolveSOSButton />
+        ) : null}
+        <button className="wos-secondary" onClick={() => setHomePrompt(false)}>
+          <ChevronLeft size={18} />
+          {lang === "id" ? "Kembali" : "Go back"}
+        </button>
       </div>
     );
   }
 
+  useLayoutEffect(() => {
+    if (!watchInput.current) return;
+    watchInput.current = false;
+    bodyRef.current?.focus({ preventScroll: true });
+  }, [screenKey]);
+
   return (
     <div
-      className={`watch-area mode-${s.mode.toLowerCase()} experience-${experienceMode} ${s.attachment} ${compact ? "compact" : ""} ${buzzing ? "buzz" : ""} ${ringing ? "find-ring" : ""} ${zonePrompt ? "zone-alert" : ""}`}
+      className={`watch-area fixed-watch companion-watch mode-${s.mode.toLowerCase()} experience-${experienceMode} ${s.attachment} ${compact ? "compact" : ""} ${buzzing ? "buzz" : ""} ${ringing ? "find-ring" : ""} ${zonePrompt ? "zone-alert" : ""}`}
       onClickCapture={captureWatchAction}
+      aria-label="Wearer watch interface"
+      data-watch-screen={screenKey}
     >
       <div className="watch-strap top" />
       <div className="watch" ref={watchRef}>
-        <div className="watch-crown" aria-hidden="true" />
-        <div className="watch-side-button" aria-hidden="true" />
+        <div className="watch-sos-side">
+          <SOSButton />
+        </div>
         <div className="watch-screen wos">
           <div className="watch-status">
             <span>
@@ -902,30 +779,54 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             {attachmentNames[s.attachment]} · {wearLabels[s.wearStatus]}{" "}
             (inferred)
           </span>
-          <div className="wos-body" data-screen={screenKey} key={screenKey}>
+          <div
+            className="wos-body"
+            data-screen={screenKey}
+            key={screenKey}
+            ref={bodyRef}
+            tabIndex={-1}
+            role="group"
+            aria-label={t("watchScreen")}
+          >
             {screen}
-          </div>
-          <div className="wos-footer">
-            {s.mode === "NORMAL" && !watchUi.memories && !showModePicker && (
-              <button
-                className="wos-mode-button"
-                onClick={() => setShowModePicker(true)}
-              >
-                <SlidersHorizontal size={14} />
-                {t("modeButton", { mode: experienceModeLabel })}
-              </button>
-            )}
             {s.guidanceActive &&
               s.mode !== "GUIDED_RETURN" &&
               s.mode !== "EMERGENCY_SIMULATED" && (
                 <button
-                  className="wos-ghost cancel-guidance wos-footer-cancel"
+                  className="wos-ghost cancel-guidance"
                   onClick={s.cancelGuidance}
                 >
                   {t("cancelGuidance")}
                 </button>
               )}
-            <SOSButton />
+          </div>
+          <div className="wos-footer">
+            {s.mode === "CAREGIVER_HANDOVER" &&
+            s.familyRequest &&
+            !homePrompt ? null : s.mode === "NORMAL" &&
+              !watchUi.memories &&
+              !acknowledged &&
+              !arrived &&
+              homePage === "idle" &&
+              !homePrompt ? (
+              <span className="watch-tap-hint">
+                {lang === "id" ? "Ketuk " : "Tap "}
+                {name}
+              </span>
+            ) : (
+              <button
+                className="watch-main-button"
+                aria-label={
+                  lang === "id"
+                    ? "Kembali ke layar utama"
+                    : "Back to main screen"
+                }
+                onClick={homePrompt ? () => setHomePrompt(false) : returnToMain}
+              >
+                <House size={18} />
+                {lang === "id" ? "Utama" : "Home"}
+              </button>
+            )}
           </div>
           {ringing && (
             <div className="wos-find" role="alert">

@@ -200,7 +200,18 @@ export function MemoryActivityPlayer() {
       )}
       {kind === "faces" && entry && (
         <>
-          <MemoryImage entry={entry} hidden={!session.revealed} />
+          {watch && !session.revealed ? (
+            <button
+              className="memory-photo-touch"
+              aria-label="Tell me more"
+              onClick={() => m.respond("Tell me more")}
+            >
+              <MemoryImage entry={entry} hidden />
+              <span className="photo-touch-hint">Tap photo</span>
+            </button>
+          ) : (
+            <MemoryImage entry={entry} hidden={!session.revealed} />
+          )}
           <h2>
             {watch ? "Look familiar?" : "Does this person look familiar?"}
           </h2>
@@ -218,12 +229,14 @@ export function MemoryActivityPlayer() {
               >
                 Not sure
               </button>
-              <button
-                className="memory-choice more"
-                onClick={() => m.respond("Tell me more")}
-              >
-                Tell me more
-              </button>
+              {!watch && (
+                <button
+                  className="memory-choice more"
+                  onClick={() => m.respond("Tell me more")}
+                >
+                  Tell me more
+                </button>
+              )}
             </div>
           ) : (
             <div className="memory-reveal" role="status">
@@ -464,10 +477,18 @@ export function MemoryGardenExperience({
     ? m.preferences.preferred
     : kinds;
   const suggestion = suggestActivity(m.entries, m.preferences, m.history);
-  const visible = options.slice(categoryPage * 3, categoryPage * 3 + 3);
+  const pageSize = onWatch ? 2 : 3;
+  const pageCount = Math.ceil(options.length / pageSize);
+  const visible = options.slice(
+    categoryPage * pageSize,
+    categoryPage * pageSize + pageSize,
+  );
   useEffect(() => {
-    if (categoryPage * 3 >= options.length) setCategoryPage(0);
-  }, [options.length, categoryPage]);
+    if (categoryPage * pageSize >= options.length) setCategoryPage(0);
+  }, [options.length, categoryPage, pageSize]);
+  useEffect(() => {
+    if (m.stage === "home") setCategoryPage(0);
+  }, [m.stage]);
   if (!safe)
     return (
       <section
@@ -544,6 +565,7 @@ export function MemoryGardenExperience({
       <section
         ref={screen}
         className={`memory-experience ${embedded ? "embedded" : ""} ${onWatch ? "on-watch" : ""}`}
+        data-memory-stage={m.stage}
       >
         <div className="memory-topline">
           {m.stage === "activity" ? (
@@ -740,15 +762,15 @@ export function MemoryGardenExperience({
                 </button>
               ))}
             </div>
-            {options.length > 3 && (
+            {options.length > pageSize && (
               <button
                 className="text-button"
                 onClick={() => {
-                  setCategoryPage(categoryPage === 0 ? 1 : 0);
+                  setCategoryPage((categoryPage + 1) % pageCount);
                   setEmpty("");
                 }}
               >
-                {categoryPage === 0
+                {categoryPage < pageCount - 1
                   ? "More activities"
                   : onWatch
                     ? "Back"

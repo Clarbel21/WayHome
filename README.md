@@ -33,7 +33,7 @@ Static hosting works without rewrite rules: the app uses hash routes (for exampl
 4. The final step demonstrates an alternate **simulated SOS**. No real emergency services are contacted.
 5. Open **Alerts** to see timestamps and mark requests read. **Reset presentation** starts the scenario again.
 
-For a side-by-side pitch, open `/#/together`: the wearable and the caregiver phone share one desktop viewport and respond to the same event at the same moment; on small screens they stack. To show the two interfaces on separate screens of the same browser instead, open `/#/companion` and `/#/caregiver` in two tabs on the same origin. Hold SOS on the wearable for two seconds (pointer or hold Space/Enter with focus on the button). The caregiver alert and digital twin synchronize via localStorage events. Separate browsers/devices are not connected; there is no backend. Simulated contact requests are recorded in the app only.
+For a side-by-side pitch, open `/#/together`: the wearable and the caregiver phone share one desktop viewport and respond to the same event at the same moment; on small screens they stack. To show the two interfaces on separate screens of the same browser instead, open `/#/companion` and `/#/caregiver` in two tabs on the same origin. Click SOS on the wearable (or press Space/Enter with focus on the button) to start the simulated help request immediately. The caregiver alert and digital twin synchronize via localStorage events. Separate browsers/devices are not connected; there is no backend. Simulated contact requests are recorded in the app only.
 
 The **Demo Control Center** offers all nine scenario events plus reset. Full demo reset recreates fictional starting observations and is blocked during an unresolved S5; it preserves edited profiles and landmarks. Starting a normal walk changes the walking scenario only; it never reconnects the device or confirms wear. Device disconnection retains last known location and blocks simulated movement. Route progress is discrete demo movement, not real directions.
 
@@ -62,7 +62,7 @@ The caregiver sidebar groups its pages under **Overview & safety**, **Care setti
 ## Features
 
 - Sprout wearable with blinking, breathing, reassuring expressions and optional browser speech
-- Six explicit companion states, deterministic simulation events, two-second SOS
+- Six explicit companion states, deterministic simulation events, one-click SOS
 - Caregiver overview, live sample map, offline route, alert center, synchronized digital twin
 - Landmark create/edit/delete, built-in images/custom photo URLs, approval gates for guidance
 - Persisted profiles, notification indicators, large text and reduced motion preferences
@@ -149,10 +149,21 @@ SOS resolution and device health are now independent. **Caregiver confirms — r
 
 ### Side-by-side interfaces
 
-Open `#/together` (or Companion Mode) to use the wearer’s device beside a caregiver phone. Both views share the existing demo state. Send a check-in from the phone, answer on the wearable, then use the phone’s Today/Updates controls for caregiver response and history. On small screens the interfaces stack; longer phone content scrolls inside its screen. The caregiver sidebar also includes **Side-by-side view**. Existing SOS resolution and Memory Garden safety gates remain in effect.
+Open `#/together` (or Companion Mode) to use the wearer’s device beside a caregiver phone. Both views share the existing demo state. Send a check-in from the phone, answer on the wearable, then use the phone’s Today/Updates controls for caregiver response and history. The **Together / Watch / Caregiver** switch changes the presentation view. **One moment. Both sides.** groups the simulated scenarios; choosing a moment brings the devices back into view.
+
+The watch case stays fixed across home, check-in, guidance, memories, warnings, SOS, language changes, and large text. It opens with a CSS-drawn Sprout mascot, a personal greeting, and one invitation to tap. Sprout breathes gently, reacts with a small wave/heart and authored reassurance, and offers two visual paths: **Memories** or **Some help**. Help offers directions home or the named caregiver. The caregiver chooses the interaction profile in Settings; the wearer does not navigate configuration menus.
+
+**Home** stays in the same footer position on every ordinary screen, including activities and route practice. It returns to Sprout and pauses an unfinished memory without losing progress; completed memories keep their history and garden growth. A navigation exit asks for an explicit decision. A check-in, pending caregiver request, or SOS explains what is outstanding instead of silently changing the safety state. SOS remains available on the side of the case: click once to start the simulated help request immediately. SOS acknowledgment and explicit caregiver resolution remain separate.
+
+Memory browsing shows two illustrated activity cards per page. On photo activities, tap the photo to reveal its story, or use **Yes / Not sure**. **Home** is always available. Guidance shows one landmark and two main choices; **Other choices** contains contact and route-cancellation actions. Reduced motion disables the mascot animations, and optional browser speech can read its authored replies.
+
+On small screens the interfaces stack. Phone content scrolls inside its screen while Today, Updates, and Care tools remain fixed. Safe-zone radius configuration is under **Device & check-in details** on Today and on the Safety policy page. The caregiver sidebar also includes **Side-by-side view**. Existing Memory Garden and navigation approval gates remain in effect.
 
 ### Caregiver phone tools and viewport demo
 
 `#/together` now fits the wearable and caregiver phone into one desktop viewport. Use the phone's **Caregiver phone section** selector for Contacts, Safety policy, Familiar landmarks, Memory Library, Activity history, or Settings. Phone panels scroll internally; smaller screens and zoomed layouts reflow vertically.
 
 Contacts use fictional sample numbers, format validation, permissions, escalation order and a final-required-caregiver guard. Policy settings operate on the existing check-in machine and only record simulated notifications. Optional Memory Journeys connect approved library content without grading. Memory and navigation approvals remain independent. Full details, changed modules, test results, demonstration steps and limitations: [CAREGIVER_UPGRADE.md](CAREGIVER_UPGRADE.md).
+
+
+The watch keeps copy brief and gives Sprout more room on welcome, waiting and check-in screens. Tap the mascot for a wave, heart and short reassurance (spoken when voice is enabled). The character stays in place while sentences appear in a reserved space below. Pending family requests show only the mascot and its replies on the watch; request progress remains on the caregiver phone, and continuation becomes available after a simulated caregiver response. These touches never answer a check-in, acknowledge help or resolve an incident. SOS starts with one click or a Space/Enter press; rapid double taps are deduplicated. All help remains simulated.

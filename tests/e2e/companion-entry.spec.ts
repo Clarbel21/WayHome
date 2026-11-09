@@ -1,3 +1,4 @@
+import { selectWatchActivity } from "./watch-helpers";
 import { test, expect } from "@playwright/test";
 test("Explore Memories opens and begins an activity on a fresh browser", async ({
   page,
@@ -13,9 +14,7 @@ test("Explore Memories opens and begins an activity on a fresh browser", async (
     page.getByRole("heading", { name: "Memory Garden", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Let's begin", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Familiar Faces", exact: true })
-    .click();
+  await selectWatchActivity(page, "Familiar Faces");
   await expect(
     page.getByRole("heading", { name: "Look familiar?" }),
   ).toBeVisible();
@@ -48,7 +47,7 @@ test("old saved wear data shows an actionable pause and can be reviewed without 
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
   await expect(
     page.getByText(
-      "Memory Garden is paused. Select Explore Memories to see why and open caregiver review.",
+      "Memories pause while the watch needs attention. Open to see why.",
     ),
   ).toBeVisible();
   await page
@@ -80,9 +79,7 @@ test("old saved wear data shows an actionable pause and can be reviewed without 
       .getByRole("heading", { name: "Memory Garden", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Let's begin", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Familiar Faces", exact: true })
-    .click();
+  await selectWatchActivity(page, "Familiar Faces");
   await page.getByRole("button", { name: "Tell me more", exact: true }).click();
   await expect(
     page.getByRole("img", { name: /has 1 keepsakes/ }),
@@ -92,10 +89,8 @@ test("opening paused memories during SOS gives a review route without bypassing 
   page,
 }) => {
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "SOS Hold for 2 seconds" }).focus();
-  await page.keyboard.down("Space");
-  await page.waitForTimeout(2100);
-  await page.keyboard.up("Space");
+  await page.getByRole("button", { name: "SOS Send help request" }).focus();
+  await page.keyboard.press("Space");
   await page
     .getByRole("button", { name: "Explore Memories", exact: true })
     .click();

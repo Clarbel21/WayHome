@@ -1,0 +1,1420 @@
+@layer companion {
+  /* Soft, tactile character drawn entirely with CSS. */
+  .sprout-css {
+    display: inline-block;
+    position: relative;
+    width: 180px;
+    height: 180px;
+    min-width: 0;
+    flex: none;
+    vertical-align: middle;
+    isolation: isolate;
+  }
+  .sprout-css.small {
+    width: 54px;
+    height: 54px;
+  }
+  .sprout-css span {
+    position: absolute;
+    display: block;
+    box-sizing: border-box;
+  }
+  .sprout-figure {
+    inset: 0;
+    transform-origin: 50% 90%;
+    animation: sprout-breathe 4.8s ease-in-out infinite;
+  }
+  .sprout-shadow {
+    left: 25%;
+    bottom: 2%;
+    width: 50%;
+    height: 6%;
+    border-radius: 50%;
+    background: #233f2b26;
+    filter: blur(3px);
+  }
+  .sprout-face {
+    left: 19%;
+    top: 27%;
+    width: 62%;
+    height: 58%;
+    border-radius: 49% 49% 47% 47%;
+    z-index: 3;
+    background: radial-gradient(
+      ellipse at 37% 22%,
+      #fff8e6 0%,
+      #fce5cd 44%,
+      #f2ceb5 78%,
+      #dfb69f
+    );
+    box-shadow:
+      inset 2px 3px 5px #fff9e7b3,
+      inset -3px -6px 8px #ac775719,
+      0 5px 8px #00000012;
+  }
+  .sprout-eye {
+    top: 43%;
+    width: 7.5%;
+    height: 10.5%;
+    border-radius: 50%;
+    background: #243b32;
+    box-shadow: inset 1px -1px 1px #0b2827;
+    animation: sprout-blink 7s ease-in-out infinite;
+  }
+  .sprout-eye::after {
+    content: "";
+    position: absolute;
+    width: 23%;
+    height: 23%;
+    left: 15%;
+    top: 12%;
+    border-radius: 50%;
+    background: #ffffffb3;
+  }
+  .sprout-eye.left {
+    left: 30%;
+    transform: rotate(9deg);
+  }
+  .sprout-eye.right {
+    right: 28%;
+    transform: rotate(9deg);
+  }
+  .sprout-cheek {
+    top: 58%;
+    width: 20%;
+    height: 12%;
+    border-radius: 50%;
+    background: radial-gradient(
+      ellipse,
+      #f3aaa0a1,
+      #eeaea43d 60%,
+      transparent 76%
+    );
+  }
+  .sprout-cheek.left {
+    left: 10%;
+  }
+  .sprout-cheek.right {
+    right: 8%;
+  }
+  .sprout-smile {
+    left: 44%;
+    top: 57%;
+    width: 15%;
+    height: 9%;
+    border: 0 solid #314333;
+    border-bottom-width: 2.5px;
+    border-radius: 0 0 60% 60%;
+    transform: rotate(-5deg);
+  }
+  .sprout-stem {
+    left: 48%;
+    top: 15%;
+    width: 4%;
+    height: 18%;
+    background: linear-gradient(90deg, #4c8e38, #719f3d);
+    transform: rotate(8deg);
+    border-radius: 5px;
+    z-index: 3;
+  }
+  .sprout-leaf {
+    width: 23%;
+    height: 19%;
+    top: 9%;
+    background: linear-gradient(145deg, #badc67, #6cba45 50%, #3b8c35);
+    box-shadow:
+      inset 1px 2px 3px #e4f5ad66,
+      inset -1px -2px 3px #2b733c26;
+  }
+  .sprout-leaf::after {
+    content: "";
+    position: absolute;
+    height: 1px;
+    width: 80%;
+    top: 49%;
+    left: 11%;
+    background: #d9ec9180;
+    transform: rotate(40deg);
+    transform-origin: left;
+  }
+  .sprout-leaf-left {
+    left: 27%;
+    border-radius: 6% 85% 10% 85%;
+    transform: rotate(7deg);
+  }
+  .sprout-leaf-right {
+    right: 26%;
+    top: 11%;
+    border-radius: 85% 8% 85% 10%;
+    transform: rotate(-10deg);
+  }
+  .sprout-leaf-right::after {
+    transform: rotate(-40deg);
+    top: 80%;
+  }
+  .sprout-body {
+    width: 37%;
+    height: 28%;
+    left: 32%;
+    bottom: 5%;
+    border-radius: 50% 50% 38% 38%;
+    background: linear-gradient(120deg, #87c361, #418f42 70%, #337648);
+    z-index: 1;
+    box-shadow: inset 1px 2px 5px #b4d68a55;
+  }
+  .sprout-body::after {
+    content: "";
+    width: 1px;
+    position: absolute;
+    height: 62%;
+    top: 31%;
+    left: 50%;
+    background: #b6d49650;
+  }
+  .sprout-arm {
+    width: 26%;
+    height: 15%;
+    bottom: 17%;
+    z-index: 2;
+    background: linear-gradient(135deg, #a9d177, #559f4b 70%, #368748);
+    border-radius: 12% 85% 14% 80%;
+  }
+  .sprout-arm-left {
+    left: 7%;
+    transform: rotate(18deg);
+    transform-origin: 90% 70%;
+  }
+  .sprout-arm-right {
+    right: 4%;
+    transform: rotate(-70deg);
+    transform-origin: 12% 80%;
+  }
+  .sprout-love {
+    top: 22%;
+    right: 0;
+    color: #f6b8af;
+    font-size: 28px;
+    opacity: 0;
+    transform: rotate(12deg);
+    text-shadow: 0 2px 8px #ecaaa22b;
+  }
+  .mascot-touched .sprout-love {
+    animation: sprout-love 1.5s ease-out both;
+  }
+  .mascot-touched .sprout-arm-right {
+    animation: sprout-wave 0.42s ease-in-out 3;
+  }
+  .sprout-css.is-still .sprout-figure,
+  .sprout-css.is-still .sprout-eye {
+    animation: none;
+  }
+  .wayhome-mark {
+    width: 31px;
+    height: 35px;
+    flex: none;
+    color: #08a39e;
+  }
+  .demo-redesign .brand {
+    gap: 10px;
+  }
+  .demo-redesign .brand .wayhome-mark {
+    width: 29px;
+    height: 34px;
+  }
+  .brand > .wayhome-mark {
+    width: 32px;
+    height: 36px;
+  }
+
+  /* The screen has one purpose. The case and the side SOS never resize. */
+  .companion-watch .watch {
+    background: linear-gradient(
+      115deg,
+      #e5e6d4,
+      #b9c3a8 25%,
+      #d7dbc5 70%,
+      #a4b194
+    );
+    border-color: #b5bda6;
+    box-shadow:
+      inset 1px 1px 2px #fffdf0,
+      inset -1px -1px 2px #76836a,
+      0 25px 32px -20px #25382c70;
+  }
+  .companion-watch .watch-screen.wos {
+    background: radial-gradient(ellipse at 50% 36%, #1c3025, #111b17 65%);
+    color: #fff8e8;
+    border-color: #18251d;
+    padding: 11px 12px 10px;
+    border-radius: 39px;
+    gap: 6px;
+  }
+  .companion-watch .watch-status {
+    color: #bdcaae;
+    font-size: 10px;
+    font-weight: 500;
+    min-height: 24px;
+    height: 24px;
+    flex-basis: 24px;
+    opacity: 0.85;
+  }
+  .companion-watch .watch-status .wos-wear {
+    color: #bdcaae;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+  }
+  .companion-watch .watch-status > span:last-child {
+    font-size: 10px;
+  }
+  .companion-watch .watch-status .wos-live {
+    width: 5px;
+    height: 5px;
+    background: #b8d89a;
+    box-shadow: none;
+  }
+  .companion-watch .wos-body {
+    animation: none;
+    padding: 0 2px 4px;
+    color: #fff8e8;
+    scrollbar-color: #4b6244 transparent;
+  }
+  .companion-watch .wos-footer {
+    border: 0;
+    padding: 0;
+    min-height: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    display: grid;
+    place-items: center;
+  }
+  .companion-watch .watch-main-button {
+    min-height: 44px;
+    height: 44px;
+    width: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 5px 22px;
+    border: 1px solid #40573f;
+    border-radius: 99px;
+    background: #1a2a20;
+    color: #d8e4c8;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+  .companion-watch .watch-tap-hint {
+    color: #becfac;
+    font-size: 13px;
+    letter-spacing: 0.2px;
+  }
+  .companion-watch .watch-sos-side {
+    position: absolute;
+    right: -25px;
+    top: 43%;
+    width: 44px;
+    height: 76px;
+    z-index: 5;
+  }
+  .companion-watch .watch-sos-side .sos-hold {
+    position: relative;
+    width: 44px;
+    height: 76px;
+    min-height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 14px;
+    border: 0;
+    border-radius: 15px;
+    background: transparent;
+    color: #754537;
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 750;
+    letter-spacing: 2px;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    overflow: visible;
+    box-shadow: none;
+  }
+  .companion-watch .watch-sos-side .sos-hold::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 12px;
+    top: 0;
+    width: 20px;
+    height: 76px;
+    border: 1px solid #d5bba5;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #f4dcca, #e8c6ad);
+    box-shadow:
+      inset 1px 0 1px #fff1e3,
+      2px 2px 3px #5c4d3514;
+  }
+  .companion-watch .watch-sos-side .sos-hold > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .companion-watch .watch-sos-side .sos-fill {
+    display: none;
+  }
+  .companion-watch button:focus-visible,
+  .companion-watch summary:focus-visible {
+    outline: 2px solid #f0d2b0;
+    outline-offset: -3px;
+  }
+  .companion-watch .watch-sos-side button:focus-visible {
+    outline-offset: 1px;
+  }
+  .companion-watch .watch-mascot {
+    display: grid;
+    justify-items: center;
+    flex: none;
+    text-align: center;
+  }
+  .companion-watch .watch-mascot .mascot-touch,
+  .companion-watch .watch-mascot .mascot-touch .sprout-css {
+    width: 144px;
+    height: 144px;
+  }
+  .companion-watch .watch-return-prompt .watch-mascot .mascot-touch,
+  .companion-watch .watch-return-prompt .watch-mascot .sprout-css {
+    width: 164px;
+    height: 164px;
+  }
+  .companion-watch .watch-mascot .mascot-reply {
+    margin: 0;
+    color: #f9efda;
+    font-size: 20px;
+    line-height: 1.25;
+    block-size: 2.5em;
+    width: 100%;
+    display: grid;
+    place-items: start center;
+  }
+  .companion-watch .watch-return-prompt > p {
+    margin: 0;
+    font-size: 20px;
+    color: #fff5df;
+  }
+  .companion-watch .wos-handover {
+    min-height: 100%;
+    justify-content: center;
+    gap: 8px;
+  }
+  .companion-watch .wos-handover .watch-mascot .mascot-touch,
+  .companion-watch .wos-handover .watch-mascot .sprout-css {
+    width: 184px;
+    height: 184px;
+  }
+  .companion-watch .mascot-touched .sprout-love {
+    opacity: 1;
+  }
+  .companion-watch .watch-welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    gap: 6px;
+    padding-top: 3px;
+    min-height: 100%;
+    text-align: center;
+    position: relative;
+  }
+  .companion-watch .mascot-touch {
+    width: 216px;
+    height: 216px;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    display: grid;
+    place-items: center;
+    color: inherit;
+    box-shadow: none;
+    isolation: isolate;
+  }
+  .companion-watch .mascot-touch::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    width: 174px;
+    height: 174px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, #7caa5824, transparent 68%);
+  }
+  .companion-watch .mascot-touch .sprout-css {
+    width: 212px;
+    height: 212px;
+    margin: 0;
+  }
+  .companion-watch .watch-welcome h2 {
+    font-size: 24px;
+    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: -0.6px;
+    color: #fff8e8;
+    margin: 3px 0 0;
+  }
+  .companion-watch .watch-welcome .mascot-touch,
+  .companion-watch .watch-welcome .mascot-touch .sprout-css {
+    width: 168px;
+    height: 168px;
+  }
+  .companion-watch .watch-sentence-slot {
+    min-height: 32px;
+    width: 100%;
+    display: grid;
+    place-items: center;
+  }
+  .companion-watch .watch-welcome > div:last-child {
+    width: 100%;
+  }
+  .companion-watch .watch-choice-space {
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .companion-watch .watch-welcome .watch-picture-card {
+    min-height: 56px;
+    flex-direction: row;
+    gap: 6px;
+    padding: 8px 5px;
+    font-size: 16px;
+  }
+  .companion-watch .watch-welcome .watch-picture-symbol,
+  .companion-watch .watch-welcome .watch-picture-symbol svg {
+    width: 24px;
+    height: 24px;
+  }
+  .companion-watch .watch-greeting {
+    font-size: 20px;
+    line-height: 1.25;
+    color: #f9efda;
+    letter-spacing: -0.4px;
+    margin: 0;
+  }
+  .companion-watch .watch-visual-choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    gap: 10px;
+  }
+  .companion-watch .watch-picture-card {
+    min-height: 78px;
+    padding: 10px 7px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 0;
+    border-radius: 22px;
+    background: #d6e4bf;
+    color: #2f4c32;
+    font-size: 17px;
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+  }
+  .companion-watch .watch-picture-card.help,
+  .companion-watch .watch-picture-card.family {
+    background: #f0d6bd;
+    color: #674c39;
+  }
+  .companion-watch .watch-picture-symbol {
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .companion-watch .watch-help-home {
+    text-align: center;
+    padding-top: 18px;
+  }
+  .companion-watch .watch-help-home h2 {
+    font-size: 24px;
+    line-height: 1.2;
+    letter-spacing: -0.6px;
+    font-weight: 500;
+    color: #fff5de;
+    margin: 0 0 22px;
+  }
+  .companion-watch .watch-help-home .watch-picture-card {
+    min-height: 147px;
+    font-size: 18px;
+    padding: 14px 8px;
+    gap: 14px;
+  }
+  .companion-watch .watch-help-home .watch-picture-symbol {
+    height: 48px;
+  }
+  .companion-watch .trusted-initial {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    font-size: 24px;
+    background: #fff6e7bd;
+    font-weight: 500;
+  }
+  .companion-watch .trusted-initial + svg {
+    position: absolute;
+    bottom: -3px;
+    right: -9px;
+    background: #f0d6bd;
+    padding: 2px;
+    width: 23px;
+    height: 23px;
+    border-radius: 50%;
+  }
+  .companion-watch h2 {
+    font-family: inherit;
+    color: #fff5df;
+    font-size: 23px;
+    line-height: 1.25;
+    font-weight: 500;
+    letter-spacing: -0.5px;
+  }
+  .companion-watch .speech {
+    color: #fff6e4;
+    font-size: 23px;
+    font-weight: 500;
+    letter-spacing: -0.5px;
+    line-height: 1.25;
+  }
+  .companion-watch .wos-center {
+    gap: 12px;
+    padding: 5px 0;
+  }
+  .companion-watch .wos-center > p,
+  .companion-watch .wos-center > small {
+    color: #c6d6b7;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  .companion-watch .wos-center .sprout-css {
+    width: 70px;
+    height: 70px;
+  }
+  .companion-watch .wos-kicker,
+  .companion-watch .wos-profile-label {
+    color: #c2d1ae;
+  }
+  .companion-watch .watch-action,
+  .companion-watch .wos-primary,
+  .companion-watch .wos-yes {
+    background: #c5deaa;
+    border-color: #c5deaa;
+    color: #263e27;
+    border-radius: 17px;
+    font-size: 18px;
+    min-height: 48px;
+    font-weight: 600;
+  }
+  .companion-watch .wos-secondary,
+  .companion-watch .wos-help {
+    background: #2c3c2a;
+    border-color: #506449;
+    color: #f2ead6;
+    border-radius: 17px;
+    font-size: 18px;
+    min-height: 46px;
+  }
+  .companion-watch .wos-help {
+    background: #efd2b6;
+    color: #634531;
+    border-color: #efd2b6;
+  }
+  .companion-watch .wos-ghost,
+  .companion-watch .wos-back {
+    background: #17251b;
+    color: #d2e2bf;
+    border-color: #344d30;
+    font-size: 16px;
+  }
+  .companion-watch .watch-controls .wos-back {
+    background: #17251b;
+  }
+  .companion-watch .wos-note {
+    color: #d0dfbc;
+    background: #243720;
+    font-size: 15px;
+    padding: 8px 10px;
+  }
+  .companion-watch .wos-guide {
+    gap: 4px;
+  }
+  .companion-watch .wos-guide > p {
+    display: block;
+    flex: none;
+    overflow: visible;
+  }
+  .companion-watch .wos-guide-top {
+    color: #b4cba1;
+    font-size: 11px;
+  }
+  .companion-watch .wos-dots i {
+    background: #354833;
+  }
+  .companion-watch .wos-dots i.now,
+  .companion-watch .wos-dots i.done {
+    background: #bbd89c;
+  }
+  .companion-watch .wos-guide .wos-photo img {
+    height: 84px;
+    border-radius: 17px;
+  }
+  .companion-watch .wos-guide .wos-photo.small img {
+    height: 58px;
+  }
+  .companion-watch .wos-guide .wos-question {
+    color: #fff5df;
+    font-weight: 500;
+    font-size: 20px;
+    margin: 2px 0 3px;
+    line-height: 1.2;
+  }
+  .companion-watch .wos-guide .wos-primary {
+    min-height: 46px;
+    margin-top: 2px;
+  }
+  .companion-watch .wos-guide .wos-secondary {
+    min-height: 43px;
+  }
+  .companion-watch .wos-more-options summary {
+    color: #c4d7af;
+    font-size: 13px;
+    padding-block: 10px;
+  }
+  .companion-watch .wos-direction {
+    background: #263a22;
+    color: #eff6db;
+    border-radius: 16px;
+  }
+  .companion-watch .wos-direction b {
+    font-size: 20px;
+    font-weight: 500;
+  }
+  .companion-watch .wos-direction small {
+    color: #c8d8b6;
+  }
+  .companion-watch .wos-warn {
+    background: #4c3e25;
+    color: #f7dfb7;
+    border: 1px solid #75613d;
+  }
+  .companion-watch .wos-handover .avatar {
+    background: #eacfb4;
+    color: #594632;
+    border-color: #f5e8d2;
+  }
+  .companion-watch .wos-handover strong {
+    color: #fff3dc;
+    font-size: 20px;
+    font-weight: 500;
+  }
+  .companion-watch .wos-steps {
+    color: #c9d8b8;
+  }
+  .companion-watch .wos-steps li.done {
+    color: #c2df9d;
+  }
+  .companion-watch .wos-steps li.current {
+    color: #f0dcbb;
+  }
+  .companion-watch .wos-thanks,
+  .companion-watch .watch-thanks {
+    padding-top: 12px;
+    gap: 18px;
+  }
+  .companion-watch.mode-emergency_simulated .watch-screen.wos {
+    background: radial-gradient(ellipse at 50% 15%, #493326, #211c17 75%);
+    border-color: #3d2b20;
+  }
+  .companion-watch .wos-sos {
+    gap: 12px;
+    padding: 9px 0;
+  }
+  .companion-watch .wos-sos .speech {
+    color: #ffe7d4;
+    font-weight: 500;
+  }
+  .companion-watch .wos-sos-icon {
+    background: #b56c53;
+    color: #fff3df;
+    width: 45px;
+    height: 45px;
+    animation: none;
+  }
+  .companion-watch .wos-sos-who {
+    color: #f1dac1;
+    font-size: 16px;
+    line-height: 1.3;
+  }
+  .companion-watch .watch-simulation {
+    font-size: 11px;
+    color: #d8bba0;
+  }
+  .companion-watch .resolve-sos-button {
+    background: #edceb1;
+    color: #563e2b;
+    border-color: #edceb1;
+    font-size: 15px;
+  }
+  .companion-watch .watch-return-prompt {
+    gap: 8px;
+    text-align: center;
+    padding-top: 7px;
+  }
+  .companion-watch .watch-memory-paused {
+    padding-top: 12px;
+  }
+  .companion-watch .wos-breathe {
+    background: #54734450;
+    border-color: #a4c581;
+  }
+  .companion-watch .wos-arrived-badge {
+    background: #bed79d;
+    color: #344e2c;
+  }
+  .companion-watch .wos-arrived-title {
+    color: #fff2d8;
+  }
+  .companion-watch .wos-find {
+    bottom: 46px;
+    border-radius: 35px;
+    background: #20361f;
+    color: #fff4df;
+  }
+  .companion-watch .wos-find p {
+    color: #d5e2c5;
+  }
+  .companion-watch .wos-find .wos-stop {
+    background: #e8d4b6;
+    color: #3d422e;
+  }
+  .companion-watch .memory-experience.on-watch {
+    background: transparent;
+    color: #fff1dc;
+    padding: 0;
+  }
+  .companion-watch .memory-experience h1,
+  .companion-watch .memory-experience h2 {
+    color: #fff4de;
+    font-size: 21px;
+    font-weight: 500;
+    letter-spacing: -0.5px;
+  }
+  .companion-watch .memory-experience p {
+    color: #d2debd;
+    font-size: 16px;
+  }
+  .companion-watch .memory-experience .text-button {
+    color: #c6dcb0;
+    min-height: 38px;
+    font-size: 13px;
+    background: transparent;
+    border: 0;
+  }
+  .companion-watch .memory-topline {
+    margin: 0 0 8px;
+    padding: 0;
+  }
+  .companion-watch .memory-topline .text-button {
+    height: 36px;
+    min-height: 36px;
+    padding: 6px 10px;
+    background: #1c2c20;
+    border: 1px solid #3a5032;
+    border-radius: 12px;
+  }
+  .companion-watch .memory-home {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding: 8px 0 0;
+  }
+  .companion-watch .memory-home .memory-tiles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    order: 1;
+    margin: 0;
+  }
+  .companion-watch .memory-home .memory-tiles .memory-tile {
+    min-height: 120px;
+  }
+  .companion-watch .memory-home > .text-button {
+    order: 2;
+    min-height: 40px;
+    margin: 0;
+  }
+  .companion-watch .memory-home > .memory-garden-art {
+    order: 3;
+    margin: 0;
+    width: 100%;
+    background: transparent;
+  }
+  .companion-watch .memory-home > .memory-garden-art svg {
+    height: 65px;
+    border-radius: 16px;
+  }
+  .companion-watch .memory-garden-art .garden-caption {
+    color: #bbcda5;
+    font-size: 10px;
+    background: transparent;
+    padding: 4px 0;
+  }
+  .companion-watch .memory-home > .tile-wayhome {
+    order: 4;
+    margin-top: 10px;
+  }
+  .companion-watch .memory-photo-touch {
+    position: relative;
+    padding: 0;
+    margin: 0;
+    min-height: 0;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    border-radius: 18px;
+  }
+  .companion-watch .memory-photo-touch .photo-touch-hint {
+    position: absolute;
+    bottom: 7px;
+    right: 8px;
+    color: #fbf7e9;
+    background: #263d2bbd;
+    padding: 3px 7px;
+    border-radius: 8px;
+    font-size: 10px;
+  }
+  .companion-watch .memory-photo img {
+    height: 106px;
+    max-height: 106px;
+    width: 100%;
+    object-fit: cover;
+  }
+  .companion-watch .memory-photo-touch + h2,
+  .companion-watch .memory-photo + h2 {
+    margin: 8px 0;
+    font-size: 21px;
+  }
+  .companion-watch .memory-choices:not(.memory-tiles) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .companion-watch .memory-choices:not(.memory-tiles) .memory-choice {
+    width: 100%;
+    min-height: 46px;
+    font-size: 17px;
+    padding: 9px 6px;
+  }
+  .companion-watch .memory-skip {
+    margin: 7px 0 0;
+    min-height: 32px;
+    font-size: 12px;
+  }
+  .companion-watch .memory-finish .memory-garden-art svg {
+    height: 52px;
+  }
+  .companion-watch .memory-finish .garden-caption {
+    display: none;
+  }
+  .companion-watch
+    .memory-experience[data-memory-stage="home"]
+    .memory-topline {
+    display: none;
+  }
+  .companion-watch .memory-tiles {
+    gap: 10px;
+  }
+  .companion-watch .memory-choice {
+    background: #c8dfad;
+    color: #2f462c;
+    border-color: #c8dfad;
+    border-radius: 18px;
+    font-size: 17px;
+    min-height: 48px;
+  }
+  .companion-watch .memory-choice.quiet {
+    background: #2b3a28;
+    color: #e9ecd1;
+    border-color: #4b6142;
+  }
+  .companion-watch .memory-choice.memory-tile {
+    min-height: 88px;
+    padding: 12px 10px;
+    flex-direction: column;
+    gap: 8px;
+    border: 0;
+    background: #e8d0b4;
+    color: #51432e;
+    font-size: 16px;
+  }
+  .companion-watch .memory-choice.memory-tile.tile-people {
+    background: #efd7c2;
+    color: #604735;
+  }
+  .companion-watch .memory-choice.memory-tile.tile-music {
+    background: #d1e7da;
+    color: #2e5341;
+  }
+  .companion-watch .memory-choice.memory-tile.tile-wayhome {
+    background: #2e4427;
+    color: #d8e9bd;
+    min-height: 54px;
+    flex-direction: row;
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+  .companion-watch .memory-choice.memory-tile > svg:last-child {
+    display: none;
+  }
+  .companion-watch .memory-tile-icon {
+    background: transparent;
+    width: 38px;
+    height: 38px;
+    border-radius: 0;
+  }
+  .companion-watch .memory-tile-icon svg {
+    width: 33px;
+    height: 33px;
+  }
+  .companion-watch .memory-choice.memory-tile em {
+    font-size: 9px;
+    color: #5f714b;
+    background: #fff8e73d;
+  }
+  .companion-watch .memory-card,
+  .companion-watch .memory-reveal,
+  .companion-watch .memory-question {
+    background: transparent;
+    border: 0;
+    color: #f7ecd7;
+  }
+  .companion-watch .memory-photo {
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .companion-watch .memory-photo img {
+    border-radius: 20px;
+  }
+  .companion-watch .memory-reveal {
+    background: #253a21;
+    border-radius: 17px;
+    padding: 12px;
+  }
+  .companion-watch .memory-question .sprout-css {
+    width: 94px;
+    height: 94px;
+    margin: 0 auto;
+  }
+  .companion-watch .memory-notice {
+    background: #293c23;
+    color: #dae5c6;
+    border-color: #4a633d;
+  }
+  .companion-watch .garden-scene {
+    border-radius: 20px;
+  }
+  .large-text .companion-watch .watch-greeting {
+    font-size: 23px;
+  }
+  .large-text .companion-watch .watch-picture-card {
+    font-size: 20px;
+  }
+  .large-text .companion-watch .speech {
+    font-size: 26px;
+  }
+  .large-text .companion-watch .watch-welcome h2 {
+    font-size: 27px;
+  }
+  .large-text .companion-watch .watch-action,
+  .large-text .companion-watch .wos-primary,
+  .large-text .companion-watch .wos-secondary {
+    font-size: 20px;
+  }
+  .large-text .companion-watch .watch-main-button {
+    font-size: 16px;
+  }
+  .demo-redesign .phone-companion-art .sprout-figure {
+    animation: none;
+  }
+
+  /* The caregiver sees the same soft materials with more room for context. */
+  .demo-redesign {
+    --demo-paper: #faf7f0;
+    --demo-ink: #334c43;
+    background: var(--demo-paper);
+    font-family:
+      ui-rounded,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+  }
+  .demo-redesign .public-header {
+    background: #faf7f0eb;
+    border-color: #e6e7dc;
+  }
+  .demo-redesign .brand-dot {
+    color: #08a39e;
+  }
+  .demo-redesign .stage-heading h1 {
+    letter-spacing: -2px;
+    font-weight: 500;
+  }
+  .demo-redesign .stage-heading h1 em {
+    color: #8c9f7e;
+  }
+  .demo-redesign .stage-heading .eyebrow {
+    color: #7c957b;
+  }
+  .demo-redesign .device-presentation::before {
+    background: radial-gradient(
+      ellipse,
+      #e7dbc866 0%,
+      #f5eee230 45%,
+      transparent 72%
+    );
+  }
+  .demo-redesign .care-phone {
+    background: linear-gradient(
+      125deg,
+      #c7c9b7,
+      #465a4b 10%,
+      #273d33 50%,
+      #a1ad93
+    );
+    border-color: #9ba78f;
+    box-shadow:
+      inset 0 0 0 2px #50644e,
+      inset 0 1px 1px #e6e8d6,
+      0 28px 28px -22px #3e4e3260,
+      0 55px 70px -50px #47563750;
+  }
+  .demo-redesign .care-phone-screen,
+  .demo-redesign .phone-system {
+    background: #fffaf2;
+    color: #354b3a;
+  }
+  .demo-redesign .phone-avatar {
+    background: transparent;
+    border: 0;
+    width: 30px;
+    height: 36px;
+    border-radius: 0;
+  }
+  .demo-redesign .phone-avatar .wayhome-mark {
+    width: 27px;
+    height: 32px;
+  }
+  .demo-redesign .phone-greeting p {
+    color: #8c9982;
+    letter-spacing: 0.5px;
+    font-size: 9px;
+  }
+  .demo-redesign .phone-greeting strong {
+    color: #3b5040;
+    font-size: 23px;
+    font-weight: 500;
+    letter-spacing: -0.8px;
+  }
+  .demo-redesign .phone-bell {
+    background: #f2eedf;
+    border-color: #ebe5d3;
+    color: #6d805e;
+    border-radius: 16px;
+  }
+  .demo-redesign .phone-status {
+    border-radius: 25px;
+    box-shadow: none;
+  }
+  .demo-redesign .phone-status.tone-calm {
+    background: #e7edda;
+    border-color: #e1e8d2;
+    color: #3d583a;
+    min-height: 160px;
+    padding-bottom: 23px;
+  }
+  .demo-redesign .phone-status.tone-calm .phone-person {
+    padding-right: 60px;
+  }
+  .demo-redesign .phone-status.tone-calm h3 {
+    font-size: 22px;
+    max-width: 170px;
+    padding-right: 18px;
+    line-height: 1.1;
+  }
+  .demo-redesign .phone-status.tone-calm p {
+    max-width: 153px;
+    font-size: 11px;
+  }
+  .demo-redesign .tone-calm .phone-tone-chip {
+    color: #61784e;
+    background: #ffffff85;
+  }
+  .demo-redesign .phone-status.tone-guidance {
+    background: #e1ebdd;
+    border-color: #dbe4d3;
+    color: #3e5d3d;
+  }
+  .demo-redesign .phone-status.tone-attention {
+    background: #faecd1;
+    border-color: #f2dfb7;
+    color: #7d6234;
+  }
+  .demo-redesign .phone-status.tone-urgent {
+    background: #f7ded0;
+    border-color: #eac6b2;
+    color: #874d36;
+  }
+  .demo-redesign .phone-companion-art {
+    position: absolute;
+    right: 2px;
+    bottom: 9px;
+    width: 94px;
+    height: 94px;
+  }
+  .demo-redesign .phone-companion-art .sprout-css {
+    width: 94px;
+    height: 94px;
+  }
+  .demo-redesign .phone-person-initial {
+    background: #fff8e9a3;
+    color: #5d7350;
+    border: 0;
+  }
+  .demo-redesign .phone-status-label {
+    font-weight: 550;
+  }
+  .demo-redesign .phone-status h3 {
+    font-weight: 500;
+    letter-spacing: -0.8px;
+  }
+  .demo-redesign .phone-location-primary {
+    border-color: #e6e8da;
+    border-radius: 22px;
+    background: #fffdf6;
+  }
+  .demo-redesign .phone-quick-actions .button {
+    border-radius: 17px;
+    background: #bfd7b2;
+    color: #324c30;
+    font-weight: 600;
+    border-color: #bfd7b2;
+  }
+  .demo-redesign .phone-quick-actions .button.light {
+    background: #f4e5d5;
+    color: #7a6348;
+    border-color: #f0dfca;
+  }
+  .demo-redesign .phone-action-card {
+    background: #fffdf6;
+    border-color: #e9e6d8;
+    border-radius: 22px;
+    box-shadow: none;
+  }
+  .demo-redesign .phone-action-card h3 {
+    color: #536b49;
+    font-size: 15px;
+    font-weight: 550;
+  }
+  .demo-redesign .phone-action-card p {
+    color: #7e8d70;
+  }
+  .demo-redesign .phone-readings > div {
+    background: #f1f2e5;
+    border-color: #e9eadb;
+    border-radius: 18px;
+    color: #6b7f58;
+  }
+  .demo-redesign .phone-readings span {
+    color: #89987c;
+  }
+  .demo-redesign .phone-bottom-nav {
+    background: #fffaf2;
+    border-color: #ebe8db;
+  }
+  .demo-redesign .phone-bottom-nav button {
+    color: #95a086;
+    border-radius: 17px;
+  }
+  .demo-redesign .phone-bottom-nav button[aria-pressed="true"] {
+    background: #e7edda;
+    color: #607b4e;
+  }
+  .demo-redesign .phone-tool-list button {
+    background: #fffdf7;
+    border-color: #e9e7d8;
+    border-radius: 19px;
+  }
+  .demo-redesign .phone-tool-list .tool-icon {
+    border-radius: 13px;
+    background: #eaf0da;
+    color: #7b965d;
+  }
+  .demo-redesign .phone-tool-list button:nth-child(2n) .tool-icon {
+    background: #f6e5d5;
+    color: #ad8260;
+  }
+  .demo-redesign .phone-tool-list button:nth-child(3n) .tool-icon {
+    background: #e9e5f1;
+    color: #8e83a4;
+  }
+  .demo-redesign .phone-action-popup {
+    background: #fffaf1f5;
+    border-color: #dce4cc;
+    color: #5a7250;
+    border-radius: 21px;
+  }
+  .demo-redesign .phone-popup-icon {
+    border-radius: 15px;
+    background: #e7efd7;
+    color: #88a467;
+  }
+  .demo-redesign .phone-action-popup.level-urgent {
+    background: #fff0e4;
+    border-color: #e7bda5;
+    color: #905a3e;
+  }
+  .demo-redesign .demo-stage {
+    background: #fffdf7;
+    border-color: #e6e8d9;
+  }
+  .demo-redesign .demo-stage .demo-chip {
+    background: #f2f4e8;
+    border-color: #e4e8d7;
+    color: #6b8057;
+    border-radius: 14px;
+  }
+  .demo-redesign .demo-stage .demo-chip.active {
+    background: #d5e3c1;
+    border-color: #b9cd9c;
+    color: #435e32;
+  }
+  .demo-redesign .demo-stage .demo-chip.sos {
+    background: #fae9dc;
+    border-color: #efd2bd;
+    color: #a26e4c;
+  }
+  .demo-redesign .experience-view-switcher {
+    background: #f0eee3;
+    border-color: #e3e6d6;
+  }
+  .demo-redesign .experience-view-switcher button[aria-pressed="true"] {
+    color: #59724b;
+    background: #fffdf5;
+  }
+  .demo-redesign .stage-memory-link {
+    color: #748e60;
+  }
+  .memory-host .sprout-css.small,
+  .care-workspace .brand .sprout-css {
+    width: 40px;
+    height: 40px;
+  }
+
+  @keyframes sprout-breathe {
+    0%,
+    100% {
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      transform: translateY(-2%) scale(1.025);
+    }
+  }
+  @keyframes sprout-blink {
+    0%,
+    42%,
+    46%,
+    100% {
+      scale: 1 1;
+    }
+    44% {
+      scale: 1 0.12;
+    }
+  }
+  @keyframes sprout-wave {
+    0%,
+    100% {
+      transform: rotate(-70deg);
+    }
+    50% {
+      transform: rotate(-103deg);
+    }
+  }
+  @keyframes sprout-love {
+    0% {
+      opacity: 0;
+      transform: translateY(10px) rotate(5deg) scale(0.7);
+    }
+    22% {
+      opacity: 1;
+    }
+    80% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-22px) rotate(14deg) scale(1.1);
+    }
+  }
+  @media (max-width: 359px) {
+    .companion-watch .watch-return-prompt .watch-mascot .mascot-touch,
+    .companion-watch .watch-return-prompt .watch-mascot .sprout-css {
+      width: 144px;
+      height: 144px;
+    }
+    .companion-watch .watch-sos-side {
+      right: -21px;
+    }
+    .companion-watch .watch-welcome .mascot-touch,
+    .companion-watch .watch-welcome .mascot-touch .sprout-css {
+      width: 144px;
+      height: 144px;
+    }
+    .companion-watch .watch-picture-card {
+      min-height: 84px;
+      font-size: 16px;
+      padding-inline: 5px;
+    }
+    .companion-watch .watch-help-home .watch-picture-card {
+      min-height: 132px;
+      font-size: 16px;
+    }
+    .companion-watch .watch-greeting {
+      font-size: 19px;
+    }
+    .companion-watch .wos-guide .wos-photo img {
+      height: 76px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sprout-css *,
+    .mascot-touched .sprout-love,
+    .mascot-touched .sprout-arm-right {
+      animation: none;
+    }
+  }
+  .reduce-motion .sprout-css *,
+  .sprout-css.is-still *,
+  .reduce-motion .mascot-touched .sprout-love {
+    animation: none;
+  }
+}

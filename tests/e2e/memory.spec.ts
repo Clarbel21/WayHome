@@ -1,3 +1,5 @@
+import { expectGardenKeepsakes } from "./watch-helpers";
+import { selectWatchActivity } from "./watch-helpers";
 import { resolveIncident } from "./support";
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
@@ -69,7 +71,7 @@ async function openHome(
   const begin = page.getByRole("button", { name: "Let's begin", exact: true });
   if (await begin.isVisible()) await begin.click();
   const back = page.getByRole("button", {
-    name: "Back",
+    name: "Go back",
     exact: true,
   });
   if (!preserve && (await back.isVisible())) await back.click();
@@ -86,30 +88,20 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
     page.getByRole("heading", { name: "Memory Garden", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Let's begin", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Familiar Faces", exact: true })
-    .click();
+  await selectWatchActivity(page, "Familiar Faces");
   await expect(page.getByText("Jamie", { exact: true })).not.toBeVisible();
   await page.getByRole("button", { name: "Tell me more", exact: true }).click();
   await expect(page.getByText(/This is your son, Jamie/)).toBeVisible();
-  await expect(
-    page.getByRole("img", { name: /has 1 keepsakes/ }),
-  ).toBeVisible();
+  await expectGardenKeepsakes(page, 1);
   await page.getByRole("button", { name: "Done" }).click();
-  await expect(
-    page.getByRole("img", { name: /has 1 keepsakes/ }),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "My Happy Places", exact: true })
-    .click();
+  await expectGardenKeepsakes(page, 1);
+  await selectWatchActivity(page, "My Happy Places");
   await page.getByRole("button", { name: "Not sure", exact: true }).click();
   await expect(
     page.getByText("The neighborhood park", { exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Done" }).click();
-  await page
-    .getByRole("button", { name: "Music Memories", exact: true })
-    .click();
+  await selectWatchActivity(page, "Music Memories");
   await expect(page.getByRole("link", { name: "Find song" })).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Play recording" }),
@@ -118,9 +110,7 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
   await page.getByRole("button", { name: "Nostalgic", exact: true }).click();
   await page.getByRole("button", { name: "Done" }).click();
   await page.getByRole("button", { name: "More activities" }).click();
-  await page
-    .getByRole("button", { name: "Everyday Moments", exact: true })
-    .click();
+  await selectWatchActivity(page, "Everyday Moments");
   await page
     .getByRole("button", { name: "Take your keys", exact: true })
     .click();
@@ -136,21 +126,14 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
   await expect(page.getByText("Well done.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Done" }).click();
   await page.getByRole("button", { name: "More activities" }).click();
-  await page
-    .getByRole("button", { name: "Memory Garden", exact: true })
-    .click();
+  await selectWatchActivity(page, "Memory Garden");
   await page.getByRole("button", { name: "Plant a little tree" }).click();
-  await expect(
-    page.getByRole("img", { name: /has 5 keepsakes/ }),
-  ).toBeVisible();
+  await expectGardenKeepsakes(page, 5);
   await page.reload();
-  await expect(
-    page.getByRole("img", { name: /has 5 keepsakes/ }),
-  ).toBeVisible();
+  await expectGardenKeepsakes(page, 5);
   await page.getByRole("button", { name: "Done" }).click();
   await page
-    .locator(".wos-memories")
-    .getByRole("button", { name: "Close", exact: true })
+    .getByRole("button", { name: "Back to main screen", exact: true })
     .click();
   await expect(page.locator(".wos-memories")).toHaveCount(0);
   await page.goto("/#/caregiver/library");
@@ -206,9 +189,7 @@ test("library approval, image/audio persistence, previews, edit/delete, metadata
       .getByRole("checkbox")
       .uncheck();
   await openHome(page);
-  await page
-    .getByRole("button", { name: "Familiar Faces", exact: true })
-    .click();
+  await selectWatchActivity(page, "Familiar Faces");
   await expect(
     page.getByText("Nothing here yet.", { exact: true }),
   ).toBeVisible();
@@ -219,9 +200,7 @@ test("library approval, image/audio persistence, previews, edit/delete, metadata
   await page.getByLabel("Person’s name").fill("Aunt Juniper");
   await page.getByRole("button", { name: "Save memory", exact: true }).click();
   await openHome(page);
-  await page
-    .getByRole("button", { name: "Familiar Faces", exact: true })
-    .click();
+  await selectWatchActivity(page, "Familiar Faces");
   await expect(page.getByText(/Juniper/)).not.toBeVisible();
   await page.getByRole("button", { name: "Tell me more", exact: true }).click();
   await expect(page.getByText(/This is your aunt, Aunt Juniper/)).toBeVisible();
@@ -247,9 +226,7 @@ test("library approval, image/audio persistence, previews, edit/delete, metadata
       .getByRole("checkbox")
       .uncheck();
   await openHome(page);
-  await page
-    .getByRole("button", { name: "Music Memories", exact: true })
-    .click();
+  await selectWatchActivity(page, "Music Memories");
   await expect(
     page.getByRole("button", { name: "Play recording" }),
   ).toBeVisible();
@@ -268,10 +245,8 @@ test("library approval, image/audio persistence, previews, edit/delete, metadata
     (window as unknown as { lastAudio: HTMLAudioElement | null }).lastAudio =
       document.querySelector("audio");
   });
-  await page.getByRole("button", { name: "SOS Hold for 2 seconds" }).focus();
-  await page.keyboard.down("Space");
-  await page.waitForTimeout(2100);
-  await page.keyboard.up("Space");
+  await page.getByRole("button", { name: "SOS Send help request" }).focus();
+  await page.keyboard.press("Space");
   await expect(page.getByText("Help request sent — simulation")).toBeVisible();
   expect(
     await page.evaluate(
@@ -339,9 +314,7 @@ test("cross-tab safety interrupts and preserves routine; renaming, skipping and 
     wearer.getByRole("button", { name: "Familiar Faces", exact: true }),
   ).toBeVisible();
   await wearer.getByRole("button", { name: "More activities" }).click();
-  await wearer
-    .getByRole("button", { name: "Everyday Moments", exact: true })
-    .click();
+  await selectWatchActivity(wearer, "Everyday Moments");
   await wearer
     .getByRole("button", { name: "Take your keys", exact: true })
     .click();
@@ -349,6 +322,7 @@ test("cross-tab safety interrupts and preserves routine; renaming, skipping and 
   await page.getByRole("button", { name: /Start Guided Return/ }).click();
   // Safety owns the watch: the Memory Garden steps aside for guidance.
   await expect(wearer.locator(".wos-memories")).toHaveCount(0);
+  await wearer.locator(".wos-more-options summary").click();
   await expect(
     wearer.getByRole("button", { name: "I know my way", exact: true }),
   ).toBeVisible();
@@ -376,12 +350,9 @@ test("cross-tab safety interrupts and preserves routine; renaming, skipping and 
   await wearer
     .getByRole("button", { name: "Maybe later", exact: true })
     .click();
-  await expect(
-    wearer.getByRole("img", { name: /has 0 keepsakes/ }),
-  ).toBeVisible();
+  await expectGardenKeepsakes(wearer, 0);
   await wearer
-    .locator(".wos-memories")
-    .getByRole("button", { name: "Close", exact: true })
+    .getByRole("button", { name: "Back to main screen", exact: true })
     .click();
   await expect(wearer.locator(".wos-memories")).toHaveCount(0);
   await expect(
@@ -412,10 +383,8 @@ test("sample presentation, mobile keyboard play, and immediate in-game SOS", asy
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  const sos = page.getByRole("button", { name: "SOS Hold for 2 seconds" });
+  const sos = page.getByRole("button", { name: "SOS Send help request" });
   await sos.focus();
-  await page.keyboard.down("Space");
-  await page.waitForTimeout(2100);
-  await page.keyboard.up("Space");
+  await page.keyboard.press("Space");
   await expect(page.getByText("Help request sent — simulation")).toBeVisible();
 });

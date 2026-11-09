@@ -1,3 +1,4 @@
+import { openWatchHelp } from "./watch-helpers";
 import { test, expect } from "@playwright/test";
 
 test("help has a working way back and a blocked check-in offers recovery", async ({
@@ -8,7 +9,9 @@ test("help has a working way back and a blocked check-in offers recovery", async
     .getByRole("button", { name: "Start feeling check-in", exact: true })
     .click();
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "I need help", exact: true }).click();
+  await page
+    .getByRole("button", { name: "I'd like some help", exact: true })
+    .click();
   const contrasts = await page
     .locator(".watch-controls button")
     .evaluateAll((buttons) => {
@@ -38,7 +41,7 @@ test("help has a working way back and a blocked check-in offers recovery", async
   ).toBeVisible();
   await page.getByRole("button", { name: "I'm okay", exact: true }).click();
   await expect(
-    page.getByText("Thank you for telling me. I'm here with you.", {
+    page.getByText("Thank you, Alex.", {
       exact: true,
     }),
   ).toBeVisible();
@@ -68,9 +71,7 @@ test("log-only unanswered check-in can be reviewed without getting stuck", async
     })
     .click();
   await page.goto("/#/companion");
-  await expect(
-    page.getByText("Hi! I'm Sprout. I'm here with you.", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("Hello, Alex.", { exact: true })).toBeVisible();
   await page.goto("/#/caregiver/alerts");
   await expect(
     page
@@ -88,9 +89,15 @@ test("removal handover provides a request, response and device recovery path", a
   await page
     .getByRole("button", { name: "Call someone I trust", exact: true })
     .click();
-  await expect(
-    page.getByText("Waiting for caregiver response", { exact: true }),
-  ).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("wayhome-v1")!).state.familyRequest
+            ?.status,
+      ),
+    )
+    .toBe("waiting");
   await page.goto("/#/caregiver/emergency");
   await page
     .getByRole("button", { name: "Acknowledge family request", exact: true })
@@ -122,9 +129,7 @@ test("removal handover provides a request, response and device recovery path", a
     })
     .click();
   await page.goto("/#/companion");
-  await expect(
-    page.getByText("Hi! I'm Sprout. I'm here with you.", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("Hello, Alex.", { exact: true })).toBeVisible();
   await page
     .getByRole("button", { name: "Explore Memories", exact: true })
     .click();
@@ -138,7 +143,8 @@ test("withdrawing a landmark stops recognition across tabs instead of silently s
   context,
 }) => {
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "Go home", exact: true }).click();
+  await openWatchHelp(page);
+  await page.getByRole("button", { name: "Help me home", exact: true }).click();
   await page.getByRole("button", { name: "I see it", exact: true }).click();
   await expect(
     page.getByText("Neighborhood bakery", { exact: true }),
@@ -168,33 +174,30 @@ test("withdrawing a landmark stops recognition across tabs instead of silently s
   ).toBeVisible();
 });
 
-test("SOS ignores right-click and canceled holds; active SOS disables conflicting controls", async ({
+test("SOS ignores right-click and canceled key press; one click disables conflicting controls", async ({
   page,
 }) => {
   await page.goto("/#/companion");
   const sos = page.getByRole("button", {
-    name: "SOS Hold for 2 seconds",
+    name: "SOS Send help request",
     exact: true,
   });
   await sos.click({ button: "right" });
-  await page.waitForTimeout(2100);
+
   await expect(
     page.getByText("Help request sent — simulation", { exact: true }),
   ).toHaveCount(0);
   await page.keyboard.press("Escape");
   await sos.focus();
   await page.keyboard.down("Space");
-  await page.waitForTimeout(100);
-  await page.getByRole("button", { name: "Go home", exact: true }).focus();
+  await page
+    .getByRole("button", { name: "Say hello to Sprout", exact: true })
+    .focus();
   await page.keyboard.up("Space");
-  await page.waitForTimeout(2100);
   await expect(
     page.getByText("Help request sent — simulation", { exact: true }),
   ).toHaveCount(0);
-  await sos.focus();
-  await page.keyboard.down("Space");
-  await page.waitForTimeout(2100);
-  await page.keyboard.up("Space");
+  await sos.click();
   await expect(
     page.getByText("Help request sent — simulation", { exact: true }),
   ).toBeVisible();
