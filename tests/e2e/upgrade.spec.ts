@@ -12,14 +12,14 @@ const wearer = (page: import("@playwright/test").Page) =>
 const caregiver = (page: import("@playwright/test").Page) =>
   page.getByRole("region", { name: "A little closer.", exact: true });
 
-test("home starts with a breathing mascot and opens two visual choices", async ({
+test("home starts with a breathing mascot and two visible choices", async ({
   page,
 }) => {
   const w = wearer(page);
   await expect(
     w.getByRole("button", { name: "Say hello to Sprout", exact: true }),
   ).toBeVisible();
-  await expect(w.locator(".watch-picture-card:visible")).toHaveCount(0);
+  await expect(w.locator(".watch-picture-card:visible")).toHaveCount(2);
   await w
     .getByRole("button", { name: "Say hello to Sprout", exact: true })
     .click();

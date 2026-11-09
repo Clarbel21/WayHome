@@ -24,12 +24,12 @@ async function atHome(page: Page) {
   ).toBeVisible();
 }
 
-test("mascot is the only home choice, breathes gently, reacts to touch and respects reduced motion", async ({
+test("home shows two clear choices and a mascot that reacts to touch and respects reduced motion", async ({
   page,
 }) => {
   await fresh(page);
   await atHome(page);
-  await expect(watch(page).getByRole("button")).toHaveCount(2); // Mascot plus physical SOS.
+  await expect(watch(page).getByRole("button")).toHaveCount(4); // Two choices, mascot and physical SOS.
   expect(
     await watch(page)
       .locator(".sprout-figure")
@@ -258,12 +258,10 @@ test("waiting screen keeps only a stationary mascot and its replies", async ({
           .status,
     ),
   ).toBe("waiting");
-  await page
-    .locator(".watch-area")
-    .screenshot({
-      path: test.info().outputPath("stationary-mascot.png"),
-      animations: "disabled",
-    });
+  await page.locator(".watch-area").screenshot({
+    path: test.info().outputPath("stationary-mascot.png"),
+    animations: "disabled",
+  });
 });
 
 for (const width of [390, 320]) {

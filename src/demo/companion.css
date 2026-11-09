@@ -431,6 +431,7 @@
     position: relative;
   }
   .companion-watch .mascot-touch {
+    position: relative;
     width: 216px;
     height: 216px;
     min-height: 0;
@@ -1416,5 +1417,246 @@
   .sprout-css.is-still *,
   .reduce-motion .mascot-touched .sprout-love {
     animation: none;
+  }
+}
+
+@layer companion {
+  /* Three simple layouts, sharing the same actions and safety state. */
+  .companion-watch .watch-welcome {
+    gap: 8px;
+    padding: 0 0 2px;
+    justify-content: center;
+  }
+  .companion-watch .watch-welcome .mascot-touch,
+  .companion-watch .watch-welcome .mascot-touch .sprout-css {
+    width: 132px;
+    height: 132px;
+    flex: none;
+  }
+  .companion-watch .watch-welcome .watch-sentence-slot {
+    width: 100%;
+    min-height: 50px;
+    flex: none;
+  }
+  .companion-watch .watch-welcome h2,
+  .companion-watch .watch-welcome .watch-greeting {
+    margin: 0;
+    font-size: 23px;
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    font-weight: 500;
+  }
+  .companion-watch .watch-welcome .watch-picture-card {
+    flex-direction: column;
+    min-height: 76px;
+    padding: 10px 6px;
+    gap: 6px;
+    border-radius: 20px;
+    font-size: 17px;
+    line-height: 1.15;
+    border: 1px solid #e9f2db45;
+    box-shadow: inset 0 1px 0 #ffffff40;
+  }
+  .companion-watch .watch-welcome .watch-picture-symbol,
+  .companion-watch .watch-welcome .watch-picture-symbol svg {
+    width: 27px;
+    height: 27px;
+  }
+  .companion-watch .watch-help-home {
+    padding-top: 0;
+  }
+  .companion-watch .watch-help-home .mascot-touch,
+  .companion-watch .watch-help-home .mascot-touch .sprout-css {
+    width: 120px;
+    height: 120px;
+  }
+  .companion-watch.experience-focus:not(.mode-emergency_simulated)
+    .watch-screen.wos {
+    background: radial-gradient(ellipse at 50% 30%, #29433e, #122624 72%);
+  }
+  .companion-watch .mode-home-focus .mascot-touch::before {
+    width: 112px;
+    height: 112px;
+    border: 1px solid #bcdad32b;
+    background: radial-gradient(circle, #aacdc014, transparent 70%);
+  }
+  .companion-watch .mode-home-focus .watch-sentence-slot {
+    min-height: 32px;
+  }
+  .companion-watch .mode-home-focus .mascot-touch,
+  .companion-watch .mode-home-focus .mascot-touch .sprout-css {
+    width: 112px;
+    height: 112px;
+  }
+  .companion-watch .watch-focus-actions {
+    display: grid;
+    gap: 4px;
+    width: 100%;
+  }
+  .companion-watch .watch-focus-primary {
+    min-height: 64px;
+    padding: 12px 15px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    border: 1px solid #d7e9ce;
+    border-radius: 22px;
+    background: #dceacb;
+    color: #243f35;
+    font-size: 22px;
+    font-weight: 600;
+  }
+  .companion-watch .watch-focus-primary svg {
+    flex: none;
+  }
+  .companion-watch .watch-more-button {
+    min-height: 44px;
+    border: 0;
+    background: transparent;
+    color: #d4e3d4;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .companion-watch.experience-dialogue:not(.mode-emergency_simulated)
+    .watch-screen.wos {
+    background: radial-gradient(ellipse at 50% 25%, #3c343c, #211f27 75%);
+  }
+  .companion-watch .mode-home-dialogue {
+    gap: 9px;
+  }
+  .companion-watch .mode-home-dialogue .mascot-touch,
+  .companion-watch .mode-home-dialogue .mascot-touch .sprout-css {
+    width: 88px;
+    height: 88px;
+  }
+  .companion-watch .watch-welcome .watch-dialogue-bubble {
+    background: #f5e9d8;
+    border: 1px solid #fff2e1;
+    border-radius: 20px 20px 20px 5px;
+    min-height: 62px;
+    padding: 10px 15px;
+    position: relative;
+    margin-bottom: 2px;
+  }
+  .companion-watch .watch-dialogue-bubble h2,
+  .companion-watch .watch-dialogue-bubble .watch-greeting {
+    color: #463b40;
+    font-size: 21px;
+  }
+  .companion-watch .mode-home-dialogue .watch-visual-choices {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+  .companion-watch .mode-home-dialogue .watch-picture-card {
+    min-height: 48px;
+    flex-direction: row;
+    justify-content: start;
+    gap: 12px;
+    padding: 9px 15px;
+    border-radius: 17px;
+    background: #3c3542;
+    border: 1px solid #756577;
+    color: #fff3e5;
+    box-shadow: none;
+    font-size: 18px;
+    font-weight: 500;
+  }
+  .companion-watch.experience-dialogue .watch-main-button {
+    background: #342e38;
+    border-color: #736574;
+    color: #f6e9dc;
+  }
+  .companion-watch.experience-dialogue .watch-tap-hint {
+    color: #ddced7;
+  }
+
+  /* Never compress an action into a clipped sliver above the fixed footer. */
+  .companion-watch .wos-body > * {
+    flex-shrink: 0;
+    max-height: none;
+  }
+  .companion-watch .wos-center > *,
+  .companion-watch .wos-sos > * {
+    flex-shrink: 0;
+  }
+  .companion-watch .wos-center .watch-mascot .mascot-touch,
+  .companion-watch .wos-center .watch-mascot .sprout-css {
+    width: 112px;
+    height: 112px;
+  }
+  .companion-watch .wos-center .mascot-reply:empty {
+    block-size: 0;
+  }
+  .companion-watch .wos-center .mascot-reply:not(:empty) {
+    font-size: 17px;
+    block-size: auto;
+    min-height: 24px;
+  }
+  .companion-watch .wos-handover .watch-mascot .mascot-touch,
+  .companion-watch .wos-handover .watch-mascot .sprout-css {
+    width: 184px;
+    height: 184px;
+  }
+  .companion-watch .wos-handover .mascot-reply:empty,
+  .companion-watch .wos-handover .mascot-reply:not(:empty) {
+    block-size: 50px;
+    font-size: 20px;
+  }
+  .companion-watch.experience-focus .wos-answer {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .companion-watch.experience-dialogue .wos-center > .speech {
+    padding: 12px;
+    border-radius: 18px 18px 18px 4px;
+    background: #f5e9d8;
+    color: #463b40;
+  }
+  .companion-watch .watch-status .wos-wear .sprout-css {
+    width: 34px;
+    height: 34px;
+    margin: -5px 0;
+  }
+  .companion-watch .watch-thanks {
+    gap: 10px;
+    padding: 4px 0;
+  }
+  .companion-watch .watch-return-prompt {
+    gap: 10px;
+  }
+  @media (max-width: 359px) {
+    .companion-watch .watch-welcome {
+      gap: 6px;
+    }
+    .companion-watch .watch-welcome .mascot-touch,
+    .companion-watch .watch-welcome .mascot-touch .sprout-css {
+      width: 112px;
+      height: 112px;
+    }
+    .companion-watch .mode-home-dialogue .mascot-touch,
+    .companion-watch .mode-home-dialogue .mascot-touch .sprout-css {
+      width: 76px;
+      height: 76px;
+    }
+    .companion-watch .mode-home-focus .mascot-touch,
+    .companion-watch .mode-home-focus .mascot-touch .sprout-css,
+    .companion-watch .mode-home-focus .mascot-touch::before {
+      width: 100px;
+      height: 100px;
+    }
+    .companion-watch .watch-welcome h2 {
+      font-size: 21px;
+    }
+    .companion-watch .mode-home-dialogue {
+      gap: 6px;
+    }
+    .companion-watch .watch-welcome .watch-dialogue-bubble {
+      padding-block: 8px;
+    }
+    .companion-watch .watch-focus-primary {
+      font-size: 20px;
+      gap: 8px;
+      padding-inline: 10px;
+    }
   }
 }

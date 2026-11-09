@@ -46,6 +46,7 @@ import { LandmarkPhoto } from "./LandmarkPhoto";
 import { ResolveSOSButton } from "./ResolveSOSButton";
 import { SOSButton } from "./SOSButton";
 import { WatchMascot } from "./WatchMascot";
+import { Sprout } from "./Sprout";
 import { useLang, useT, modeMessage, noteText } from "../i18n";
 import {
   useCaregiverPopups,
@@ -186,6 +187,24 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const name = s.settings.companionName;
   const caregiver = s.settings.caregiver;
   const experienceMode = s.settings.experienceMode;
+  const previousExperienceMode = useRef(experienceMode);
+  // A profile change opens its start view without answering an outstanding request.
+  useEffect(() => {
+    if (previousExperienceMode.current === experienceMode) return;
+    previousExperienceMode.current = experienceMode;
+    setHomePage("idle");
+    setHomePrompt(false);
+    setArrived(false);
+    if (useStore.getState().mode === "NORMAL") {
+      useStore.getState().dismissAcknowledgment();
+      if (useWatchUi.getState().memories) {
+        const memory = useMemory.getState();
+        if (memory.session?.completed) memory.home();
+        else if (memory.stage !== "invite") memory.exit();
+        useWatchUi.getState().closeMemories();
+      }
+    }
+  }, [experienceMode]);
   const reportWatchAction = (
     label: string,
     level: CaregiverPopupLevel = "awareness",
@@ -610,7 +629,13 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         {speech(
           lang === "id" ? "Terima kasih." : "Thank you, " + wearerFirst + ".",
         )}
-        {s.mode !== "NORMAL" && note}
+        {s.mode !== "NORMAL" && (
+          <p className="wos-note" role="status">
+            {lang === "id"
+              ? "Pendamping perlu memeriksa jam."
+              : "Your caregiver needs to check the watch."}
+          </p>
+        )}
         <button className="watch-action" onClick={openMemories}>
           <Leaf size={22} />
           {t("openGarden")}
@@ -644,6 +669,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     screenKey = "home-" + homePage;
     screen = (
       <WatchWelcome
+        key={experienceMode}
         page={homePage}
         onPage={setHomePage}
         onMemories={openMemories}
@@ -732,6 +758,14 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     bodyRef.current?.focus({ preventScroll: true });
   }, [screenKey]);
 
+  const showSmallMascot =
+    !homePrompt &&
+    (s.mode === "EMERGENCY_SIMULATED" ||
+      s.mode === "GUIDED_RETURN" ||
+      s.mode === "REORIENTATION" ||
+      zonePrompt ||
+      watchUi.memories);
+
   return (
     <div
       className={`watch-area fixed-watch companion-watch mode-${s.mode.toLowerCase()} experience-${experienceMode} ${s.attachment} ${compact ? "compact" : ""} ${buzzing ? "buzz" : ""} ${ringing ? "find-ring" : ""} ${zonePrompt ? "zone-alert" : ""}`}
@@ -756,7 +790,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
               className="wos-wear"
               title={`${attachmentNames[s.attachment]} · ${wearLabels[s.wearStatus]} (inferred)`}
             >
-              {s.settings.companionName}
+              {showSmallMascot ? <Sprout small /> : s.settings.companionName}
             </span>
             <span>
               {s.connected ? (
@@ -782,7 +816,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           <div
             className="wos-body"
             data-screen={screenKey}
-            key={screenKey}
+            key={`${screenKey}-${experienceMode}`}
             ref={bodyRef}
             tabIndex={-1}
             role="group"
@@ -810,8 +844,17 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
               homePage === "idle" &&
               !homePrompt ? (
               <span className="watch-tap-hint">
-                {lang === "id" ? "Ketuk " : "Tap "}
-                {name}
+                {experienceMode === "normal"
+                  ? lang === "id"
+                    ? "Pilih satu untuk mulai"
+                    : "Choose something to begin"
+                  : experienceMode === "focus"
+                    ? lang === "id"
+                      ? "Tak perlu terburu-buru"
+                      : "There’s no hurry"
+                    : lang === "id"
+                      ? "Ketuk untuk menjawab"
+                      : "Choose a reply"}
               </span>
             ) : (
               <button
