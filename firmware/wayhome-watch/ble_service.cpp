@@ -12,6 +12,7 @@ const char *CHAR_GPS_UUID = "5a9c1f2e-4a04-4c31-9a48-d1b7f30e6c21";
 const char *CHAR_WEAR_MOTION_UUID = "5a9c1f2e-4a05-4c31-9a48-d1b7f30e6c21";
 const char *CHAR_ATTACHMENT_UUID = "5a9c1f2e-4a06-4c31-9a48-d1b7f30e6c21";
 const char *CHAR_COMPANION_UUID = "5a9c1f2e-4a07-4c31-9a48-d1b7f30e6c21";
+const char *CHAR_WATCH_STATE_UUID = "5a9c1f2e-4a08-4c31-9a48-d1b7f30e6c21";
 
 namespace {
 
@@ -21,6 +22,7 @@ NimBLECharacteristic *chrGps = nullptr;
 NimBLECharacteristic *chrWearMotion = nullptr;
 NimBLECharacteristic *chrAttachment = nullptr;
 NimBLECharacteristic *chrCompanion = nullptr;
+NimBLECharacteristic *chrWatchState = nullptr;
 
 // Set from NimBLE host-task callbacks; handled in loopTick().
 volatile bool snapshotPending = false;
@@ -78,6 +80,20 @@ class CompanionCallbacks : public NimBLECharacteristicCallbacks {
   }
 };
 
+class WatchStateCallbacks : public NimBLECharacteristicCallbacks {
+  // Web → device screen mirror: byte0 = screen code, byte1 = route position.
+  void onWrite(NimBLECharacteristic *chr, NimBLEConnInfo &connInfo) override {
+    NimBLEAttValue value = chr->getValue();
+    if (value.size() >= 1) {
+      watch.remoteScreen = value[0];
+      if (value.size() >= 2 && value[1] <= 6) {
+        watch.remotePosition = value[1];
+      }
+      watch.watchStatePending = true;
+    }
+  }
+};
+
 }  // namespace
 
 bool begin() {
@@ -104,10 +120,13 @@ bool begin() {
   chrCompanion = service->createCharacteristic(
       CHAR_COMPANION_UUID,
       NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::NOTIFY);
+  chrWatchState = service->createCharacteristic(
+      CHAR_WATCH_STATE_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
 
   chrGps->setCallbacks(new GpsCallbacks());
   chrAttachment->setCallbacks(new AttachmentCallbacks());
   chrCompanion->setCallbacks(new CompanionCallbacks());
+  chrWatchState->setCallbacks(new WatchStateCallbacks());
 
   // Initial values (also served on read before the first notify).
   uint8_t battery = watch.batteryValid ? watch.batteryPercent : UINT8_MAX;

@@ -43,6 +43,8 @@ lv_obj_t *scrSettings = nullptr;
 lv_obj_t *scrSos = nullptr;
 lv_obj_t *scrCheckQ = nullptr;  // "How are you feeling?"
 lv_obj_t *scrCheckH = nullptr;  // "How can I help?" (after "I'd like some help")
+lv_obj_t *scrThanks = nullptr;  // acknowledged: "Thank you for telling me"
+lv_obj_t *scrMirror = nullptr;  // generic: web shows a screen the watch lacks
 
 // Home widgets
 lv_obj_t *lblClock = nullptr;
@@ -573,6 +575,34 @@ void build_checkin_screens() {
   lv_obj_add_event_cb(back, checkin_back_cb, LV_EVENT_CLICKED, nullptr);
 }
 
+// Mirror-only screens for web states the watch has no buttons for.
+void build_mirror_screens() {
+  // Acknowledged: wearer answered "I'm okay" but safety checks block NORMAL.
+  scrThanks = new_screen(CREAM);
+  make_sprout_avatar(scrThanks, 182, 60);
+  lv_obj_t *tTitle = add_label(scrThanks, "Thank you for telling me.",
+                               &lv_font_montserrat_22, INK);
+  lv_obj_align(tTitle, LV_ALIGN_TOP_MID, 0, 124);
+  lv_obj_t *tNote = add_label(scrThanks,
+                              "Your caregiver still needs\nto review the safety concern.",
+                              &lv_font_montserrat_16, SAGE_TEXT);
+  lv_obj_align(tNote, LV_ALIGN_TOP_MID, 0, 168);
+  lv_obj_set_style_text_align(tNote, LV_TEXT_ALIGN_CENTER, 0);
+  lv_obj_set_style_text_line_space(tNote, 4, 0);
+
+  // Generic fallback: the web watch shows a screen the firmware lacks.
+  scrMirror = new_screen(CREAM);
+  lv_obj_t *mTitle = add_label(scrMirror, LV_SYMBOL_HOME " Sprout",
+                               &lv_font_montserrat_24, INK);
+  lv_obj_align(mTitle, LV_ALIGN_TOP_MID, 0, 150);
+  lv_obj_t *mNote = add_label(scrMirror,
+                              "Your companion is showing\nsomething new.\n\nCheck the app to respond.",
+                              &lv_font_montserrat_16, SAGE_TEXT);
+  lv_obj_align(mNote, LV_ALIGN_TOP_MID, 0, 204);
+  lv_obj_set_style_text_align(mNote, LV_TEXT_ALIGN_CENTER, 0);
+  lv_obj_set_style_text_line_space(mNote, 4, 0);
+}
+
 }  // namespace
 
 namespace ui {
@@ -585,6 +615,7 @@ bool init() {
   build_settings_screen();
   build_sos_screen();
   build_checkin_screens();
+  build_mirror_screens();
   build_home_screen();
 
   lv_timer_create(sos_hold_timer_cb, 50, nullptr);
@@ -598,6 +629,37 @@ bool init() {
 
 void sync() {
   if (lblBattery == nullptr) return;
+
+  // Screen mirror from the web app: the AMOLED follows the web watch, and
+  // its route position is the gate-checked source of truth while guidance
+  // runs. Codes mirror src/services/ble.ts watchScreenCode().
+  if (watch.watchStatePending) {
+    watch.watchStatePending = false;
+    uint8_t code = watch.remoteScreen;
+    uint8_t pos = watch.remotePosition;
+    if (pos != watch.gpsProgress) {
+      watch.gpsProgress = pos;
+      refresh_route_widgets();
+      ble::syncGpsValue();
+    }
+    if (code != 4) watch.sosActive = false;  // leaving the emergency screen
+    switch (code) {
+      case 0: load_screen(scrHome); break;
+      case 1: load_screen(scrCheckQ); break;
+      case 2: load_screen(scrCheckH); break;
+      case 3:
+        refresh_route_widgets();
+        load_screen(scrRoute);
+        break;
+      case 4:
+        watch.sosActive = true;
+        load_screen(scrSos);
+        break;
+      case 5: load_screen(scrThanks); break;
+      case 6: load_screen(scrMirror); break;
+      default: break;  // 255 = nothing received yet
+    }
+  }
 
   // A check-in request (BLE 0x01) takes over the screen, like CHECK_IN mode
   // does on the web — except while an SOS is active, which wins on both ends.
