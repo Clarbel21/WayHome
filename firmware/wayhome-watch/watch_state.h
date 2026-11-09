@@ -27,6 +27,9 @@ struct WatchState {
   volatile uint8_t attachmentRaw = 0;  // Attachment as uint8_t
   volatile bool bleConnected = false;
   volatile bool sosActive = false;
+  // Web sent a check-in request (companion characteristic, 0x01). The UI
+  // consumes this flag in sync() and shows the "How are you feeling?" screen.
+  volatile bool checkInPending = false;
 
   Attachment attachment() const { return (Attachment)attachmentRaw; }
   void setAttachment(Attachment a) { attachmentRaw = (uint8_t)a; }

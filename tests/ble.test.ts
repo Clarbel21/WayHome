@@ -5,6 +5,7 @@ import {
   BleDevice,
   attachmentEvent,
   batteryEvent,
+  companionEvent,
   gpsEvent,
   wearEvent,
 } from "../src/services/ble";
@@ -58,6 +59,33 @@ test("attachment payload accepts the three kinds and rejects junk", () => {
   expect(attachmentEvent(view([...Buffer.from("necklace")]))).toBeNull();
 });
 
+test("companion payload maps check-in answers and ignores unknown codes", () => {
+  expect(companionEvent(view([0x02]))).toEqual({
+    type: "checkin_answer",
+    answer: "okay",
+  });
+  expect(companionEvent(view([0x03]))).toEqual({
+    type: "checkin_answer",
+    answer: "help",
+  });
+  expect(companionEvent(view([0x04, 0x00]))).toEqual({
+    type: "assistance",
+    choice: "home",
+  });
+  expect(companionEvent(view([0x04, 0x01]))).toEqual({
+    type: "assistance",
+    choice: "family",
+  });
+  expect(companionEvent(view([0x04, 0x02]))).toEqual({
+    type: "assistance",
+    choice: "confused",
+  });
+  expect(companionEvent(view([0x04, 0x09]))).toBeNull(); // unknown choice
+  expect(companionEvent(view([0x05]))).toEqual({ type: "checkin_back" });
+  expect(companionEvent(view([0x01]))).toBeNull(); // web→watch direction
+  expect(companionEvent(view([]))).toBeNull();
+});
+
 // --- event application (shared by both adapters) ---
 
 test("applyDeviceEvent routes watch telemetry into the store", () => {
@@ -82,6 +110,33 @@ test("an SOS from the watch latches the emergency state like the button does", (
   expect(state().incident?.stage).toBe("active");
 });
 
+test("watch check-in answers resolve the same flow as the web wearer screen", () => {
+  state().event("CHECK");
+  expect(state().mode).toBe("CHECK_IN");
+
+  applyDeviceEvent({ type: "checkin_answer", answer: "okay" });
+  expect(state().checkIn?.stage).toBe("answered");
+  expect(state().checkIn?.source).toBe("wearer");
+
+  state().event("CHECK");
+  applyDeviceEvent({ type: "checkin_answer", answer: "help" });
+  expect(state().checkIn?.stage).toBe("help_options");
+
+  // Guidance only advances for a connected, confidently-worn device.
+  useStore.setState({
+    connected: true,
+    wearStatus: "likely_worn",
+    signals: { ...state().signals, gpsConfidence: 0.9 },
+  });
+  applyDeviceEvent({ type: "assistance", choice: "home" });
+  expect(state().mode).toBe("GUIDED_RETURN");
+
+  state().event("CHECK");
+  applyDeviceEvent({ type: "checkin_answer", answer: "help" });
+  applyDeviceEvent({ type: "checkin_back" });
+  expect(state().checkIn?.stage).toBe("question");
+});
+
 // --- BleDevice against a fake Web Bluetooth stack ---
 
 class FakeCharacteristic extends EventTarget {
@@ -98,6 +153,7 @@ function installFakeBluetooth() {
     gps: new FakeCharacteristic(),
     wear: new FakeCharacteristic(),
     attachment: new FakeCharacteristic(),
+    companion: new FakeCharacteristic(),
   };
   const server = {
     connect: vi.fn(async () => server),
@@ -110,6 +166,7 @@ function installFakeBluetooth() {
           "5a9c1f2e-4a04-4c31-9a48-d1b7f30e6c21": chars.gps,
           "5a9c1f2e-4a05-4c31-9a48-d1b7f30e6c21": chars.wear,
           "5a9c1f2e-4a06-4c31-9a48-d1b7f30e6c21": chars.attachment,
+          "5a9c1f2e-4a07-4c31-9a48-d1b7f30e6c21": chars.companion,
         };
         const found = map[uuid];
         if (!found) throw new Error("unknown characteristic " + uuid);

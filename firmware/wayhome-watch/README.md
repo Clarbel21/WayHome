@@ -42,6 +42,7 @@ Device name **`Sprout Watch`**. Service and characteristic UUIDs must match
 | GPS progress | `5a9c1f2e-4a04-4c31-9a48-d1b7f30e6c21` | `uint8` 0–6 route step | read, write, notify |
 | Wear motion | `5a9c1f2e-4a05-4c31-9a48-d1b7f30e6c21` | `uint8`: 0 unknown, 1 yes, 2 no | read, notify |
 | Attachment | `5a9c1f2e-4a06-4c31-9a48-d1b7f30e6c21` | string `wristwatch\|pendant\|clip` | read, write, notify |
+| Companion command | `5a9c1f2e-4a07-4c31-9a48-d1b7f30e6c21` | byte0: web→watch `0x01` show check-in; watch→web `0x02` "I'm okay", `0x03` "I'd like some help", `0x04` assistance (byte1: 0 home, 1 family, 2 confused), `0x05` back | read, write, notify |
 | *(service)* | `5a9c1f2e-4a01-4c31-9a48-d1b7f30e6c21` | — | — |
 
 All payloads fit the default 20-byte ATT payload. On connect the device re-pushes a

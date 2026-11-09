@@ -20,8 +20,17 @@ const SOS_UUID = "5a9c1f2e-4a03-4c31-9a48-d1b7f30e6c21";
 const GPS_UUID = "5a9c1f2e-4a04-4c31-9a48-d1b7f30e6c21";
 const WEAR_MOTION_UUID = "5a9c1f2e-4a05-4c31-9a48-d1b7f30e6c21";
 const ATTACHMENT_UUID = "5a9c1f2e-4a06-4c31-9a48-d1b7f30e6c21";
+const COMPANION_UUID = "5a9c1f2e-4a07-4c31-9a48-d1b7f30e6c21";
 
 const ATTACHMENTS: readonly Attachment[] = ["wristwatch", "pendant", "clip"];
+
+// Companion-command codes (mirrors firmware ble_service.publishCheckIn docs).
+const CMD_CHECKIN_REQUEST = 0x01; // web → watch: show "How are you feeling?"
+const CMD_ANSWER_OKAY = 0x02; // watch → web
+const CMD_ANSWER_HELP = 0x03; // watch → web
+const CMD_ASSISTANCE = 0x04; // watch → web, byte1: 0 home, 1 family, 2 confused
+const CMD_BACK_TO_QUESTION = 0x05; // watch → web
+const ASSISTANCE_CHOICES = ["home", "family", "confused"] as const;
 
 // --- Pure payload → event mappers (exported for tests) ---
 
@@ -58,6 +67,29 @@ export function attachmentEvent(value: DataView): DeviceEvent | null {
   return attachment ? { type: "attachment", attachment } : null;
 }
 
+/**
+ * Companion-command payload from the watch: byte0 picks the message.
+ * 0x02 okay, 0x03 help, 0x04 assistance (byte1), 0x05 back to question.
+ */
+export function companionEvent(value: DataView): DeviceEvent | null {
+  if (value.byteLength < 1) return null;
+  switch (value.getUint8(0)) {
+    case CMD_ANSWER_OKAY:
+      return { type: "checkin_answer", answer: "okay" };
+    case CMD_ANSWER_HELP:
+      return { type: "checkin_answer", answer: "help" };
+    case CMD_ASSISTANCE: {
+      if (value.byteLength < 2) return null;
+      const choice = ASSISTANCE_CHOICES[value.getUint8(1)];
+      return choice ? { type: "assistance", choice } : null;
+    }
+    case CMD_BACK_TO_QUESTION:
+      return { type: "checkin_back" };
+    default:
+      return null;
+  }
+}
+
 // --- Adapter ---
 
 export class BleDevice implements DeviceService {
@@ -83,12 +115,13 @@ export class BleDevice implements DeviceService {
     const server = await device.gatt!.connect();
     this.server = server;
     const service = await server.getPrimaryService(WAYHOME_SERVICE_UUID);
-    const [battery, sos, gps, wear, attachment] = await Promise.all([
+    const [battery, sos, gps, wear, attachment, companion] = await Promise.all([
       service.getCharacteristic(BATTERY_UUID),
       service.getCharacteristic(SOS_UUID),
       service.getCharacteristic(GPS_UUID),
       service.getCharacteristic(WEAR_MOTION_UUID),
       service.getCharacteristic(ATTACHMENT_UUID),
+      service.getCharacteristic(COMPANION_UUID),
     ]);
 
     // The watch pushes a snapshot right after connect, so subscribing must
@@ -100,7 +133,15 @@ export class BleDevice implements DeviceService {
       this.subscribeTo(gps, gpsEvent),
       this.subscribeTo(wear, wearEvent),
       this.subscribeTo(attachment, attachmentEvent),
+      this.subscribeTo(companion, companionEvent),
     ]);
+
+    // Mirror of the watch's snapshot push: if a check-in is already waiting,
+    // re-send it so the freshly connected watch shows the question too.
+    const s = useStore.getState();
+    if (s.mode === "CHECK_IN" && s.checkIn?.stage === "question") {
+      await this.sendCheckInRequest().catch(() => {});
+    }
 
     this.emit({ type: "connection", connected: true });
   }
@@ -119,6 +160,18 @@ export class BleDevice implements DeviceService {
     const service = await server.getPrimaryService(WAYHOME_SERVICE_UUID);
     const gps = await service.getCharacteristic(GPS_UUID);
     await gps.writeValue(new Uint8Array([clamped]));
+  }
+
+  /**
+   * Ask the watch to show "How are you feeling?" — fired when the caregiver
+   * sends a check-in while a real watch is paired. No-op when unpaired.
+   */
+  async sendCheckInRequest() {
+    const server = this.server;
+    if (!server) return;
+    const service = await server.getPrimaryService(WAYHOME_SERVICE_UUID);
+    const companion = await service.getCharacteristic(COMPANION_UUID);
+    await companion.writeValue(new Uint8Array([CMD_CHECKIN_REQUEST]));
   }
 
   subscribe(listener: (e: DeviceEvent) => void) {
@@ -159,3 +212,7 @@ export class BleDevice implements DeviceService {
     this.listeners.forEach((l) => l(e));
   }
 }
+
+// One adapter per page: keeps GATT state across mounts. DeviceConnect and the
+// caregiver check-in button share this instance.
+export const bleDevice = new BleDevice();

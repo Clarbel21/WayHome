@@ -11,6 +11,7 @@ const char *CHAR_SOS_UUID = "5a9c1f2e-4a03-4c31-9a48-d1b7f30e6c21";
 const char *CHAR_GPS_UUID = "5a9c1f2e-4a04-4c31-9a48-d1b7f30e6c21";
 const char *CHAR_WEAR_MOTION_UUID = "5a9c1f2e-4a05-4c31-9a48-d1b7f30e6c21";
 const char *CHAR_ATTACHMENT_UUID = "5a9c1f2e-4a06-4c31-9a48-d1b7f30e6c21";
+const char *CHAR_COMPANION_UUID = "5a9c1f2e-4a07-4c31-9a48-d1b7f30e6c21";
 
 namespace {
 
@@ -19,6 +20,7 @@ NimBLECharacteristic *chrSos = nullptr;
 NimBLECharacteristic *chrGps = nullptr;
 NimBLECharacteristic *chrWearMotion = nullptr;
 NimBLECharacteristic *chrAttachment = nullptr;
+NimBLECharacteristic *chrCompanion = nullptr;
 
 // Set from NimBLE host-task callbacks; handled in loopTick().
 volatile bool snapshotPending = false;
@@ -66,6 +68,16 @@ class AttachmentCallbacks : public NimBLECharacteristicCallbacks {
   }
 };
 
+class CompanionCallbacks : public NimBLECharacteristicCallbacks {
+  // Web → device commands: 0x01 = show the check-in question.
+  void onWrite(NimBLECharacteristic *chr, NimBLEConnInfo &connInfo) override {
+    NimBLEAttValue value = chr->getValue();
+    if (value.size() >= 1 && value[0] == 0x01) {
+      watch.checkInPending = true;
+    }
+  }
+};
+
 }  // namespace
 
 bool begin() {
@@ -89,9 +101,13 @@ bool begin() {
   chrAttachment = service->createCharacteristic(
       CHAR_ATTACHMENT_UUID,
       NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::NOTIFY);
+  chrCompanion = service->createCharacteristic(
+      CHAR_COMPANION_UUID,
+      NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::NOTIFY);
 
   chrGps->setCallbacks(new GpsCallbacks());
   chrAttachment->setCallbacks(new AttachmentCallbacks());
+  chrCompanion->setCallbacks(new CompanionCallbacks());
 
   // Initial values (also served on read before the first notify).
   uint8_t battery = watch.batteryValid ? watch.batteryPercent : UINT8_MAX;
@@ -144,6 +160,13 @@ void publishSos() {
   uint8_t trigger = 1;
   chrSos->setValue(&trigger, 1);
   chrSos->notify();
+}
+
+void publishCheckIn(uint8_t code, uint8_t arg) {
+  if (chrCompanion == nullptr || !watch.bleConnected) return;
+  uint8_t payload[2] = {code, arg};
+  chrCompanion->setValue(payload, 2);
+  chrCompanion->notify();
 }
 
 void requestSnapshot() { snapshotPending = true; }

@@ -6,6 +6,9 @@ export type DeviceEvent =
   | { type: "battery"; percent: number }
   | { type: "wear"; inputs: WearInputs }
   | { type: "attachment"; attachment: Attachment }
+  | { type: "checkin_answer"; answer: "okay" | "help" }
+  | { type: "assistance"; choice: "home" | "family" | "confused" }
+  | { type: "checkin_back" }
   | { type: "connection"; connected: boolean };
 export interface DeviceService {
   readonly mode: "simulated" | "ble";
@@ -28,6 +31,11 @@ export function applyDeviceEvent(e: DeviceEvent) {
     useStore.setState({ battery: Math.max(0, Math.min(100, e.percent)) });
   if (e.type === "attachment") s.setAttachment(e.attachment);
   if (e.type === "wear") s.observeWear(e.inputs);
+  // Check-in answers from the physical watch resolve the same flow the web
+  // wearer screen drives (source "wearer" appears in the caregiver timeline).
+  if (e.type === "checkin_answer") s.answerCheckIn(e.answer);
+  if (e.type === "assistance") s.chooseAssistance(e.choice);
+  if (e.type === "checkin_back") s.returnToCheckIn();
   if (e.type === "connection") s.setConnection(e.connected);
 }
 // Default adapter for demos without paired hardware. The watch firmware

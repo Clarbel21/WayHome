@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { BleDevice } from "../services/ble";
+import { bleDevice } from "../services/ble";
 
 /**
  * Pair the real ESP32-S3 "Sprout" watch over Web Bluetooth. The simulated
@@ -8,9 +8,6 @@ import { BleDevice } from "../services/ble";
  */
 
 type Status = "idle" | "connecting" | "connected" | "error";
-
-// One adapter per page: keeps GATT state across mounts.
-const bleDevice = new BleDevice();
 
 export function DeviceConnect() {
   const [status, setStatus] = useState<Status>(

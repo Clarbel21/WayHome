@@ -41,6 +41,8 @@ lv_obj_t *scrTalk = nullptr;
 lv_obj_t *scrMemories = nullptr;
 lv_obj_t *scrSettings = nullptr;
 lv_obj_t *scrSos = nullptr;
+lv_obj_t *scrCheckQ = nullptr;  // "How are you feeling?"
+lv_obj_t *scrCheckH = nullptr;  // "How can I help?" (after "I'd like some help")
 
 // Home widgets
 lv_obj_t *lblClock = nullptr;
@@ -219,6 +221,32 @@ void settings_cb(lv_event_t *e) {
   LV_UNUSED(e);
   refresh_attachment_buttons();
   load_screen(scrSettings);
+}
+
+// Check-in answers, mirroring the web store's answerCheckIn/chooseAssistance
+// flow (src/store.ts) — the web resolves the same states from our BLE notify.
+void checkin_okay_cb(lv_event_t *e) {
+  LV_UNUSED(e);
+  ble::publishCheckIn(0x02, 0);
+  load_screen(scrHome);
+}
+
+void checkin_help_cb(lv_event_t *e) {
+  LV_UNUSED(e);
+  ble::publishCheckIn(0x03, 0);
+  load_screen(scrCheckH);
+}
+
+void checkin_assist_cb(lv_event_t *e) {
+  int which = (int)(intptr_t)lv_event_get_user_data(e);
+  ble::publishCheckIn(0x04, (uint8_t)which);
+  load_screen(scrHome);
+}
+
+void checkin_back_cb(lv_event_t *e) {
+  LV_UNUSED(e);
+  ble::publishCheckIn(0x05, 0);
+  load_screen(scrCheckQ);
 }
 
 void sos_ok_cb(lv_event_t *e) {
@@ -483,6 +511,59 @@ void build_sos_screen() {
   lv_obj_add_event_cb(ok, sos_ok_cb, LV_EVENT_CLICKED, nullptr);
 }
 
+// Check-in screens (web "Send a check-in"): labels mirror src/i18n.ts.
+void build_checkin_screens() {
+  // Stage 1: "How are you feeling?" with the two large answers (.wos-answer).
+  scrCheckQ = new_screen(CREAM);
+  make_sprout_avatar(scrCheckQ, 182, 44);
+
+  lv_obj_t *title = add_label(scrCheckQ, "How are you feeling?",
+                              &lv_font_montserrat_24, INK);
+  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 104);
+
+  lv_obj_t *hint = add_label(scrCheckQ, "Take your time. Tap one.",
+                             &lv_font_montserrat_14, MUTED);
+  lv_obj_align(hint, LV_ALIGN_TOP_MID, 0, 146);
+
+  lv_obj_t *okay = add_button(scrCheckQ, 35, 190, 340, 110, MINT, 17);
+  lv_obj_t *okayText = add_label(okay, "I'm okay", &lv_font_montserrat_24, MINT_TEXT);
+  lv_obj_center(okayText);
+  lv_obj_add_event_cb(okay, checkin_okay_cb, LV_EVENT_CLICKED, nullptr);
+
+  lv_obj_t *help = add_button(scrCheckQ, 35, 320, 340, 110, SOS_BG, 17);
+  lv_obj_set_style_border_color(help, lv_color_hex(SOS_BORDER), 0);
+  lv_obj_set_style_border_width(help, 1, 0);
+  lv_obj_t *helpText = add_label(help, "I'd like some help", &lv_font_montserrat_20, SOS_TEXT);
+  lv_obj_center(helpText);
+  lv_obj_add_event_cb(help, checkin_help_cb, LV_EVENT_CLICKED, nullptr);
+
+  // Stage 2: "How can I help?" with the three assistance options.
+  scrCheckH = new_screen(CREAM);
+
+  lv_obj_t *hTitle = add_label(scrCheckH, "How can I help?",
+                               &lv_font_montserrat_24, INK);
+  lv_obj_align(hTitle, LV_ALIGN_TOP_MID, 0, 40);
+
+  const char *labels[3] = {"Please guide me home", "Call someone I trust",
+                           "I'm not sure where I am"};
+  const char *icons[3] = {LV_SYMBOL_HOME, LV_SYMBOL_CALL, LV_SYMBOL_GPS};
+  for (int i = 0; i < 3; i++) {
+    lv_obj_t *btn = add_button(scrCheckH, 35, 100 + i * 84, 340, 72, PALE, 15);
+    lv_obj_t *icon = add_label(btn, icons[i], &lv_font_montserrat_18, FOREST);
+    lv_obj_align(icon, LV_ALIGN_LEFT_MID, 18, 0);
+    lv_obj_t *text = add_label(btn, labels[i], &lv_font_montserrat_14, FOREST);
+    lv_obj_align(text, LV_ALIGN_LEFT_MID, 52, 0);
+    lv_obj_add_event_cb(btn, checkin_assist_cb, LV_EVENT_CLICKED,
+                        (void *)(intptr_t)i);
+  }
+
+  lv_obj_t *back = add_button(scrCheckH, 35, 372, 340, 56, PALE, 13);
+  lv_obj_t *backText = add_label(back, LV_SYMBOL_LEFT " Go back",
+                                 &lv_font_montserrat_16, FOREST);
+  lv_obj_center(backText);
+  lv_obj_add_event_cb(back, checkin_back_cb, LV_EVENT_CLICKED, nullptr);
+}
+
 }  // namespace
 
 namespace ui {
@@ -494,6 +575,7 @@ bool init() {
   build_placeholder_screens();
   build_settings_screen();
   build_sos_screen();
+  build_checkin_screens();
   build_home_screen();
 
   lv_timer_create(sos_hold_timer_cb, 50, nullptr);
@@ -507,6 +589,15 @@ bool init() {
 
 void sync() {
   if (lblBattery == nullptr) return;
+
+  // A check-in request (BLE 0x01) takes over the screen, like CHECK_IN mode
+  // does on the web — except while an SOS is active, which wins on both ends.
+  if (watch.checkInPending) {
+    watch.checkInPending = false;
+    if (!watch.sosActive) {
+      load_screen(scrCheckQ);
+    }
+  }
 
   uint8_t batteryNow = watch.batteryValid ? watch.batteryPercent : UINT8_MAX;
   if (batteryNow != lastBattery) {

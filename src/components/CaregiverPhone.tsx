@@ -48,6 +48,7 @@ import { evaluateSignals } from "../services/safety";
 import { Check, BatteryLow, Satellite, AlertTriangle } from "lucide-react";
 import { wearLabels } from "../services/safety";
 import { CheckInHistory, FamilyResponse } from "./CheckInSupport";
+import { bleDevice } from "../services/ble";
 
 export function CaregiverPhone() {
   const s = useStore();
@@ -468,6 +469,8 @@ function PhoneToday() {
               : t("changedSub");
   const sendCheckIn = () => {
     s.event("CHECK");
+    // A paired watch shows the same question; the simulated one renders below.
+    void bleDevice.sendCheckInRequest().catch(() => {});
     requestAnimationFrame(() => {
       const heading = document.getElementById("wearer-view-title");
       if (
