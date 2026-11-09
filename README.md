@@ -72,14 +72,20 @@ The caregiver sidebar groups its pages under **Overview & safety**, **Care setti
 ## Architecture
 
 - `src/store.ts`: typed states, event transition function, Zustand persisted store, cross-tab synchronization
-- `src/services/device.ts`: `DeviceService` and typed GPS/SOS/battery/wear/connection events; simulated adapter ready for a future ESP32-S3 BLE implementation. BLE is intentionally not implemented.
-- `src/components/`: shared wearable, Sprout illustration, safe image fallback, Leaflet route
+- `src/services/device.ts`: `DeviceService` and typed GPS/SOS/battery/wear/connection events; the simulated adapter plus `applyDeviceEvent`, the shared mapping every device event flows through
+- `src/services/ble.ts`: `BleDevice`, a Web Bluetooth adapter for the ESP32-S3 Sprout watch ([firmware](#esp32-s3-sprout-watch)); both adapters are interchangeable and write the same store state
+- `src/components/`: shared wearable, Sprout illustration, safe image fallback, Leaflet route, device pairing panel
 - `src/App.tsx`: routed caregiver, companion, landing and guided presentation views
 - `src/styles.css`: warm ivory/sage visual system and responsive/accessibility styles with Tailwind integration
 - `public/images/`: bundled original SVG landmark illustrations, no third-party image dependency
+- `firmware/wayhome-watch/`: Arduino firmware for the Waveshare ESP32-S3-Touch-AMOLED-2.06
 - `tests/`: deterministic store tests and Playwright browser flows
 
 Data stays in this browser under `wayhome-v1`. This app is a presentation prototype; it has no clinical validation or real safety monitoring. Browser speech support and available voices vary. Optional map requests go to OpenStreetMap; route coordinates represent a fictional walk and must not be used for navigation.
+
+## ESP32-S3 Sprout watch
+
+The watch firmware in [`firmware/wayhome-watch/`](firmware/wayhome-watch/) runs on the Waveshare ESP32-S3-Touch-AMOLED-2.06. It shows the companion UI (tiles, route steps, 2-second-hold SOS) and streams the device events over BLE: real battery percentage from the AXP2101, wear motion from the QMI8658 IMU, and simulated route progress (the board has no GNSS). To pair, open the demo page's **Wearable configuration** panel and click **Connect Sprout watch** (Web Bluetooth needs Chrome/Edge/Android on HTTPS or localhost). The watch is a demo aid: no call, GPS fix or emergency service is ever real. Protocol and build instructions are in the firmware README.
 
 ## GitHub Pages deployment
 
@@ -127,7 +133,7 @@ See `IMPLEMENTATION_DECISIONS.md` for the design decisions and `DEMO_REFINEMENTS
 
 **Memory-place proposals:** in Memory Library, an approved place with an image can be proposed for guidance. Add a separate simple navigation instruction; it is never copied from the reminiscence story. A pending independent landmark is created with navigation approval off. Go to Familiar landmarks, review its photo/place/instruction, and explicitly select **Separately approve for navigation**. Only then may it appear in guidance. Uploaded photographs are copied into independent IndexedDB blobs so deleting the memory does not delete the navigation photo. Changing reminiscence approval later does not change navigation approval; revoke each separately. Existing library backups do not include separate navigation copies or landmark metadata, and browser storage remains local to the origin.
 
-**Limitations:** these thresholds, inputs and verification checks are demonstration assumptions, not a clinical/device safety system. Attachment uncertainty is deliberately conservative. History and incident records are browser-local; concurrent tab writes still use last-write-wins and are not a reliable emergency transport. Previously saved binary wear data migrates to unknown and needs fresh simulated observations. No medical, GPS, BLE or emergency service integrations were added.
+**Limitations:** these thresholds, inputs and verification checks are demonstration assumptions, not a clinical/device safety system. Attachment uncertainty is deliberately conservative. History and incident records are browser-local; concurrent tab writes still use last-write-wins and are not a reliable emergency transport. Previously saved binary wear data migrates to unknown and needs fresh simulated observations. The ESP32-S3 watch pairs over BLE and reports real battery/motion telemetry, but its route progress stays simulated (no GNSS) and no medical, GPS-location or emergency service integration exists.
 
 ### If Explore Memories seems unresponsive
 

@@ -13,8 +13,25 @@ export interface DeviceService {
   disconnect(): void;
   subscribe(listener: (event: DeviceEvent) => void): () => void;
 }
-// Replace this adapter with an ESP32-S3 BLE implementation in a future version.
-// GPS, battery, wear detection and SOS remain typed device events; no emergency AI.
+/**
+ * Route a device event into the store. Both the simulated adapter below and
+ * the ESP32-S3 BLE adapter (`./ble`) feed through this single mapping, which
+ * keeps the persisted store (and the cross-tab companion/caregiver sync)
+ * identical no matter where events originate.
+ */
+export function applyDeviceEvent(e: DeviceEvent) {
+  const s = useStore.getState();
+  if (e.type === "sos") s.event("SOS");
+  if (e.type === "gps")
+    useStore.setState({ position: Math.max(0, Math.min(6, e.progress)) });
+  if (e.type === "battery")
+    useStore.setState({ battery: Math.max(0, Math.min(100, e.percent)) });
+  if (e.type === "attachment") s.setAttachment(e.attachment);
+  if (e.type === "wear") s.observeWear(e.inputs);
+  if (e.type === "connection") s.setConnection(e.connected);
+}
+// Default adapter for demos without paired hardware. The watch firmware
+// lives in ../../firmware/wayhome-watch; BLE is intentionally opt-in.
 export class SimulatedDevice implements DeviceService {
   readonly mode = "simulated" as const;
   private listeners = new Set<(e: DeviceEvent) => void>();
@@ -31,15 +48,7 @@ export class SimulatedDevice implements DeviceService {
     };
   }
   emit(e: DeviceEvent) {
-    const s = useStore.getState();
-    if (e.type === "sos") s.event("SOS");
-    if (e.type === "gps")
-      useStore.setState({ position: Math.max(0, Math.min(6, e.progress)) });
-    if (e.type === "battery")
-      useStore.setState({ battery: Math.max(0, Math.min(100, e.percent)) });
-    if (e.type === "attachment") s.setAttachment(e.attachment);
-    if (e.type === "wear") s.observeWear(e.inputs);
-    if (e.type === "connection") s.setConnection(e.connected);
+    applyDeviceEvent(e);
     this.listeners.forEach((l) => l(e));
   }
 }

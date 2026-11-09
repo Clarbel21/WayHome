@@ -8,6 +8,7 @@ import {
   type Attachment,
   type Observation,
 } from "../services/safety";
+import { DeviceConnect } from "./DeviceConnect";
 export function WearableConfiguration() {
   const s = useStore();
   const [draft, setDraft] = useState(s.wearInputs);
@@ -19,6 +20,7 @@ export function WearableConfiguration() {
         One companion, three attachment options. These illustrative sensors are
         not tested hardware specifications.
       </p>
+      <DeviceConnect />
       <label>
         Attachment configuration
         <select
