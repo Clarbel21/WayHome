@@ -38,7 +38,6 @@ import {
   Watch,
   X,
   MessageCircle,
-  ArrowUp,
   ChevronLeft,
 } from "lucide-react";
 import { status, useStore, simulatedLocation, navigable } from "../store";
@@ -368,13 +367,11 @@ function CaregiverModeDock() {
       id: "normal" as const,
       label: t("normalMode"),
       hint: t("normalModeHint"),
-      icon: Heart,
     },
     {
       id: "focus" as const,
       label: t("focusMode"),
       hint: t("focusModeHint"),
-      icon: ArrowUp,
     },
     {
       id: "dialogue" as const,
@@ -382,7 +379,6 @@ function CaregiverModeDock() {
       hint: t("dialogueModeHint", {
         companion: s.settings.companionName,
       }),
-      icon: MessageCircle,
     },
   ];
   const active =
@@ -396,11 +392,13 @@ function CaregiverModeDock() {
         </span>
         <span>
           <strong>{t("watchMode")}</strong>
-          <small>{active.label} · caregiver controlled</small>
+          <small>
+            {active.label} on {s.settings.wearer.split(" ")[0]}'s watch
+          </small>
         </span>
       </header>
       <div className="phone-mode-dock-options">
-        {modes.map(({ id, label, hint, icon: Icon }) => (
+        {modes.map(({ id, label, hint }) => (
           <button
             type="button"
             key={id}
@@ -408,9 +406,7 @@ function CaregiverModeDock() {
             aria-pressed={s.settings.experienceMode === id}
             onClick={() => s.setExperienceMode(id, "caregiver")}
           >
-            <Icon size={15} />
             <span>{label}</span>
-            {s.settings.experienceMode === id && <Check size={12} />}
           </button>
         ))}
       </div>
