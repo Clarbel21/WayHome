@@ -151,11 +151,30 @@ void rtc_setup() {
 }
 
 const char *hal_clock_text() {
-  static char buf[8];
+  static char buf[12];
   if (!rtcOk) return "--:--";
   RTC_DateTime dt = rtc.getDateTime();
-  snprintf(buf, sizeof(buf), "%02u:%02u", (unsigned)dt.getHour(), (unsigned)dt.getMinute());
+  unsigned h = dt.getHour();
+  const char *ampm = h < 12 ? "AM" : "PM";
+  h = h % 12;
+  if (h == 0) h = 12;
+  snprintf(buf, sizeof(buf), "%u:%02u %s", h, (unsigned)dt.getMinute(), ampm);
   return buf;
+}
+
+const char *hal_weekday_text() {
+  if (!rtcOk) return "";
+  RTC_DateTime dt = rtc.getDateTime();
+  int m = dt.getMonth(), y = dt.getYear(), q = dt.getDay();
+  if (m < 3) {
+    m += 12;
+    y -= 1;
+  }
+  int k = y % 100, j = y / 100;
+  int h = (q + (13 * (m + 1)) / 5 + k + k / 4 + j / 4 + 5 * j) % 7;  // 0 = Saturday
+  static const char *days[7] = { "Saturday", "Sunday", "Monday", "Tuesday",
+                                 "Wednesday", "Thursday", "Friday" };
+  return days[h];
 }
 
 // ---- LVGL plumbing (from Waveshare example 06) ----
