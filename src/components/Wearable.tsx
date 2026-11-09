@@ -145,6 +145,12 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const name = s.settings.companionName;
   const caregiver = s.settings.caregiver;
   const experienceMode = s.settings.experienceMode;
+  const experienceModeLabel =
+    experienceMode === "focus"
+      ? t("focusMode")
+      : experienceMode === "dialogue"
+        ? t("dialogueMode")
+        : t("normalMode");
   const reportWatchAction = (
     label: string,
     level: CaregiverPopupLevel = "awareness",
@@ -904,7 +910,8 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
                 className="wos-mode-button"
                 onClick={() => setShowModePicker(true)}
               >
-                <SlidersHorizontal size={14} /> {t("changeMode")}
+                <SlidersHorizontal size={14} />
+                {t("modeButton", { mode: experienceModeLabel })}
               </button>
             )}
             {s.guidanceActive &&

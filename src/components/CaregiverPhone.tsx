@@ -141,6 +141,7 @@ export function CaregiverPhone() {
             <ArrowRight size={16} />
           </button>
         )}
+        {view === "today" && !isEmergency && <CaregiverModeDock />}
         <div className="phone-scroll" ref={scrollArea}>
           <header className="phone-greeting">
             <span className="phone-avatar">
@@ -347,6 +348,67 @@ function CaregiverPopupLayer() {
   );
 }
 
+function CaregiverModeDock() {
+  const s = useStore();
+  const t = useT();
+  const modes = [
+    {
+      id: "normal" as const,
+      label: t("normalMode"),
+      hint: t("normalModeHint"),
+      icon: Heart,
+    },
+    {
+      id: "focus" as const,
+      label: t("focusMode"),
+      hint: t("focusModeHint"),
+      icon: ArrowUp,
+    },
+    {
+      id: "dialogue" as const,
+      label: t("dialogueMode"),
+      hint: t("dialogueModeHint", {
+        companion: s.settings.companionName,
+      }),
+      icon: MessageCircle,
+    },
+  ];
+  const active =
+    modes.find((mode) => mode.id === s.settings.experienceMode) ?? modes[0];
+
+  return (
+    <section className="phone-mode-dock" aria-label={t("watchMode")}>
+      <header>
+        <span className="phone-mode-symbol" aria-hidden="true">
+          <SlidersHorizontal size={15} />
+        </span>
+        <span>
+          <strong>{t("watchMode")}</strong>
+          <small>
+            {active.label} · {active.hint}
+          </small>
+        </span>
+      </header>
+      <div className="phone-mode-dock-options">
+        {modes.map(({ id, label, hint, icon: Icon }) => (
+          <button
+            type="button"
+            key={id}
+            aria-label={`${label}: ${hint}`}
+            aria-pressed={s.settings.experienceMode === id}
+            onClick={() => s.setExperienceMode(id, "caregiver")}
+          >
+            <Icon size={15} />
+            <span>{label}</span>
+            {s.settings.experienceMode === id && <Check size={12} />}
+          </button>
+        ))}
+      </div>
+      <p>{t("modeCaregiverNote")}</p>
+    </section>
+  );
+}
+
 const statusId: Record<string, string> = {
   "No active alerts": "Tidak ada peringatan",
   "Check-in Needed": "Perlu disapa",
@@ -485,40 +547,6 @@ function PhoneToday() {
               {t("findNote")}
             </p>
           )}
-        </section>
-      )}
-
-      {!isEmergency && (
-        <section className="phone-mode-control" aria-label="Watch mode control">
-          <header>
-            <span className="phone-mode-symbol" aria-hidden="true">
-              <SlidersHorizontal size={16} />
-            </span>
-            <span>
-              <strong>Watch experience</strong>
-              <small>Chosen by caregiver · wearer changes are reported</small>
-            </span>
-          </header>
-          <div className="phone-mode-options">
-            {(
-              [
-                ["normal", "Normal", Heart],
-                ["focus", "Focus", ArrowUp],
-                ["dialogue", "Dialogue", MessageCircle],
-              ] as const
-            ).map(([id, label, Icon]) => (
-              <button
-                type="button"
-                key={id}
-                aria-pressed={s.settings.experienceMode === id}
-                onClick={() => s.setExperienceMode(id, "caregiver")}
-              >
-                <Icon size={15} />
-                <span>{label}</span>
-                {s.settings.experienceMode === id && <Check size={13} />}
-              </button>
-            ))}
-          </div>
         </section>
       )}
 
