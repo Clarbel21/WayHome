@@ -865,7 +865,8 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     >
       <div className="watch-strap top" />
       <div className="watch" ref={watchRef}>
-        <div className="watch-crown" />
+        <div className="watch-crown" aria-hidden="true" />
+        <div className="watch-side-button" aria-hidden="true" />
         <div className="watch-screen wos">
           <div className="watch-status">
             <span>

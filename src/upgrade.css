@@ -4426,3 +4426,127 @@
   color: #1f4932;
   box-shadow: 0 3px 9px rgba(31, 68, 45, 0.12);
 }
+
+/* ============================================================ wearable hardware
+   Keep WayHome's green interface, but present it inside a recognisable watch:
+   a continuous band, compact rounded case, crown and separate side button. */
+.shared-experience .watch-area:not(.pendant):not(.clip) {
+  padding-block: 48px;
+}
+.shared-experience .watch-area:not(.pendant):not(.clip) .watch-strap {
+  display: block;
+  left: 50%;
+  width: 62%;
+  height: 78px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(71, 91, 72, 0.34);
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.2),
+      transparent 18% 82%,
+      rgba(31, 50, 36, 0.12)
+    ),
+    linear-gradient(90deg, #8fa087, #b7c2ad 24%, #aab7a2 70%, #7e927b);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.14),
+    inset 10px 0 18px rgba(49, 70, 52, 0.12),
+    inset -10px 0 18px rgba(49, 70, 52, 0.12);
+}
+.shared-experience .watch-area:not(.pendant):not(.clip) .watch-strap.top {
+  top: 0;
+  border-radius: 32px 32px 15px 15px;
+}
+.shared-experience .watch-area:not(.pendant):not(.clip) .watch-strap.bottom {
+  top: auto;
+  bottom: 0;
+  border-radius: 15px 15px 32px 32px;
+  background:
+    radial-gradient(
+      circle at 50% 15px,
+      rgba(64, 83, 64, 0.5) 0 3px,
+      transparent 3.5px
+    ),
+    radial-gradient(
+      circle at 50% 34px,
+      rgba(64, 83, 64, 0.5) 0 3px,
+      transparent 3.5px
+    ),
+    radial-gradient(
+      circle at 50% 53px,
+      rgba(64, 83, 64, 0.5) 0 3px,
+      transparent 3.5px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.18),
+      transparent 18% 82%,
+      rgba(31, 50, 36, 0.12)
+    ),
+    linear-gradient(90deg, #8fa087, #b7c2ad 24%, #aab7a2 70%, #7e927b);
+}
+.shared-experience .watch-area:not(.pendant):not(.clip) .watch {
+  border: 1px solid #6f806d;
+  border-radius: 54px;
+  background: linear-gradient(
+    135deg,
+    #c1cbbd 0%,
+    #6c806b 35%,
+    #34483b 55%,
+    #92a28f 88%,
+    #c0cabb 100%
+  );
+  box-shadow:
+    0 30px 48px -25px rgba(28, 52, 37, 0.58),
+    inset 0 0 0 1px rgba(235, 241, 232, 0.55),
+    inset 0 0 0 4px rgba(47, 65, 51, 0.28),
+    0 0 0 1px rgba(43, 61, 46, 0.18);
+}
+.shared-experience .watch-area:not(.pendant):not(.clip) .watch-screen {
+  border: 4px solid #18271f;
+  border-radius: 43px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    inset 0 0 12px rgba(25, 49, 34, 0.1);
+}
+.shared-experience .watch-area:not(.pendant):not(.clip) .watch-crown {
+  right: -14px;
+  top: 104px;
+  width: 14px;
+  height: 38px;
+  border: 1px solid #536653;
+  border-left: 0;
+  border-radius: 0 9px 9px 0;
+  background: repeating-linear-gradient(0deg, #718470 0 3px, #a8b5a4 3px 5px);
+  box-shadow: inset -2px 0 2px rgba(35, 51, 39, 0.22);
+}
+.shared-experience .watch-area:not(.pendant):not(.clip) .watch-side-button {
+  position: absolute;
+  right: -10px;
+  top: 166px;
+  width: 10px;
+  height: 44px;
+  border: 1px solid #536653;
+  border-left: 0;
+  border-radius: 0 7px 7px 0;
+  background: linear-gradient(90deg, #687b68, #a5b3a1);
+  box-shadow: inset -2px 0 2px rgba(35, 51, 39, 0.2);
+}
+@media (min-width: 1000px) and (min-height: 650px) {
+  .shared-experience:not(.large-text) .shared-devices {
+    grid-template-columns: minmax(360px, 1.14fr) minmax(310px, 0.86fr);
+  }
+  .shared-experience:not(.large-text) .watch-area {
+    width: min(100%, 320px);
+    max-width: 320px;
+  }
+}
+@media (max-width: 759px) {
+  .shared-experience .watch-area:not(.pendant):not(.clip) {
+    width: min(100%, 310px);
+    padding-block: 42px;
+  }
+  .shared-experience .watch-area:not(.pendant):not(.clip) .watch-strap {
+    height: 68px;
+  }
+}
