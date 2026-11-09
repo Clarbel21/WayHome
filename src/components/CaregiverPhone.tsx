@@ -39,6 +39,7 @@ import {
   X,
   MessageCircle,
   ArrowUp,
+  ChevronLeft,
 } from "lucide-react";
 import { status, useStore, simulatedLocation, navigable } from "../store";
 import { useLang, useT, timeAgo } from "../i18n";
@@ -119,10 +120,11 @@ export function CaregiverPhone() {
   );
   const waiting = !!s.familyRequest && s.familyRequest.status !== "responded";
   const isEmergency = s.mode === "EMERGENCY_SIMULATED";
+  const activeSection = sections.find((section) => section.id === view);
   return (
     <div className="care-phone" aria-label="Caregiver phone interface">
       <div className="phone-island" aria-hidden="true" />
-      <div className="care-phone-screen">
+      <div className="care-phone-screen" data-view={view}>
         <div className="phone-system" aria-hidden="true">
           <span>9:41</span>
           <span>
@@ -141,7 +143,6 @@ export function CaregiverPhone() {
             <ArrowRight size={16} />
           </button>
         )}
-        {view === "today" && !isEmergency && <CaregiverModeDock />}
         <div className="phone-scroll" ref={scrollArea}>
           <header className="phone-greeting">
             <span className="phone-avatar">
@@ -187,9 +188,19 @@ export function CaregiverPhone() {
           ) : null}
           {view !== "today" && view !== "updates" && view !== "more" ? (
             <div className="phone-manager">
-              <button className="button light" onClick={() => setView("today")}>
-                Back to phone overview
-              </button>
+              <header className="phone-manager-head">
+                <button
+                  type="button"
+                  aria-label="Back to phone overview"
+                  onClick={() => setView("more")}
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <span>
+                  <small>CARE TOOLS</small>
+                  <strong>{activeSection?.label}</strong>
+                </span>
+              </header>
               {view === "contacts" ? (
                 <Contacts />
               ) : view === "policy" ? (
@@ -209,9 +220,6 @@ export function CaregiverPhone() {
               ) : (
                 <PhoneSettings />
               )}
-              <button className="button light" onClick={() => setView("today")}>
-                Close {view === "library" ? "Memory Library" : "phone section"}
-              </button>
             </div>
           ) : view === "today" ? (
             <PhoneToday />
@@ -263,10 +271,14 @@ export function CaregiverPhone() {
               <CheckInHistory />
             </section>
           ) : null}
-          <Link className="phone-workspace-link" to="/caregiver">
-            {t("workspace")} <ArrowRight size={16} />
-          </Link>
-          <p className="phone-disclaimer">{t("demoOnly")}</p>
+          {view === "more" && (
+            <>
+              <Link className="phone-workspace-link" to="/caregiver">
+                {t("workspace")} <ArrowRight size={16} />
+              </Link>
+              <p className="phone-disclaimer">{t("demoOnly")}</p>
+            </>
+          )}
         </div>
         <nav className="phone-bottom-nav" aria-label="Phone views">
           <button
@@ -384,9 +396,7 @@ function CaregiverModeDock() {
         </span>
         <span>
           <strong>{t("watchMode")}</strong>
-          <small>
-            {active.label} · {active.hint}
-          </small>
+          <small>{active.label} · caregiver controlled</small>
         </span>
       </header>
       <div className="phone-mode-dock-options">
@@ -404,7 +414,6 @@ function CaregiverModeDock() {
           </button>
         ))}
       </div>
-      <p>{t("modeCaregiverNote")}</p>
     </section>
   );
 }
@@ -483,14 +492,16 @@ function PhoneToday() {
         className={`phone-status tone-${tone} ${isEmergency ? "phone-emergency" : ""}`}
         aria-live="polite"
       >
-        <span className="phone-status-label">{wearer} · LIVE DEMO</span>
-        <span className={`phone-tone-chip ${tone}`}>
-          {tone === "urgent"
-            ? t("urgent")
-            : tone === "calm"
-              ? t("allCalm")
-              : t("needsAttention")}
-        </span>
+        <div className="phone-status-topline">
+          <span className="phone-status-label">{wearer}</span>
+          <span className={`phone-tone-chip ${tone}`}>
+            {tone === "urgent"
+              ? t("urgent")
+              : tone === "calm"
+                ? t("allCalm")
+                : t("needsAttention")}
+          </span>
+        </div>
         <h3>{heading}</h3>
         <p>{subtitle}</p>
         {s.mode === "CHECK_IN" && s.checkIn?.stage === "question" && (
@@ -499,32 +510,9 @@ function PhoneToday() {
       </section>
 
       {!isEmergency && (
-        <section
-          className="phone-location-card phone-location-primary"
-          aria-label="Simulated location overview"
-        >
-          <ZoneMap />
-          <div className="location-caption">
-            <MapPin size={17} />
-            <div>
-              <strong>{t("lastKnown")}</strong>
-              <small>
-                {zone.distanceM > 0
-                  ? `About ${(zone.distanceM / 1000).toFixed(2)} km from home (simulated)`
-                  : simulatedLocation(s.position)}
-              </small>
-              <small>
-                Simulated GPS confidence ·{" "}
-                {Math.round(s.signals.gpsConfidence * 100)}%
-              </small>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {!isEmergency && (
         <section className="phone-quick-actions" aria-label="Caregiver actions">
           <button className="button" disabled={waiting} onClick={sendCheckIn}>
+            <MessageCircle size={16} />
             {t("sendCheckIn")}
           </button>
           <button
@@ -547,6 +535,33 @@ function PhoneToday() {
               {t("findNote")}
             </p>
           )}
+        </section>
+      )}
+
+      {!isEmergency && <CaregiverModeDock />}
+
+      {!isEmergency && (
+        <section
+          className="phone-location-card phone-location-primary"
+          aria-label="Simulated location overview"
+        >
+          <header className="phone-card-heading">
+            <span>
+              <MapPin size={15} /> {t("lastKnown")}
+            </span>
+            <small>{Math.round(s.signals.gpsConfidence * 100)}% GPS</small>
+          </header>
+          <ZoneMap />
+          <div className="location-caption">
+            <div>
+              <strong>
+                {zone.distanceM > 0
+                  ? `About ${(zone.distanceM / 1000).toFixed(2)} km from home`
+                  : simulatedLocation(s.position)}
+              </strong>
+              <small>Simulated location · latest available reading</small>
+            </div>
+          </div>
         </section>
       )}
 
