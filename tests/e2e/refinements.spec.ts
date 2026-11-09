@@ -1,3 +1,5 @@
+import { selectWatchActivity } from "./watch-helpers";
+import { openWatchHelp } from "./watch-helpers";
 import { test, expect } from "@playwright/test";
 import { resolveIncident } from "./support";
 const picture = Buffer.from(
@@ -40,10 +42,8 @@ test("incident acknowledgment and reset preserve faults; fresh SOS cancels verif
   expect(data.worn).toBe(false);
   const wearer = await context.newPage();
   await wearer.goto("/#/companion");
-  await wearer.getByRole("button", { name: "SOS Hold for 2 seconds" }).focus();
-  await wearer.keyboard.down("Space");
-  await wearer.waitForTimeout(2100);
-  await wearer.keyboard.up("Space");
+  await wearer.getByRole("button", { name: "SOS Send help request" }).focus();
+  await wearer.keyboard.press("Space");
   await expect(page.getByText(/Incident lifecycle: active/)).toBeVisible();
   await expect(
     page.getByRole("heading", {
@@ -65,9 +65,7 @@ test("incident acknowledgment and reset preserve faults; fresh SOS cancels verif
   );
   expect(data.incident.stage).toBe("resolved");
   expect(data.wearStatus).toBe("likely_worn");
-  await expect(
-    wearer.getByText("Hi! I'm Sprout. I'm here with you."),
-  ).toBeVisible();
+  await expect(wearer.getByText("Hello, Alex.")).toBeVisible();
   await page.reload();
   await expect(page.getByText(/Incident lifecycle: resolved/)).toBeVisible();
 });
@@ -211,7 +209,8 @@ test("approved memory photo remains separate from navigation until explicit appr
   for (const checkbox of await page.getByRole("checkbox").all())
     if (await checkbox.isChecked()) await checkbox.uncheck();
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "Go home" }).click();
+  await openWatchHelp(page);
+  await page.getByRole("button", { name: "Help me home" }).click();
   await expect(page.getByText("No approved landmarks yet.")).toBeVisible();
   await page.goto("/#/caregiver/landmarks");
   await pending
@@ -250,9 +249,7 @@ test("optional recommendations reflect caregiver choices without starting a game
   await expect(
     page.getByRole("heading", { name: "Look familiar?" }),
   ).not.toBeVisible();
-  await page
-    .getByRole("button", { name: "Familiar Faces", exact: true })
-    .click();
+  await selectWatchActivity(page, "Familiar Faces");
   await page.getByRole("button", { name: "Maybe later", exact: true }).click();
   await expect(page.locator(".tile-suggested")).toBeVisible();
   await expect(

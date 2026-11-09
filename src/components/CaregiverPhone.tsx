@@ -1,3 +1,5 @@
+import { WayHomeMark } from "./WayHomeMark";
+import { Sprout } from "./Sprout";
 import {
   Contacts,
   SafetyPolicy,
@@ -40,7 +42,7 @@ import {
   MessageCircle,
   ChevronLeft,
 } from "lucide-react";
-import { status, useStore, simulatedLocation, navigable } from "../store";
+import { status, useStore, navigable, simulatedLocation } from "../store";
 import { useLang, useT, timeAgo } from "../i18n";
 import { useZone } from "../zone/store";
 import { RouteHomeMap, ZoneLadder, ZoneMap } from "../zone/ZoneViews";
@@ -122,7 +124,11 @@ export function CaregiverPhone() {
   const isEmergency = s.mode === "EMERGENCY_SIMULATED";
   const activeSection = sections.find((section) => section.id === view);
   return (
-    <div className="care-phone" aria-label="Caregiver phone interface">
+    <div
+      className="care-phone"
+      data-phone-view={view}
+      aria-label="Caregiver phone interface"
+    >
       <div className="phone-island" aria-hidden="true" />
       <div className="care-phone-screen" data-view={view}>
         <div className="phone-system" aria-hidden="true">
@@ -146,7 +152,7 @@ export function CaregiverPhone() {
         <div className="phone-scroll" ref={scrollArea}>
           <header className="phone-greeting">
             <span className="phone-avatar">
-              {s.settings.caregiver[0] || "J"}
+              <WayHomeMark />
             </span>
             <div>
               <p>{t("circle")}</p>
@@ -191,7 +197,7 @@ export function CaregiverPhone() {
               <header className="phone-manager-head">
                 <button
                   type="button"
-                  aria-label="Back to phone overview"
+                  aria-label="Back to care tools"
                   onClick={() => setView("more")}
                 >
                   <ChevronLeft size={18} />
@@ -314,12 +320,6 @@ export function CaregiverPhone() {
 
 function CaregiverPopupCard({ popup }: { popup: CaregiverPopup }) {
   const dismiss = useCaregiverPopups((state) => state.dismiss);
-  useEffect(() => {
-    const duration =
-      popup.level === "urgent" ? 8000 : popup.level === "routine" ? 2600 : 5000;
-    const timer = window.setTimeout(() => dismiss(popup.id), duration);
-    return () => window.clearTimeout(timer);
-  }, [dismiss, popup.id, popup.level]);
   return (
     <article
       className={`phone-action-popup level-${popup.level}`}
@@ -350,12 +350,29 @@ function CaregiverPopupCard({ popup }: { popup: CaregiverPopup }) {
 
 function CaregiverPopupLayer() {
   const popups = useCaregiverPopups((state) => state.popups);
-  if (!popups.length) return null;
+  const dismiss = useCaregiverPopups((state) => state.dismiss);
+  useEffect(() => {
+    // Every notice expires from its creation time, even when a more urgent one
+    // is being shown. A burst of watch taps never becomes a queue of overlays.
+    const timers = popups.map((popup) => {
+      const duration =
+        popup.level === "urgent"
+          ? 8000
+          : popup.level === "routine"
+            ? 2600
+            : 5000;
+      return window.setTimeout(
+        () => dismiss(popup.id),
+        Math.max(0, popup.time + duration - Date.now()),
+      );
+    });
+    return () => timers.forEach(window.clearTimeout);
+  }, [dismiss, popups]);
+  const visible = popups.find((popup) => popup.level === "urgent") ?? popups[0];
+  if (!visible) return null;
   return (
     <div className="phone-popup-layer" aria-live="polite">
-      {popups.slice(0, 2).map((popup) => (
-        <CaregiverPopupCard key={popup.id} popup={popup} />
-      ))}
+      <CaregiverPopupCard key={visible.id} popup={visible} />
     </div>
   );
 }
@@ -442,9 +459,11 @@ function PhoneToday() {
   const tone =
     isEmergency || (zone.active && zone.level >= 3)
       ? "urgent"
-      : s.mode === "NORMAL" && !findings.length && s.connected && !zone.active
-        ? "calm"
-        : "attention";
+      : s.mode === "GUIDED_RETURN" && !findings.length && s.connected
+        ? "guidance"
+        : s.mode === "NORMAL" && !findings.length && s.connected && !zone.active
+          ? "calm"
+          : "attention";
   const heading =
     zone.active && s.mode === "NORMAL"
       ? t("zoneOutside")
@@ -491,16 +510,33 @@ function PhoneToday() {
         className={`phone-status tone-${tone} ${isEmergency ? "phone-emergency" : ""}`}
         aria-live="polite"
       >
-        <div className="phone-status-topline">
-          <span className="phone-status-label">{wearer}</span>
-          <span className={`phone-tone-chip ${tone}`}>
-            {tone === "urgent"
-              ? t("urgent")
-              : tone === "calm"
-                ? t("allCalm")
-                : t("needsAttention")}
+        <div className="phone-person">
+          <span className="phone-person-initial" aria-hidden="true">
+            {first[0]}
+          </span>
+          <span className="phone-status-label">
+            {wearer}
+            <small>
+              {lang === "id"
+                ? "Perangkat pendamping · demo"
+                : "Companion device · demo"}
+            </small>
           </span>
         </div>
+        <span className={`phone-tone-chip ${tone}`}>
+          {tone === "urgent"
+            ? t("urgent")
+            : tone === "calm"
+              ? t("allCalm")
+              : tone === "guidance"
+                ? t("routeLabel")
+                : t("needsAttention")}
+        </span>
+        {tone === "calm" && (
+          <span className="phone-companion-art" aria-hidden="true">
+            <Sprout small />
+          </span>
+        )}
         <h3>{heading}</h3>
         <p>{subtitle}</p>
         {s.mode === "CHECK_IN" && s.checkIn?.stage === "question" && (
@@ -550,7 +586,7 @@ function PhoneToday() {
             </span>
             <small>{Math.round(s.signals.gpsConfidence * 100)}% GPS</small>
           </header>
-          <ZoneMap />
+          <ZoneMap withSlider={false} />
           <div className="location-caption">
             <div>
               <strong>
@@ -683,8 +719,23 @@ function PhoneToday() {
           <strong>{Math.round(s.signals.gpsConfidence * 100)}%</strong>
         </div>
       </div>
+
       <details className="phone-overview-details">
         <summary>Device & check-in details</summary>
+        <label className="zone-radius">
+          <span>
+            {t("safeRadius")} <b>{zone.radiusM} m</b>
+          </span>
+          <input
+            aria-label={t("safeRadius")}
+            type="range"
+            min={100}
+            max={1500}
+            step={50}
+            value={zone.radiusM}
+            onChange={(e) => zone.setRadius(Number(e.target.value))}
+          />
+        </label>
         <p>Battery: {s.battery}% · Heart rate: not measured (no sensor)</p>
         <p>
           {s.mode === "GUIDED_RETURN"

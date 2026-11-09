@@ -17,13 +17,17 @@ type Dict = Record<string, string>;
 
 // Keys are short ids; {name}-style placeholders are filled by t().
 const en: Dict = {
+  watchScreen: "Watch screen",
+  watchHello: "Hello, {name}.",
+  hereWithYou: "I’m here with you.",
+  callPerson: "Call {name}",
+  otherChoices: "Other choices",
   goHome: "Help me home",
   homeHint: "Follow familiar places",
   callFamily: "Call someone I trust",
   talk: "Let's talk",
   memories: "My memories",
-  sosHold: "Hold for 2 seconds",
-  sosKeep: "Keep holding…",
+  sosTap: "Send help request",
   okay: "I'm okay",
   needHelp: "I'd like some help",
   howHelp: "How can I help?",
@@ -196,13 +200,17 @@ const en: Dict = {
 };
 
 const id: Dict = {
+  watchScreen: "Layar jam",
+  watchHello: "Halo, {name}.",
+  hereWithYou: "Aku di sini bersamamu.",
+  callPerson: "Telepon {name}",
+  otherChoices: "Pilihan lain",
   goHome: "Bantu saya pulang",
   homeHint: "Ikuti tempat yang dikenal",
   callFamily: "Telepon orang yang saya percaya",
   talk: "Mari bicara",
   memories: "Kenangan saya",
-  sosHold: "Tahan 2 detik",
-  sosKeep: "Terus tahan…",
+  sosTap: "Kirim permintaan bantuan",
   okay: "Saya baik-baik saja",
   needHelp: "Saya ingin dibantu",
   howHelp: "Apa yang bisa saya bantu?",

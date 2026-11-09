@@ -1,3 +1,4 @@
+import { WayHomeMark } from "../components/WayHomeMark";
 import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -400,7 +401,7 @@ export default function Landing() {
       </a>
       <header className="wh-header">
         <Link to="/" className="wh-brand" aria-label="WayHome home">
-          <Seed />
+          <WayHomeMark />
           <span>
             WayHome<span className="wh-brand-period">.</span>
           </span>
@@ -631,7 +632,7 @@ export default function Landing() {
       <footer className="wh-footer">
         <div className="wh-footer-top">
           <Link to="/" className="wh-brand">
-            <Seed />
+            <WayHomeMark />
             <span>WayHome.</span>
           </Link>
           <p>A little reassurance, wherever you go.</p>

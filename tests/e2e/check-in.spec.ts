@@ -13,7 +13,7 @@ test("okay reassures and persists response", async ({ page }) => {
   await start(page);
   await page.getByRole("button", { name: "I'm okay", exact: true }).click();
   await expect(
-    page.getByText("Thank you for telling me. I'm here with you.", {
+    page.getByText("Thank you, Alex.", {
       exact: true,
     }),
   ).toBeVisible();
@@ -27,7 +27,9 @@ test("help, recognition and failed recognition stop guidance", async ({
   page,
 }) => {
   await start(page);
-  await page.getByRole("button", { name: "I need help", exact: true }).click();
+  await page
+    .getByRole("button", { name: "I'd like some help", exact: true })
+    .click();
   for (const label of [
     "Please guide me home",
     "Call someone I trust",
@@ -46,9 +48,7 @@ test("help, recognition and failed recognition stop guidance", async ({
   await expect(
     page.getByText("Neighborhood bakery", { exact: true }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "I don't see it", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Not yet", exact: true }).click();
   // Directions stop, but the wearer can still say they spotted it after all.
   await expect(
     page.getByRole("button", { name: "I see it now", exact: true }),
@@ -62,42 +62,55 @@ test("family handover acknowledgment and simulated response synchronize tabs", a
   context,
 }) => {
   await start(page);
-  await page.getByRole("button", { name: "I need help", exact: true }).click();
+  await page
+    .getByRole("button", { name: "I'd like some help", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Call someone I trust", exact: true })
     .click();
-  await expect(
-    page.getByText("Waiting for caregiver response", { exact: true }),
-  ).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("wayhome-v1")!).state.familyRequest
+            ?.status,
+      ),
+    )
+    .toBe("waiting");
   const caregiver = await context.newPage();
   await caregiver.goto("/#/caregiver/alerts");
   await caregiver
     .getByRole("button", { name: "Acknowledge family request", exact: true })
     .click();
-  await expect(
-    page.getByText("Your caregiver has seen your request.", { exact: true }),
-  ).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("wayhome-v1")!).state.familyRequest
+            ?.status,
+      ),
+    )
+    .toBe("acknowledged");
   await caregiver
     .getByRole("button", { name: "Simulate caregiver response", exact: true })
     .click();
   await expect(
-    page.getByText(
-      "Jamie Chen has responded in this demo. They are here to help.",
-      { exact: true },
-    ),
+    page.getByRole("button", { name: "I'm ready to continue", exact: true }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Continue after response", exact: true })
+    .getByRole("button", { name: "I'm ready to continue", exact: true })
     .click();
   await expect(
-    page.getByText("Hi! I'm Sprout. I'm here with you.", { exact: true }),
+    page.getByText("Thank you, Alex.", { exact: true }),
   ).toBeVisible();
 });
 test("confusion offers support without a recognition test", async ({
   page,
 }) => {
   await start(page);
-  await page.getByRole("button", { name: "I need help", exact: true }).click();
+  await page
+    .getByRole("button", { name: "I'd like some help", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "I'm not sure where I am", exact: true })
     .click();
@@ -128,9 +141,15 @@ test("real timeout repeats once then notifies without declaring lost", async ({
     ),
   ).toBeVisible();
   await page.clock.fastForward(30001);
-  await expect(
-    page.getByText("Waiting for caregiver response", { exact: true }),
-  ).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("wayhome-v1")!).state.familyRequest
+            ?.status,
+      ),
+    )
+    .toBe("waiting");
   await page.goto("/#/caregiver/alerts");
   await expect(
     page.getByText(
@@ -143,9 +162,11 @@ test("SOS interrupts help choices and okay cannot bypass the incident", async ({
   page,
 }) => {
   await start(page);
-  await page.getByRole("button", { name: "I need help", exact: true }).click();
   await page
-    .getByRole("button", { name: "SOS Hold for 2 seconds", exact: true })
+    .getByRole("button", { name: "I'd like some help", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "SOS Send help request", exact: true })
     .focus();
   await page.keyboard.down("Space");
   await page.waitForTimeout(2150);

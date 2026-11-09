@@ -1,3 +1,4 @@
+import { openWatchHelp } from "./watch-helpers";
 import { test, expect } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
@@ -16,6 +17,9 @@ const moments = (page: import("@playwright/test").Page) =>
 test("leaving the safe zone buzzes the watch, escalates, then guides home landmark by landmark", async ({
   page,
 }) => {
+  await phone(page)
+    .getByText("Device & check-in details", { exact: true })
+    .click();
   await phone(page)
     .getByLabel(/Safe radius/)
     .fill("500");
@@ -37,12 +41,13 @@ test("leaving the safe zone buzzes the watch, escalates, then guides home landma
     phone(page).locator(".zone-ladder li.done", { hasText: "Notify Jamie" }),
   ).toBeVisible();
 
-  await watch(page).getByRole("button", { name: "No, I'm fine" }).click();
+  await watch(page).getByRole("button", { name: "I'm okay here" }).click();
   await expect(watch(page).getByText("Heading home?")).toHaveCount(0);
 
   // The wearer can still choose to go home from the home screen.
+  await openWatchHelp(page);
   await watch(page)
-    .getByRole("button", { name: "Go home", exact: true })
+    .getByRole("button", { name: "Help me home", exact: true })
     .click();
   await expect(watch(page).getByText("Go straight ahead")).toBeVisible();
   await expect(
@@ -73,6 +78,17 @@ test("leaving the safe zone buzzes the watch, escalates, then guides home landma
   await expect(
     phone(page).getByRole("heading", { name: "No active alerts", exact: true }),
   ).toBeVisible({ timeout: 5_000 });
+  // The runtime records arrival on its next simulation tick after the watch
+  // returns to NORMAL. Wait for that observable record rather than racing it.
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        JSON.parse(localStorage.getItem("wayhome-v1")!).state.alerts.some(
+          (a: { title: string }) => /arrived home safely/.test(a.title),
+        ),
+      ),
+    )
+    .toBe(true);
   const titles = await page.evaluate(
     () =>
       JSON.parse(localStorage.getItem("wayhome-v1")!).state.alerts.map(
@@ -125,7 +141,7 @@ test("leftover readings from earlier moments never block the walk home (no loop)
     .click();
   await bar.getByRole("button", { name: "Lost far from home" }).click();
   await watch(page)
-    .getByRole("button", { name: "Yes, take me home" })
+    .getByRole("button", { name: "Yes, help me home" })
     .click({ timeout: 5_000 });
   await expect(watch(page).getByText(/Stop 1 of 4/)).toBeVisible();
   await expect(
@@ -150,13 +166,14 @@ test("zone moments are disabled while an SOS is open, with a reason", async ({
 test("after 'I don't see it' the wearer can still say 'I see it now' and carry on", async ({
   page,
 }) => {
+  await openWatchHelp(page);
   await watch(page)
-    .getByRole("button", { name: "Go home", exact: true })
+    .getByRole("button", { name: "Help me home", exact: true })
     .click();
   await expect(
     watch(page).getByText("Do you see the Community garden?"),
   ).toBeVisible({ timeout: 15_000 });
-  await watch(page).getByRole("button", { name: "I don't see it" }).click();
+  await watch(page).getByRole("button", { name: "Not yet" }).click();
   await expect(watch(page).getByText("Community garden")).toBeVisible();
   await watch(page).getByRole("button", { name: "I see it now" }).click();
   await expect(

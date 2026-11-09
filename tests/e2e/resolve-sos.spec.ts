@@ -1,9 +1,8 @@
+import { selectWatchActivity } from "./watch-helpers";
 import { test, expect } from "@playwright/test";
 async function sos(page: import("@playwright/test").Page) {
-  await page.getByRole("button", { name: "SOS Hold for 2 seconds" }).focus();
-  await page.keyboard.down("Space");
-  await page.waitForTimeout(2100);
-  await page.keyboard.up("Space");
+  await page.getByRole("button", { name: "SOS Send help request" }).focus();
+  await page.keyboard.press("Space");
   await expect(page.getByText("Help request sent — simulation")).toBeVisible();
 }
 test("resolved SOS can return to the companion with confirmation while preserving history", async ({
@@ -30,9 +29,7 @@ test("resolved SOS can return to the companion with confirmation while preservin
       exact: true,
     })
     .click();
-  await expect(
-    page.getByText("Hi! I'm Sprout. I'm here with you."),
-  ).toBeVisible();
+  await expect(page.getByText("Hello, Alex.")).toBeVisible();
   await expect(
     page.getByRole("button", {
       name: "Help received — resolve SOS",
@@ -40,9 +37,7 @@ test("resolved SOS can return to the companion with confirmation while preservin
     }),
   ).not.toBeVisible();
   await page.reload();
-  await expect(
-    page.getByText("Hi! I'm Sprout. I'm here with you."),
-  ).toBeVisible();
+  await expect(page.getByText("Hello, Alex.")).toBeVisible();
   await page.goto("/#/caregiver/alerts");
   await expect(
     page.getByText("Simulated SOS · help request received"),
@@ -92,9 +87,7 @@ test("caregiver confirmation ends SOS and allows memories despite preserved devi
     page.getByText(/SOS is resolved. Local memories can continue/),
   ).toBeVisible();
   await page.getByRole("button", { name: "Let's begin", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Familiar Faces", exact: true })
-    .click();
+  await selectWatchActivity(page, "Familiar Faces");
   await page.getByRole("button", { name: "Tell me more", exact: true }).click();
   await expect(page.getByText(/This is your son, Jamie/)).toBeVisible();
   await page.reload();
@@ -130,31 +123,25 @@ test("a fresh SOS invalidates an open resolution confirmation", async ({
   ).toBeDisabled();
 });
 
-test("a delayed browser timer still recognizes a full SOS hold exactly once on release", async ({
+test("one-click SOS starts immediately and a double click creates only one alert", async ({
   page,
 }) => {
-  await page.addInitScript(() => {
-    const schedule = window.setTimeout.bind(window);
-    window.setTimeout = ((
-      handler: TimerHandler,
-      delay?: number,
-      ...args: unknown[]
-    ) =>
-      schedule(
-        handler,
-        delay === 2000 ? 10000 : delay,
-        ...args,
-      )) as typeof window.setTimeout;
-  });
   await page.goto("/#/companion");
-  await sos(page);
-  const count = await page.evaluate(
-    () =>
-      JSON.parse(localStorage.getItem("wayhome-v1")!).state.alerts.filter(
-        (a: { emergency?: { kind: string } }) => a.emergency?.kind === "sos",
-      ).length,
+  const sos = page.getByRole("button", {
+    name: "SOS Send help request",
+    exact: true,
+  });
+  await sos.dblclick();
+  await expect(
+    page.getByText("Help request sent — simulation", { exact: true }),
+  ).toBeVisible();
+  const active = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("wayhome-v1")!).state.alerts.filter(
+      (alert: { emergency?: { resolvedAt?: number } }) =>
+        alert.emergency && !alert.emergency.resolvedAt,
+    ),
   );
-  expect(count).toBe(1);
+  expect(active).toHaveLength(1);
 });
 
 test("caregiver dashboard confirmation also allows continuing memories with pending wear review", async ({
@@ -183,9 +170,7 @@ test("caregiver dashboard confirmation also allows continuing memories with pend
     .getByRole("link", { name: "Return to Memory Garden", exact: true })
     .click();
   await page.getByRole("button", { name: "Let's begin", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Familiar Faces", exact: true })
-    .click();
+  await selectWatchActivity(page, "Familiar Faces");
   await expect(
     page.getByRole("heading", { name: "Does this person look familiar?" }),
   ).toBeVisible();

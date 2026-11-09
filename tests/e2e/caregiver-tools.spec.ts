@@ -1,3 +1,5 @@
+import { wakeWatch, openWatchMemories } from "./watch-helpers";
+import { openWatchHelp } from "./watch-helpers";
 import { test, expect, type Page } from "@playwright/test";
 const errors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
@@ -93,7 +95,14 @@ test("phone contacts validate, persist, reorder, protect required caregiver and 
     page.getByRole("heading", { name: "Fictional Robin", exact: true }),
   ).toHaveCount(0);
   await page
-    .getByRole("button", { name: "Back to phone overview", exact: true })
+    .getByRole("button", { name: "Back to care tools", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Your care tools", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("navigation", { name: "Phone views", exact: true })
+    .getByRole("button", { name: "Today", exact: true })
     .click();
   await expect(
     page.getByRole("button", { name: "Send a check-in", exact: true }),
@@ -156,7 +165,8 @@ test("phone landmark upload and metadata approvals stay separate; cancel and Clo
     page.getByRole("heading", { name: "Fictional pharmacy", exact: true }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Close Memory Library", exact: true })
+    .getByRole("navigation", { name: "Phone views", exact: true })
+    .getByRole("button", { name: "Today", exact: true })
     .click();
   await expect(
     page.getByRole("button", { name: "Send a check-in", exact: true }),
@@ -175,25 +185,24 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
   await expect(
     page.getByRole("button", { name: "Look at my memories", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Maybe later", exact: true }).click();
-  await page.getByRole("button", { name: "Talk", exact: true }).click();
   await page
-    .getByRole("button", { name: "Something comforting", exact: true })
+    .getByRole("button", { name: "Back to main screen", exact: true })
+    .click();
+  await wakeWatch(page);
+  await page
+    .getByRole("button", { name: "Talk with Sprout", exact: true })
     .click();
   await expect(
-    page.getByText("Take your time. You are welcome here, just as you are.", {
-      exact: true,
-    }),
+    page.getByText("I’m here with you.", { exact: true }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Back to my watch", exact: true })
+    .getByRole("button", { name: "Back to main screen", exact: true })
     .click();
   // Memories open on the watch itself and close back to the watch home.
-  await page.getByRole("button", { name: "Memories", exact: true }).click();
+  await openWatchMemories(page);
   await expect(page.locator(".wos-memories")).toBeVisible();
   await page
-    .locator(".wos-memories")
-    .getByRole("button", { name: "Close", exact: true })
+    .getByRole("button", { name: "Back to main screen", exact: true })
     .click();
   await expect(page).toHaveURL(/#\/together$/);
   await expect(page.locator(".wos-memories")).toHaveCount(0);
@@ -206,7 +215,8 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
     .getByRole("button", { name: "Close", exact: true })
     .click();
   await expect(page).toHaveURL(/#\/together$/);
-  await page.getByRole("button", { name: "Go home", exact: true }).click();
+  await openWatchHelp(page);
+  await page.getByRole("button", { name: "Help me home", exact: true }).click();
   const care = await context.newPage();
   await care.goto("/#/demo");
   await care
@@ -260,7 +270,8 @@ test("policy, optional journey, navigation roots and walkthrough exits work with
     .selectOption("sample-park");
   await page.getByRole("button", { name: "Save journey", exact: true }).click();
   await page
-    .getByRole("button", { name: "Close Memory Library", exact: true })
+    .getByRole("navigation", { name: "Phone views", exact: true })
+    .getByRole("button", { name: "Today", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Explore Memories", exact: true })
@@ -301,7 +312,7 @@ for (const [width, height] of [
   [1440, 900],
   [1920, 1080],
 ])
-  test(`viewport ${width}x${height} fits both devices and controls`, async ({
+  test(`viewport ${width}x${height} keeps devices aligned with a fixed watch`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height });
@@ -310,21 +321,32 @@ for (const [width, height] of [
       const boxes = await page.evaluate(() => {
         const r = (q: string) => {
           const b = document.querySelector(q)!.getBoundingClientRect();
-          return { top: b.top, bottom: b.bottom, left: b.left, right: b.right };
+          return {
+            top: b.top,
+            bottom: b.bottom,
+            left: b.left,
+            right: b.right,
+            width: b.width,
+            height: b.height,
+          };
         };
         return {
-          page: document.documentElement.scrollHeight,
+          pageWidth: document.documentElement.scrollWidth,
           phone: r(".care-phone"),
           watch: r(".watch"),
           sos: r(".sos-hold"),
-          toolbar: r(".stage-toolbar"),
+          scenarios: r(".stage-scenarios"),
         };
       });
-      expect(boxes.page).toBeLessThanOrEqual(height + 1);
-      expect(boxes.phone.bottom).toBeLessThanOrEqual(height);
-      expect(boxes.watch.bottom).toBeLessThanOrEqual(boxes.toolbar.top + 1);
-      expect(boxes.sos.bottom).toBeLessThanOrEqual(boxes.toolbar.top + 1);
-      expect(boxes.watch.right).toBeLessThan(boxes.phone.left);
+      expect(boxes.pageWidth).toBeLessThanOrEqual(width);
+      expect(boxes.watch.width).toBe(324);
+      expect(boxes.watch.height).toBe(408);
+      expect(boxes.sos.top).toBeGreaterThan(boxes.watch.top);
+      expect(boxes.sos.bottom).toBeLessThan(boxes.watch.bottom);
+      expect(boxes.phone.right).toBeLessThan(boxes.watch.left);
+      expect(boxes.scenarios.top).toBeGreaterThan(
+        Math.max(boxes.phone.bottom, boxes.watch.bottom),
+      );
     }
     await fits();
     await page
@@ -333,10 +355,14 @@ for (const [width, height] of [
     await page.getByRole("button", { name: "I'm okay", exact: true }).click();
     await fits();
     await page
-      .getByRole("button", { name: "Maybe later", exact: true })
+      .getByRole("button", { name: "Back to main screen", exact: true })
       .click();
-    await page.getByRole("button", { name: "Go home", exact: true }).click();
+    await openWatchHelp(page);
+    await page
+      .getByRole("button", { name: "Help me home", exact: true })
+      .click();
     await fits();
+    await page.locator(".wos-more-options summary").click();
     await page
       .getByRole("button", { name: "I know my way", exact: true })
       .click();
@@ -344,7 +370,7 @@ for (const [width, height] of [
       .getByRole("button", { name: "Send a check-in", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "I need help", exact: true })
+      .getByRole("button", { name: "I'd like some help", exact: true })
       .click();
     await fits();
   });

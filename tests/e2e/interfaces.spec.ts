@@ -5,6 +5,9 @@ test("wearer and caregiver phone sit side by side and share working check-ins", 
 }) => {
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.goto("/#/together");
+  await expect(
+    page.getByRole("button", { name: "Connect Sprout watch", exact: true }),
+  ).toBeVisible();
   const wearer = page.getByRole("region", {
     name: "A familiar friend.",
     exact: true,
@@ -15,7 +18,7 @@ test("wearer and caregiver phone sit side by side and share working check-ins", 
   });
   const left = await wearer.boundingBox(),
     right = await caregiver.boundingBox();
-  expect(left!.x + left!.width).toBeLessThan(right!.x);
+  expect(right!.x + right!.width).toBeLessThan(left!.x);
   expect(Math.abs(left!.y - right!.y)).toBeLessThan(3);
   await caregiver
     .getByRole("button", { name: "Send a check-in", exact: true })
@@ -33,6 +36,9 @@ test("wearer and caregiver phone sit side by side and share working check-ins", 
       .getByRole("region", { name: "Check-in responses" })
       .getByText(/I'm okay/),
   ).toBeVisible();
+  await caregiver
+    .getByRole("button", { name: "Care tools", exact: true })
+    .click();
   await expect(
     caregiver.getByRole("link", {
       name: "Open caregiver workspace",
@@ -57,7 +63,7 @@ test("same-screen caregiver response works and SOS stays separate from acknowled
     .getByRole("button", { name: "Send a check-in", exact: true })
     .click();
   await wearer
-    .getByRole("button", { name: "I need help", exact: true })
+    .getByRole("button", { name: "I'd like some help", exact: true })
     .click();
   await wearer
     .getByRole("button", { name: "Call someone I trust", exact: true })
@@ -72,17 +78,15 @@ test("same-screen caregiver response works and SOS stays separate from acknowled
     .getByRole("button", { name: "Simulate caregiver response", exact: true })
     .click();
   await wearer
-    .getByRole("button", { name: "Continue after response", exact: true })
+    .getByRole("button", { name: "I'm ready to continue", exact: true })
     .click();
   await expect(
-    wearer.getByText("Hi! I'm Sprout. I'm here with you.", { exact: true }),
+    wearer.getByText("Thank you, Alex.", { exact: true }),
   ).toBeVisible();
   await wearer
-    .getByRole("button", { name: "SOS Hold for 2 seconds", exact: true })
+    .getByRole("button", { name: "SOS Send help request", exact: true })
     .focus();
-  await page.keyboard.down("Space");
-  await page.waitForTimeout(2100);
-  await page.keyboard.up("Space");
+  await page.keyboard.press("Space");
   await caregiver
     .getByRole("button", { name: "Acknowledge SOS alert", exact: true })
     .click();
@@ -108,12 +112,13 @@ test("mobile interfaces stack without overflow and caregiver workspace navigatio
   const caregiver = await page
     .getByRole("region", { name: "A little closer.", exact: true })
     .boundingBox();
-  expect(caregiver!.y).toBeGreaterThan(wearer!.y + wearer!.height);
+  expect(wearer!.y).toBeGreaterThan(caregiver!.y + caregiver!.height);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+  await page.getByRole("button", { name: "Care tools", exact: true }).click();
   await page
     .getByRole("link", { name: "Open caregiver workspace", exact: true })
     .click();
@@ -169,9 +174,10 @@ test("phone hardware keeps portrait proportions and navigation stays fixed while
     ).toBeVisible();
     // Decorative hardware must never intercept the emergency control.
     const sos = page.getByRole("button", {
-      name: "SOS Hold for 2 seconds",
+      name: "SOS Send help request",
       exact: true,
     });
+    await sos.scrollIntoViewIfNeeded();
     expect(
       await sos.evaluate((e) => {
         const r = e.getBoundingClientRect();
@@ -189,11 +195,9 @@ test("SOS remains discoverable while caregiver browses tools", async ({
   await page.goto("/#/together");
   await page.getByRole("button", { name: "Care tools", exact: true }).click();
   await page
-    .getByRole("button", { name: "SOS Hold for 2 seconds", exact: true })
+    .getByRole("button", { name: "SOS Send help request", exact: true })
     .focus();
-  await page.keyboard.down("Space");
-  await page.waitForTimeout(2100);
-  await page.keyboard.up("Space");
+  await page.keyboard.press("Space");
   await page
     .getByRole("button", { name: "SOS needs review", exact: true })
     .click();

@@ -1,3 +1,4 @@
+import { openWatchHelp } from "./watch-helpers";
 import { test, expect } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
@@ -11,22 +12,29 @@ const wearer = (page: import("@playwright/test").Page) =>
 const caregiver = (page: import("@playwright/test").Page) =>
   page.getByRole("region", { name: "A little closer.", exact: true });
 
-test("home screen offers four large actions plus SOS", async ({ page }) => {
+test("home starts with a breathing mascot and opens two visual choices", async ({
+  page,
+}) => {
   const w = wearer(page);
-  for (const name of ["Go home", "Call family", "Talk"])
-    await expect(w.getByRole("button", { name, exact: true })).toBeVisible();
   await expect(
-    w.getByRole("button", { name: "Memories", exact: true }),
+    w.getByRole("button", { name: "Say hello to Sprout", exact: true }),
   ).toBeVisible();
-  await expect(
-    w.getByRole("button", { name: "SOS Hold for 2 seconds", exact: true }),
-  ).toBeVisible();
-  await w.getByRole("button", { name: "Talk", exact: true }).click();
+  await expect(w.locator(".watch-picture-card:visible")).toHaveCount(0);
   await w
-    .getByRole("button", { name: "Who is my family?", exact: true })
+    .getByRole("button", { name: "Say hello to Sprout", exact: true })
+    .click();
+  await expect(w.locator(".watch-picture-card")).toHaveCount(2);
+  await w
+    .getByRole("button", { name: "Talk with Sprout", exact: true })
     .click();
   await expect(
-    w.getByText("Jamie Chen cares about you and is one tap away."),
+    w.getByText("I’m here with you.", { exact: true }),
+  ).toBeVisible();
+  await w
+    .getByRole("button", { name: "Back to main screen", exact: true })
+    .click();
+  await expect(
+    w.getByRole("button", { name: "Say hello to Sprout", exact: true }),
   ).toBeVisible();
 });
 
@@ -53,7 +61,9 @@ test("demo moments drive both devices and SOS disables unsafe moments", async ({
     wearer(page).getByText("Help request sent — simulation", { exact: true }),
   ).toBeVisible();
   await expect(bar.getByRole("button", { name: "Walk home" })).toBeDisabled();
-  await expect(bar.getByRole("button", { name: "Reset demo" })).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Reset demo", exact: true }),
+  ).toBeDisabled();
   await expect(
     caregiver(page).getByText("Urgent", { exact: true }),
   ).toBeVisible();
@@ -69,7 +79,8 @@ test("guided walk shows stop progress and ends on a welcome-home screen", async 
   page,
 }) => {
   const w = wearer(page);
-  await w.getByRole("button", { name: "Go home", exact: true }).click();
+  await openWatchHelp(page);
+  await w.getByRole("button", { name: "Help me home", exact: true }).click();
   await expect(w.getByText("Stop 1 of 4")).toBeVisible();
   for (let i = 0; i < 4; i++)
     await w.getByRole("button", { name: "I see it", exact: true }).click();
@@ -78,7 +89,7 @@ test("guided walk shows stop progress and ends on a welcome-home screen", async 
     .getByRole("button", { name: "Back to my watch", exact: true })
     .click();
   await expect(
-    w.getByRole("button", { name: "Go home", exact: true }),
+    w.getByRole("button", { name: "Say hello to Sprout", exact: true }),
   ).toBeVisible();
 });
 
@@ -90,18 +101,16 @@ test("language switch renders Indonesian and persists, English restores names", 
   // Region names are translated too, so locate the watch structurally here.
   const w = page.locator(".watch-area").first();
   await expect(
-    w.getByRole("button", { name: "Pulang", exact: true }),
+    w.getByRole("button", { name: "Sapa Sprout", exact: true }),
   ).toBeVisible();
-  await expect(
-    w.getByText("Hai! Aku Sprout. Aku di sini bersamamu."),
-  ).toBeVisible();
+  await expect(w.getByText("Halo, Alex.")).toBeVisible();
   await page.reload();
   await expect(
-    w.getByRole("button", { name: "Pulang", exact: true }),
+    w.getByRole("button", { name: "Sapa Sprout", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "EN", exact: true }).click();
   await expect(
-    w.getByRole("button", { name: "Go home", exact: true }),
+    w.getByRole("button", { name: "Say hello to Sprout", exact: true }),
   ).toBeVisible();
 });
 

@@ -1,8 +1,8 @@
+import { WayHomeMark } from "./components/WayHomeMark";
 import { CareRuntime, Contacts, SafetyPolicy } from "./care/Tools";
 import { JourneyPlayer } from "./care/JourneyPlayer";
 import { Landmarks } from "./care/Landmarks";
 import { CaregiverPhone } from "./components/CaregiverPhone";
-import "./interfaces.css";
 import {
   CheckInHistory,
   CheckInRuntime,
@@ -24,6 +24,7 @@ import {
 import {
   Activity,
   ArrowRight,
+  ArrowDown,
   Bell,
   Battery,
   Check,
@@ -69,7 +70,7 @@ import { CompanionPersonalization } from "./components/CompanionPersonalization"
 import { Sprout } from "./components/Sprout";
 import { DemoStage, LangSwitch } from "./components/DemoStage";
 import { DeviceConnect } from "./components/DeviceConnect";
-import { useT } from "./i18n";
+import { useLang, useT } from "./i18n";
 import { ZoneRuntime } from "./zone/ZoneRuntime";
 import { useZone } from "./zone/store";
 import { useWatchUi } from "./components/watchUi";
@@ -140,9 +141,7 @@ const actions: { label: string; event: Event; description: string }[] = [
 function Brand() {
   return (
     <Link to="/" className="brand">
-      <span>
-        <Leaf size={23} />
-      </span>
+      <WayHomeMark />
       WayHome<span className="brand-dot">.</span>
     </Link>
   );
@@ -844,81 +843,145 @@ function Companion() {
   const navigate = useNavigate();
   const s = useStore();
   const t = useT();
+  const lang = useLang((l) => l.lang);
+  const id = lang === "id";
   const [deviceView, setDeviceView] = useState<
     "together" | "watch" | "caregiver"
   >("together");
   return (
     <div
-      className={`companion-page shared-experience ${s.settings.largeText ? "large-text" : ""} ${s.settings.reducedMotion ? "reduce-motion" : ""}`}
+      className={
+        "companion-page shared-experience demo-redesign " +
+        (s.settings.largeText ? "large-text " : "") +
+        (s.settings.reducedMotion ? "reduce-motion" : "")
+      }
     >
+      <a
+        className="demo-skip"
+        href="#demo-main"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById("demo-main")?.focus();
+        }}
+      >
+        {id ? "Ke pengalaman" : "Skip to the experience"}
+      </a>
       <header className="public-header">
         <Brand />
+        <span className="demo-header-label">
+          {id ? "Pengalaman interaktif" : "The interactive experience"}
+        </span>
         <div className="stage-header-actions">
           <LangSwitch />
-          <Link to="/demo" className="text-button">
-            {t("demoControls")} <ArrowRight size={16} />
-          </Link>
-          <Link className="text-button" to="/" onClick={s.closeDemo}>
+          <Link className="text-button demo-exit" to="/" onClick={s.closeDemo}>
             {t("exitDemo")}
           </Link>
           <Link className="button light" to="/caregiver">
-            <LayoutDashboard size={17} />
+            <LayoutDashboard size={16} />
             {t("caregiverMode")}
           </Link>
         </div>
       </header>
-      <main className="companion-main viewport-stage">
+      <main
+        id="demo-main"
+        tabIndex={-1}
+        className="companion-main viewport-stage"
+      >
         <div className="stage-heading">
-          <div className="eyebrow">A FAMILIAR FRIEND, ALWAYS NEAR</div>
-          <h1>
-            {t("stageTitle")}
-            <br />
-            <em>{t("stageEm")}</em>
-          </h1>
-          <p>A little reassurance, wherever the day takes you.</p>
-          <nav
-            className="experience-view-switcher"
-            aria-label="Choose interface view"
-          >
-            <button
-              type="button"
-              aria-pressed={deviceView === "together"}
-              onClick={() => setDeviceView("together")}
+          <div className="stage-intro-copy">
+            <p className="eyebrow">
+              {id
+                ? "SEDIKIT KETENANGAN. DAPAT DICOBA."
+                : "A LITTLE REASSURANCE. MADE TANGIBLE."}
+            </p>
+            <h1>
+              {t("stageTitle")}
+              <br />
+              <em>{t("stageEm")}</em>
+            </h1>
+            <p>
+              {id
+                ? "Coba jamnya. Lihat respons di ponsel. Rasakan bagaimana satu momen menghubungkan keduanya."
+                : "Try the watch. See the response on the phone. Discover how a small moment brings both sides closer."}
+            </p>
+          </div>
+          <div className="stage-intro-tools">
+            <span className="stage-live-label">
+              <i aria-hidden="true" />
+              {id
+                ? "Dua tampilan. Satu pengalaman."
+                : "Two views. One shared experience."}
+            </span>
+            <div
+              className="experience-view-switcher"
+              aria-label="Choose interface view"
             >
-              <Monitor size={15} /> {t("viewTogether")}
-            </button>
-            <button
-              type="button"
-              aria-pressed={deviceView === "watch"}
-              onClick={() => setDeviceView("watch")}
+              <button
+                type="button"
+                aria-pressed={deviceView === "together"}
+                onClick={() => setDeviceView("together")}
+              >
+                <Monitor size={16} />
+                {t("viewTogether")}
+              </button>
+              <button
+                type="button"
+                aria-pressed={deviceView === "watch"}
+                onClick={() => setDeviceView("watch")}
+              >
+                <Watch size={16} />
+                {t("viewWatch")}
+              </button>
+              <button
+                type="button"
+                aria-pressed={deviceView === "caregiver"}
+                onClick={() => setDeviceView("caregiver")}
+              >
+                <Phone size={16} />
+                {t("viewCaregiver")}
+              </button>
+            </div>
+            <a
+              className="stage-scenario-link"
+              href="#demo-scenarios"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById("demo-scenarios")?.scrollIntoView({
+                  behavior: s.settings.reducedMotion ? "instant" : "smooth",
+                  block: "start",
+                });
+                document
+                  .getElementById("demo-scenarios")
+                  ?.focus({ preventScroll: true });
+              }}
             >
-              <Watch size={15} /> {t("viewWatch")}
-            </button>
-            <button
-              type="button"
-              aria-pressed={deviceView === "caregiver"}
-              onClick={() => setDeviceView("caregiver")}
-            >
-              <Phone size={15} /> {t("viewCaregiver")}
-            </button>
-            <Link to="/demo">
-              <Radio size={15} /> {t("viewDemo")}
-            </Link>
-          </nav>
-          <DeviceConnect />
+              {id ? "Pilih sebuah momen" : "Choose a moment to try"}
+              <ArrowDown size={15} />
+            </a>
+            <DeviceConnect />
+          </div>
         </div>
-        <div className={`shared-devices view-${deviceView}`}>
+        <div className={"shared-devices view-" + deviceView}>
           {deviceView !== "watch" && (
             <section
               className="caregiver-interface"
               aria-labelledby="caregiver-view-title"
             >
               <div className="device-caption">
-                <span>01 / CAREGIVER</span>
-                <h2 id="caregiver-view-title">{t("littleCloser")}</h2>
-                <p>{s.settings.caregiver}'s phone interface</p>
+                <span className="device-number">01</span>
+                <div>
+                  <span>{id ? "UNTUK PENDAMPING" : "FOR THE CAREGIVER"}</span>
+                  <h2 id="caregiver-view-title">{t("littleCloser")}</h2>
+                </div>
               </div>
-              <CaregiverPhone />
+              <div className="device-presentation phone-presentation">
+                <CaregiverPhone />
+              </div>
+              <p className="device-note">
+                {id
+                  ? "Kirim sapaan. Lihat setiap langkah."
+                  : "A clear picture. A thoughtful next step."}
+              </p>
             </section>
           )}
           {deviceView !== "caregiver" && (
@@ -927,53 +990,78 @@ function Companion() {
               aria-labelledby="wearer-view-title"
             >
               <div className="device-caption">
-                <span>02 / COMPANION</span>
-                <h2 id="wearer-view-title" tabIndex={-1}>
-                  {t("familiarFriend")}
-                </h2>
-                <p>{s.settings.wearer}'s interface</p>
+                <span className="device-number">02</span>
+                <div>
+                  <span>{id ? "UNTUK PEMAKAI" : "FOR THE WEARER"}</span>
+                  <h2 id="wearer-view-title" tabIndex={-1}>
+                    {t("familiarFriend")}
+                  </h2>
+                </div>
               </div>
-              <Wearable />
-              <button
-                type="button"
-                className="button explore-memories"
-                aria-describedby={
-                  !safetyReady() ? "memories-availability" : undefined
-                }
-                onClick={() => {
-                  // While an alert or guidance owns the watch, explain the pause
-                  // on its own page instead of covering the safety screen.
-                  if (s.mode !== "NORMAL") return navigate("/memories");
-                  useWatchUi.getState().openMemories();
-                }}
-              >
-                <Leaf size={23} />
-                {t("exploreMemories")}
-              </button>
-              {!safetyReady() && (
-                <p
-                  id="memories-availability"
-                  className="companion-memory-notice"
-                  role="status"
-                >
-                  Memory Garden is paused. Select Explore Memories to see why
-                  and open caregiver review.
+              <div className="device-presentation watch-presentation">
+                <Wearable />
+              </div>
+              <div className="watch-stage-note">
+                <p className="device-note">
+                  {id
+                    ? "SOS: ketuk tombol samping."
+                    : "For SOS, tap the side button."}
                 </p>
-              )}
+                <button
+                  type="button"
+                  className="stage-memory-link explore-memories"
+                  aria-describedby={
+                    !safetyReady() ? "memories-availability" : undefined
+                  }
+                  onClick={() => {
+                    if (s.mode !== "NORMAL") return navigate("/memories");
+                    useWatchUi.getState().openMemories();
+                  }}
+                >
+                  <Leaf size={17} />
+                  {t("exploreMemories")}
+                  <ArrowRight size={15} />
+                </button>
+                {!safetyReady() && (
+                  <p
+                    id="memories-availability"
+                    className="companion-memory-notice"
+                  >
+                    {id
+                      ? "Kenangan dijeda saat jam memerlukan perhatian. Buka untuk melihat alasannya."
+                      : "Memories pause while the watch needs attention. Open to see why."}
+                  </p>
+                )}
+              </div>
             </section>
           )}
         </div>
-        <div className="stage-toolbar">
+        <section
+          id="demo-scenarios"
+          tabIndex={-1}
+          className="stage-scenarios"
+          aria-label="Interactive demo scenarios"
+        >
           <DemoStage />
-          <div className="companion-foot">
-            <ShieldCheck size={15} /> Educational simulation · no real emergency
-            calls · {buildLabel}
-          </div>
-        </div>
+        </section>
+        <footer className="companion-foot">
+          <span>
+            <ShieldCheck size={16} />
+            {id
+              ? "Simulasi edukasi · lokasi, sinyal, dan permintaan bantuan disimulasikan. Tidak ada panggilan darurat sungguhan."
+              : "Educational simulation · location, device signals, and help requests are simulated. No real emergency calls."}
+          </span>
+          <Link to="/demo">
+            {t("demoControls")}
+            <ArrowRight size={14} />
+          </Link>
+          <small>{buildLabel}</small>
+        </footer>
       </main>
     </div>
   );
 }
+
 const steps = [
   {
     title: "A little independence",
@@ -1012,7 +1100,7 @@ const steps = [
   },
   {
     title: "An alternate path to support",
-    body: "In this alternate scenario Alex holds SOS for two seconds. The watch turns red and shows Sent → Seen; the phone asks the caregiver to acknowledge. No real emergency services are contacted.",
+    body: "In this alternate scenario Alex taps SOS. The watch turns red and shows Sent → Seen; the phone asks the caregiver to acknowledge. No real emergency services are contacted.",
     event: "SOS",
   },
 ] as const;

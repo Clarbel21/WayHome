@@ -1,3 +1,4 @@
+import { expectGardenKeepsakes } from "./watch-helpers";
 import { test, expect, type Page } from "@playwright/test";
 
 async function openPractice(page: Page) {
@@ -110,9 +111,7 @@ test("finishing a walk grows a flower and shows how familiar each place feels", 
     page.getByRole("heading", { name: "Lovely walk!" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Done" }).click();
-  await expect(
-    page.getByRole("img", { name: /has 1 keepsakes/ }),
-  ).toBeVisible();
+  await expectGardenKeepsakes(page, 1);
 });
 
 test("returning visitors get the new sample memories", async ({ page }) => {
