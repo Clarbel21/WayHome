@@ -3374,6 +3374,517 @@
   text-align: left;
 }
 
+/* ============================================================ one-screen watch layout
+   Every watch state must keep its complete decision set visible. The footer is
+   one compact row and dense states use screen-specific layouts instead of an
+   internal scrollbar. */
+.watch-area .watch .watch-screen.wos .wos-body {
+  overflow: hidden;
+}
+.watch-area .watch .watch-screen.wos .wos-body > * {
+  width: 100%;
+  max-height: 100%;
+  margin-block: auto;
+}
+.watch-area .watch .watch-screen.wos .wos-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  align-items: stretch;
+  gap: 6px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-footer button {
+  min-width: 0;
+  min-height: 46px;
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: 13px;
+}
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-footer
+  .wos-mode-button {
+  width: 100%;
+  font-size: 11.5px;
+  line-height: 1.15;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-footer .sos-hold {
+  width: 100%;
+  font-size: 15px;
+  line-height: 1;
+  gap: 4px;
+}
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-footer
+  .sos-hold
+  > span {
+  font-size: 10px;
+  line-height: 1.05;
+}
+.watch-area .watch .watch-screen.wos .wos-footer > :only-child {
+  grid-column: 1 / -1;
+}
+.watch-area .watch .watch-screen.wos .wos-footer-cancel {
+  width: 100%;
+  font-size: 11.5px;
+  line-height: 1.15;
+}
+
+/* Home stays generous, but no longer needs to borrow space from the footer. */
+.shared-experience .watch-area .watch .watch-screen.wos .wos-orientation {
+  min-height: 22px;
+  margin-bottom: 1px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-hello {
+  gap: 7px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-hello .sprout {
+  width: 52px;
+  height: 50px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-hello .speech {
+  font-size: 16.5px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-home-actions {
+  gap: 6px;
+  margin-top: 5px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-home-primary {
+  min-height: 66px;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 9px;
+  padding: 8px 11px;
+  border-radius: 17px;
+}
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-home-primary
+  strong {
+  font-size: 17px;
+}
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-home-primary
+  small {
+  font-size: 11.5px;
+}
+.wos-home-primary-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-home-secondary
+  button {
+  min-height: 60px;
+  padding: 6px;
+  font-size: 13.5px;
+}
+.shared-experience .watch-area .watch .watch-screen.wos .wos-home-memory {
+  min-height: 42px;
+  padding-block: 6px;
+}
+
+/* Mode selection and Dialogue mode are naturally dense. Two-column replies
+   preserve large tap targets while keeping the full conversation menu visible. */
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen="choose-experience-mode"]
+  .wos-mode-picker
+  > svg {
+  width: 34px;
+  height: 34px;
+  padding: 5px;
+}
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen="choose-experience-mode"]
+  .wos-mode-picker
+  > strong {
+  margin: 2px 0 3px;
+  font-size: 18px;
+}
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen="choose-experience-mode"]
+  .wos-mode-notice {
+  margin: 0 0 4px;
+  font-size: 11px;
+}
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen="choose-experience-mode"]
+  .wos-mode-choice {
+  min-height: 53px;
+  grid-template-columns: 30px minmax(0, 1fr) 16px;
+  gap: 7px;
+  padding: 6px 9px;
+}
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen="choose-experience-mode"]
+  .wos-mode-choice-icon {
+  width: 28px;
+  height: 28px;
+}
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen="choose-experience-mode"]
+  .wos-mode-choice
+  small {
+  font-size: 11px;
+  line-height: 1.12;
+}
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen="choose-experience-mode"]
+  .wos-back {
+  min-height: 40px;
+}
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen^="talk-"]
+  .wos-talk-head {
+  margin-bottom: 6px;
+}
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen^="talk-"]
+  .wos-talk-head
+  .sprout {
+  width: 46px;
+  height: 44px;
+}
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen^="talk-"]
+  .wos-bubble {
+  padding: 7px 9px;
+  font-size: 12.5px;
+  line-height: 1.3;
+}
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen^="talk-"]
+  .watch-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen^="talk-"]
+  .wos-chip {
+  min-height: 46px;
+  justify-content: center;
+  padding: 6px 8px;
+  font-size: 13px;
+  text-align: center;
+}
+.watch-area .watch .watch-screen.wos .wos-body[data-screen^="talk-"] .wos-back {
+  grid-column: 1 / -1;
+  min-height: 42px;
+}
+
+/* Landmark guidance keeps the landmark photo and recognition question—the
+   essential cues—while secondary explanation is clamped to two short lines. */
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-guide-top {
+  margin-bottom: 3px;
+}
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-direction {
+  min-height: 48px;
+  margin-bottom: 4px;
+  padding: 6px 9px;
+}
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-photo
+  img {
+  height: 76px;
+  border-radius: 13px;
+}
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-kicker {
+  margin-top: 4px;
+}
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-guide
+  > p,
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-guide
+  > small {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-guide
+  > strong {
+  font-size: 18px;
+}
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-primary {
+  min-height: 44px;
+}
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-secondary,
+.shared-experience
+  .watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-row
+  button {
+  min-height: 40px;
+  font-size: 12px;
+}
+
+/* Check-ins, Focus mode, and outcome screens retain comfortable type without
+   oversized illustrations pushing decisions below the fold. */
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen="help-options"]
+  .sprout,
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen="acknowledged"]
+  .sprout,
+.watch-area .watch .watch-screen.wos .wos-body[data-screen="CHECK_IN"] .sprout {
+  width: 48px;
+  height: 46px;
+}
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen="help-options"]
+  .watch-action {
+  min-height: 43px;
+  font-size: 13.5px;
+}
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen="focus-home"]
+  .wos-focus-icon {
+  width: 56px;
+  height: 56px;
+}
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen="focus-home"]
+  .wos-focus-primary {
+  min-height: 58px;
+}
+.watch-area
+  .watch
+  .watch-screen.wos
+  .wos-body[data-screen="arrived"]
+  .wos-arrived-badge {
+  width: 54px;
+  height: 54px;
+}
+
+/* Memory Garden becomes a watch-sized activity chooser. Decorative garden
+   art remains on the full experience, while every watch action stays visible. */
+.watch-area .watch .watch-screen.wos .wos-memories {
+  overflow: hidden;
+  padding: 0;
+}
+.wos-memories .memory-experience.on-watch,
+.wos-memories .memory-safety.on-watch,
+.wos-memories .on-watch .memory-question,
+.wos-memories .on-watch .wp-practice {
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+.wos-memories .on-watch .memory-topline {
+  margin-bottom: 2px;
+}
+.wos-memories .on-watch .memory-topline .text-button {
+  min-height: 38px;
+  padding: 5px 9px;
+  font-size: 13px;
+}
+.wos-memories .on-watch h1,
+.wos-memories .on-watch h2,
+.wos-memories .on-watch .wp-prompt {
+  margin: 3px 0 6px;
+  font-size: 18px;
+}
+.wos-memories .on-watch .memory-tiles {
+  gap: 5px;
+}
+.wos-memories .on-watch .memory-tile {
+  min-height: 48px;
+  padding: 5px 8px;
+  font-size: 14.5px;
+}
+.wos-memories .on-watch .memory-tile-icon {
+  width: 28px;
+  height: 28px;
+}
+.wos-memories .on-watch .memory-tile.tile-wayhome {
+  min-height: 50px;
+  margin-bottom: 4px;
+}
+.wos-memories .on-watch .text-button {
+  min-height: 38px;
+  font-size: 13.5px;
+}
+.wos-memories .on-watch .journey-invitations {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 5px;
+}
+.wos-memories .on-watch .journey-invitations .memory-choice {
+  min-height: 40px;
+  padding: 5px 7px;
+  font-size: 12px;
+}
+.wos-memories .on-watch .journey-invitations .journey-next {
+  min-height: 40px;
+  justify-content: center;
+  padding: 5px 7px;
+  border-radius: 13px;
+  background: #f4f7f0;
+  box-shadow: inset 0 0 0 1px #c4d2c0;
+  font-size: 12px;
+}
+.wos-memories .on-watch .memory-choices:not(.memory-tiles) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+.wos-memories
+  .on-watch
+  .memory-choices:not(.memory-tiles)
+  > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+.wos-memories .on-watch .memory-choice,
+.wos-memories .on-watch .button {
+  min-height: 44px;
+  padding: 6px 8px;
+  font-size: 14.5px;
+}
+.wos-memories .on-watch img,
+.wos-memories .on-watch .wp-walk-photo img {
+  max-height: 88px;
+}
+.wos-memories .on-watch .memory-garden-art {
+  max-height: 66px;
+}
+.wos-memories .on-watch .memory-garden-art svg {
+  max-height: 52px;
+}
+.wos-memories .on-watch .wp-practice {
+  gap: 5px;
+}
+.wos-memories .on-watch .wp-route-strip,
+.wos-memories .on-watch .wp-photo-options,
+.wos-memories .on-watch .wp-turns {
+  gap: 5px;
+}
+.wos-memories .on-watch .wp-walk-turn {
+  min-height: 42px;
+  padding: 6px 9px;
+}
+.wos-memories .on-watch .wp-cue {
+  padding: 6px 8px;
+  font-size: 13px;
+}
+.wos-memories .on-watch .wp-nav-row {
+  gap: 5px;
+}
+.wos-memories .on-watch .wp-turn-option {
+  min-height: 68px;
+  padding: 7px 4px;
+}
+.wos-memories .on-watch .wp-feedback {
+  gap: 5px;
+  padding: 8px 10px;
+}
+
+@media (max-height: 720px) {
+  .shared-experience .watch-area .watch .watch-screen.wos {
+    padding: 9px 11px 10px;
+    gap: 5px;
+  }
+  .shared-experience .watch-area .watch .watch-screen.wos .watch-status,
+  .shared-experience
+    .watch-area
+    .watch
+    .watch-screen.wos
+    .watch-status
+    > span:last-child,
+  .shared-experience .watch-area .watch .watch-screen.wos .wos-wear {
+    font-size: 10.5px;
+  }
+}
+
 /* ============================================================ caregiver above-the-fold hierarchy */
 .care-phone .phone-location-primary {
   margin: 10px 0 0;

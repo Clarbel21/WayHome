@@ -901,7 +901,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             {attachmentNames[s.attachment]} · {wearLabels[s.wearStatus]}{" "}
             (inferred)
           </span>
-          <div className="wos-body" key={screenKey}>
+          <div className="wos-body" data-screen={screenKey} key={screenKey}>
             {screen}
           </div>
           <div className="wos-footer">

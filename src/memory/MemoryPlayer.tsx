@@ -762,7 +762,7 @@ export function MemoryGardenExperience({
                 {empty}
               </p>
             )}
-            <GardenVisualization />
+            {!onWatch && <GardenVisualization />}
             {!onWatch && (
               <p className="memory-help">
                 Take as much or as little time as you like. You can always skip

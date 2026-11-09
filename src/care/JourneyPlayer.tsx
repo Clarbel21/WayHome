@@ -10,11 +10,15 @@ import { SOSButton } from "../components/SOSButton";
 export function JourneyInvitations() {
   const journeys = useCare((s) => s.journeys);
   const watch = useOnWatch();
+  const [watchPage, setWatchPage] = useState(0);
   if (!journeys.length) return null;
+  const visibleJourneys = watch
+    ? [journeys[watchPage % journeys.length]]
+    : journeys;
   return (
     <section className="journey-invitations">
       {!watch && <h2>Optional Memory Journeys</h2>}
-      {journeys.map((j) => (
+      {visibleJourneys.map((j) => (
         <Link
           className="memory-choice quiet"
           key={j.id}
@@ -23,6 +27,14 @@ export function JourneyInvitations() {
           {j.title}
         </Link>
       ))}
+      {watch && journeys.length > 1 && (
+        <button
+          className="text-button journey-next"
+          onClick={() => setWatchPage((page) => (page + 1) % journeys.length)}
+        >
+          Next journey
+        </button>
+      )}
     </section>
   );
 }
