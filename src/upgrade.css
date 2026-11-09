@@ -3223,6 +3223,19 @@
 .experience-view-switcher a {
   color: var(--wh-forest);
 }
+.stage-heading .device-connect {
+  justify-content: center;
+  margin-top: 2px;
+}
+.stage-heading .device-connect .device-status {
+  margin: 0;
+  font-size: 13px;
+  color: #52665a;
+}
+.stage-heading .device-connect .device-status.ok {
+  color: var(--wh-forest);
+  font-weight: 700;
+}
 .shared-experience .stage-heading {
   gap: 14px;
 }

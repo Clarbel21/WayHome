@@ -68,6 +68,7 @@ import { EmergencyAssistance } from "./components/EmergencyAssistance";
 import { CompanionPersonalization } from "./components/CompanionPersonalization";
 import { Sprout } from "./components/Sprout";
 import { DemoStage, LangSwitch } from "./components/DemoStage";
+import { DeviceConnect } from "./components/DeviceConnect";
 import { useT } from "./i18n";
 import { ZoneRuntime } from "./zone/ZoneRuntime";
 import { useZone } from "./zone/store";
@@ -904,6 +905,7 @@ function Companion() {
               <Radio size={15} /> {t("viewDemo")}
             </Link>
           </nav>
+          <DeviceConnect />
         </div>
         <div className={`shared-devices view-${deviceView}`}>
           {deviceView !== "watch" && (
