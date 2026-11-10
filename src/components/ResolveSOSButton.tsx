@@ -1,9 +1,15 @@
 import { useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "../store";
+import { useT } from "../i18n";
 import { verificationBlockers } from "../services/safety";
-export function ResolveSOSButton() {
+export function ResolveSOSButton({
+  label,
+  className = "watch-action resolve-sos-button",
+  onResolved,
+}: { label?: string; className?: string; onResolved?: () => void } = {}) {
   const s = useStore();
+  const t = useT();
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const cancel = useRef<HTMLButtonElement>(null);
@@ -26,7 +32,7 @@ export function ResolveSOSButton() {
       <button
         ref={trigger}
         type="button"
-        className="watch-action resolve-sos-button"
+        className={className}
         onClick={() => {
           if (!s.incident) return;
           setTarget({ id: s.incident.id, revision: s.incident.revision });
@@ -35,7 +41,7 @@ export function ResolveSOSButton() {
           cancel.current?.focus();
         }}
       >
-        Help received — resolve SOS
+        {label ?? t("resolveWatchLabel")}
       </button>
       <dialog
         ref={dialog}
@@ -56,9 +62,7 @@ export function ResolveSOSButton() {
                 target.id !== current.incident?.id ||
                 target.revision !== current.incident?.revision
               ) {
-                setError(
-                  "A new help request arrived. Close this confirmation and review the latest SOS.",
-                );
+                setError(t("resolveChangedError"));
                 return;
               }
               current.resetEmergency(
@@ -69,35 +73,23 @@ export function ResolveSOSButton() {
                   .getState()
                   .resolveIncident(target.id, target.revision, true)
               ) {
-                setError(
-                  "The incident could not be closed. Review the latest request and device observations.",
-                );
+                setError(t("resolveFailed"));
                 return;
               }
               close();
+              onResolved?.();
             }}
           >
-            <h2 id={title}>
-              Has help arrived and the situation been resolved?
-            </h2>
-            <p>
-              Confirm only after a caregiver has independently checked on the
-              wearer. This ends the simulated SOS and keeps its alert history.
-              It does not change device readings or guarantee safety.
-            </p>
+            <h2 id={title}>{t("resolveTitle")}</h2>
+            <p>{t("resolveBody")}</p>
             {changed && (
               <p className="form-error" role="alert">
-                A new SOS arrived. Close this confirmation and review the latest
-                request.
+                {t("resolveChanged")}
               </p>
             )}
             {blockers.length > 0 && (
               <div className="resolve-sos-blockers">
-                <p>
-                  These device warnings will stay visible after resolving SOS.
-                  You can still continue local memories after caregiver
-                  confirmation:
-                </p>
+                <p>{t("resolveWarnings")}</p>
                 <ul>
                   {blockers.map((reason, i) => (
                     <li key={i}>{reason}</li>
@@ -108,7 +100,7 @@ export function ResolveSOSButton() {
                   to="/caregiver/emergency"
                   onClick={close}
                 >
-                  Open caregiver review
+                  {t("resolveOpenReview")}
                 </Link>
               </div>
             )}
@@ -125,10 +117,10 @@ export function ResolveSOSButton() {
                 className="button light"
                 onClick={close}
               >
-                Keep SOS active
+                {t("resolveKeep")}
               </button>
               <button type="submit" className="button" disabled={changed}>
-                Caregiver confirms — resolve SOS
+                {t("resolveConfirm")}
               </button>
             </div>
           </form>

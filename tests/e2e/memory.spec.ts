@@ -1,3 +1,4 @@
+import { openMemoriesFromMenu } from "./watch-helpers";
 import { expectGardenKeepsakes } from "./watch-helpers";
 import { selectWatchActivity } from "./watch-helpers";
 import { resolveIncident } from "./support";
@@ -81,9 +82,7 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
   page,
 }) => {
   await page.goto("/#/companion");
-  await page
-    .getByRole("button", { name: "Explore Memories", exact: true })
-    .click();
+  await openMemoriesFromMenu(page);
   await expect(
     page.getByRole("heading", { name: "Memory Garden", exact: true }),
   ).toBeVisible();
@@ -337,9 +336,7 @@ test("cross-tab safety interrupts and preserves routine; renaming, skipping and 
   await page.goto("/#/caregiver/emergency");
   await resolveIncident(page);
   // Reopening the Memory Garden offers to resume where it stopped.
-  await wearer
-    .getByRole("button", { name: "Explore Memories", exact: true })
-    .click();
+  await openMemoriesFromMenu(wearer);
   await expect(
     wearer.getByRole("button", { name: "Resume activity" }),
   ).toBeVisible();
@@ -356,7 +353,7 @@ test("cross-tab safety interrupts and preserves routine; renaming, skipping and 
     .click();
   await expect(wearer.locator(".wos-memories")).toHaveCount(0);
   await expect(
-    wearer.getByRole("button", { name: "Explore Memories", exact: true }),
+    wearer.getByRole("button", { name: "My memories", exact: true }),
   ).toBeVisible();
 });
 

@@ -1,3 +1,10 @@
+import {
+  openDeviceDetails,
+  showWatch,
+  showCaregiver,
+  openPresenter,
+  runDemoMoment,
+} from "./watch-helpers";
 import { openWatchHelp } from "./watch-helpers";
 import { test, expect } from "@playwright/test";
 
@@ -8,9 +15,9 @@ test.beforeEach(async ({ page }) => {
 });
 
 const wearer = (page: import("@playwright/test").Page) =>
-  page.getByRole("region", { name: "A familiar friend.", exact: true });
+  page.locator(".wearer-interface");
 const caregiver = (page: import("@playwright/test").Page) =>
-  page.getByRole("region", { name: "A little closer.", exact: true });
+  page.locator(".caregiver-interface");
 
 test("home starts with a breathing mascot and two visible choices", async ({
   page,
@@ -42,31 +49,38 @@ test("demo moments drive both devices and SOS disables unsafe moments", async ({
   page,
 }) => {
   const bar = page.getByRole("toolbar", { name: "Demo moments" });
-  await bar.getByRole("button", { name: "Wanders off route" }).click();
+  await runDemoMoment(page, "Wanders off route");
   await expect(
     caregiver(page).getByText("Needs attention", { exact: true }),
   ).toBeVisible();
-  await expect(caregiver(page).getByText("Route deviation")).toBeVisible();
+  await openDeviceDetails(page);
+  await expect(caregiver(page).locator(".phone-findings")).toContainText(
+    "Route deviation",
+  );
   await expect(
     wearer(page).getByText("It's okay. I'm here with you.", { exact: true }),
   ).toBeVisible();
 
-  await bar.getByRole("button", { name: "Low battery" }).click();
+  await runDemoMoment(page, "Low battery");
   await expect(
     caregiver(page).getByText(/Battery is low \(12%\)/),
   ).toBeVisible();
 
-  await bar.getByRole("button", { name: "SOS", exact: true }).click();
+  await runDemoMoment(page, "SOS");
   await expect(
     wearer(page).getByText("Help request sent — simulation", { exact: true }),
   ).toBeVisible();
-  await expect(bar.getByRole("button", { name: "Walk home" })).toBeDisabled();
+  await openPresenter(page);
+  await expect(
+    bar.getByRole("button", { name: "Walk home", exact: true }),
+  ).toBeDisabled();
   await expect(
     page.getByRole("button", { name: "Reset demo", exact: true }),
   ).toBeDisabled();
   await expect(
     caregiver(page).getByText("Urgent", { exact: true }),
   ).toBeVisible();
+  await page.locator(".demo-more > summary").click();
   await caregiver(page)
     .getByRole("button", { name: "Acknowledge SOS alert", exact: true })
     .click();
@@ -124,6 +138,7 @@ test("mobile stacks devices and wraps demo moments without horizontal scroll", a
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+  await openPresenter(page);
   await expect(
     page.getByRole("toolbar", { name: "Demo moments" }).getByRole("button", {
       name: "Takes it off",
@@ -140,6 +155,7 @@ test("landing and guided story link to the live side-by-side stage", async ({
     .first()
     .click();
   await expect(page).toHaveURL(/#\/together$/);
+  await openPresenter(page);
   await expect(
     page.getByRole("toolbar", { name: "Demo moments" }),
   ).toBeVisible();

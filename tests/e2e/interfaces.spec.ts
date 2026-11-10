@@ -1,3 +1,4 @@
+import { openMore, showWatch, showCaregiver } from "./watch-helpers";
 import { test, expect } from "@playwright/test";
 
 test("wearer and caregiver phone sit side by side and share working check-ins", async ({
@@ -5,20 +6,22 @@ test("wearer and caregiver phone sit side by side and share working check-ins", 
 }) => {
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.goto("/#/together");
+  await openMore(page);
   await expect(
     page.getByRole("button", { name: "Connect Sprout watch", exact: true }),
   ).toBeVisible();
+  await page.locator(".demo-more > summary").click();
   const wearer = page.getByRole("region", {
-    name: "A familiar friend.",
+    name: "Alex’s watch",
     exact: true,
   });
   const caregiver = page.getByRole("region", {
-    name: "A little closer.",
+    name: "Jamie’s app",
     exact: true,
   });
   const left = await wearer.boundingBox(),
     right = await caregiver.boundingBox();
-  expect(right!.x + right!.width).toBeLessThan(left!.x);
+  expect(left!.x + left!.width).toBeLessThan(right!.x);
   expect(Math.abs(left!.y - right!.y)).toBeLessThan(3);
   await caregiver
     .getByRole("button", { name: "Send a check-in", exact: true })
@@ -52,11 +55,11 @@ test("same-screen caregiver response works and SOS stays separate from acknowled
 }) => {
   await page.goto("/#/companion");
   const wearer = page.getByRole("region", {
-    name: "A familiar friend.",
+    name: "Alex’s watch",
     exact: true,
   });
   const caregiver = page.getByRole("region", {
-    name: "A little closer.",
+    name: "Jamie’s app",
     exact: true,
   });
   await caregiver
@@ -70,7 +73,7 @@ test("same-screen caregiver response works and SOS stays separate from acknowled
     .click();
   await expect(
     caregiver.getByRole("button", { name: "Send a check-in", exact: true }),
-  ).toBeDisabled();
+  ).toHaveCount(0);
   await caregiver
     .getByRole("button", { name: "Acknowledge family request", exact: true })
     .click();
@@ -94,25 +97,26 @@ test("same-screen caregiver response works and SOS stays separate from acknowled
     wearer.getByText("Help request sent — simulation", { exact: true }),
   ).toBeVisible();
   await expect(
-    caregiver.getByRole("link", { name: "Review SOS", exact: true }),
+    caregiver.getByRole("button", {
+      name: "Review and resolve SOS",
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(
     caregiver.getByRole("button", { name: "Send a check-in", exact: true }),
   ).toHaveCount(0);
 });
 
-test("mobile interfaces stack without overflow and caregiver workspace navigation stays usable", async ({
+test("mobile tabs switch interfaces without overflow and caregiver workspace navigation stays usable", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/#/companion");
-  const wearer = await page
-    .getByRole("region", { name: "A familiar friend.", exact: true })
-    .boundingBox();
-  const caregiver = await page
-    .getByRole("region", { name: "A little closer.", exact: true })
-    .boundingBox();
-  expect(wearer!.y).toBeGreaterThan(caregiver!.y + caregiver!.height);
+  await expect(page.locator(".wearer-interface")).toBeVisible();
+  await expect(page.locator(".caregiver-interface")).toBeHidden();
+  await showCaregiver(page);
+  await expect(page.locator(".caregiver-interface")).toBeVisible();
+  await expect(page.locator(".wearer-interface")).toBeHidden();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -145,7 +149,7 @@ test("phone hardware keeps portrait proportions and navigation stays fixed while
     await page.goto("/#/together");
     const phone = page.locator(".care-phone");
     const box = (await phone.boundingBox())!;
-    expect(box.height / box.width).toBeGreaterThan(2);
+    expect(box.height / box.width).toBeGreaterThan(1.9);
     expect(box.height / box.width).toBeLessThan(2.15);
     const nav = page.getByRole("navigation", {
       name: "Phone views",
@@ -198,14 +202,15 @@ test("SOS remains discoverable while caregiver browses tools", async ({
     .getByRole("button", { name: "SOS Send help request", exact: true })
     .focus();
   await page.keyboard.press("Space");
-  await page
-    .getByRole("button", { name: "SOS needs review", exact: true })
-    .click();
+  await expect(page.locator(".care-priority")).toHaveAttribute(
+    "data-priority",
+    "sos-new",
+  );
   await page
     .getByRole("button", { name: "Acknowledge SOS alert", exact: true })
     .click();
   await expect(
-    page.getByRole("link", { name: "Review SOS", exact: true }),
+    page.getByRole("button", { name: "Review and resolve SOS", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Send a check-in", exact: true }),

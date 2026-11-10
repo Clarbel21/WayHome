@@ -1,3 +1,4 @@
+import { openPresenter } from "./watch-helpers";
 import { openWatchHelp } from "./watch-helpers";
 import { test, expect, type Page } from "@playwright/test";
 
@@ -166,9 +167,11 @@ test("clear primary controls complete check-in, guidance and explicit SOS resolu
     "data-watch-screen",
     "EMERGENCY_SIMULATED",
   );
+  await openPresenter(page);
   await expect(
     page.getByRole("button", { name: "Reset demo", exact: true }),
   ).toBeDisabled();
+  await page.locator(".demo-more > summary").click();
   await watch
     .getByRole("button", { name: "Help received — resolve SOS", exact: true })
     .click();

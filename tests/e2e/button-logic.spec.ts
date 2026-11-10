@@ -1,3 +1,4 @@
+import { openMemoriesFromMenu } from "./watch-helpers";
 import { openWatchHelp } from "./watch-helpers";
 import { test, expect } from "@playwright/test";
 
@@ -130,9 +131,7 @@ test("removal handover provides a request, response and device recovery path", a
     .click();
   await page.goto("/#/companion");
   await expect(page.getByText("Hello, Alex.", { exact: true })).toBeVisible();
-  await page
-    .getByRole("button", { name: "Explore Memories", exact: true })
-    .click();
+  await openMemoriesFromMenu(page);
   await expect(
     page.getByRole("heading", { name: "Memory Garden is paused", exact: true }),
   ).toHaveCount(0);

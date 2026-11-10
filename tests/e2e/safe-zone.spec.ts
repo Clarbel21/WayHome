@@ -1,3 +1,10 @@
+import {
+  openDeviceDetails,
+  showWatch,
+  showCaregiver,
+  openPresenter,
+  runDemoMoment,
+} from "./watch-helpers";
 import { openWatchHelp } from "./watch-helpers";
 import { test, expect } from "@playwright/test";
 
@@ -10,7 +17,7 @@ test.beforeEach(async ({ page }) => {
 const watch = (page: import("@playwright/test").Page) =>
   page.locator(".watch-area").first();
 const phone = (page: import("@playwright/test").Page) =>
-  page.getByRole("region", { name: "A little closer.", exact: true });
+  page.locator(".caregiver-interface");
 const moments = (page: import("@playwright/test").Page) =>
   page.getByRole("toolbar", { name: "Demo moments" });
 
@@ -25,9 +32,7 @@ test("leaving the safe zone buzzes the watch, escalates, then guides home landma
     .fill("500");
   await expect(phone(page).getByText("500 m", { exact: true })).toBeVisible();
 
-  await moments(page)
-    .getByRole("button", { name: "Walk out of safe zone" })
-    .click();
+  await runDemoMoment(page, "Walk out of safe zone");
   await expect(watch(page).getByText("Heading home?")).toBeVisible({
     timeout: 10_000,
   });
@@ -36,7 +41,7 @@ test("leaving the safe zone buzzes the watch, escalates, then guides home landma
     phone(page).getByRole("heading", { name: "Outside the safe zone" }),
   ).toBeVisible();
 
-  await moments(page).getByRole("button", { name: "+8 min" }).click();
+  await runDemoMoment(page, "+8 min");
   await expect(
     phone(page).locator(".zone-ladder li.done", { hasText: "Notify Jamie" }),
   ).toBeVisible();
@@ -102,14 +107,11 @@ test("leaving the safe zone buzzes the watch, escalates, then guides home landma
 test("staying outside long enough reaches the simulated emergency step", async ({
   page,
 }) => {
-  await moments(page)
-    .getByRole("button", { name: "Lost far from home" })
-    .click();
+  await runDemoMoment(page, "Lost far from home");
   await expect(watch(page).getByText("Heading home?")).toBeVisible({
     timeout: 5_000,
   });
-  for (let i = 0; i < 3; i++)
-    await moments(page).getByRole("button", { name: "+8 min" }).click();
+  for (let i = 0; i < 3; i++) await runDemoMoment(page, "+8 min");
   await expect(
     watch(page).getByText("Help request sent — simulation", { exact: true }),
   ).toBeVisible({ timeout: 5_000 });
@@ -132,14 +134,14 @@ test("leftover readings from earlier moments never block the walk home (no loop)
   page,
 }) => {
   const bar = moments(page);
-  await bar.getByRole("button", { name: "Wanders off route" }).click();
-  await bar.getByRole("button", { name: "Takes it off" }).click();
-  await bar.getByRole("button", { name: "Weak GPS" }).click();
+  await runDemoMoment(page, "Wanders off route");
+  await runDemoMoment(page, "Takes it off");
+  await runDemoMoment(page, "Weak GPS");
   // Caregiver is looking at another tab.
   await phone(page)
     .getByRole("button", { name: "Care tools", exact: true })
     .click();
-  await bar.getByRole("button", { name: "Lost far from home" }).click();
+  await runDemoMoment(page, "Lost far from home");
   await watch(page)
     .getByRole("button", { name: "Yes, help me home" })
     .click({ timeout: 5_000 });
@@ -154,7 +156,8 @@ test("zone moments are disabled while an SOS is open, with a reason", async ({
   page,
 }) => {
   const bar = moments(page);
-  await bar.getByRole("button", { name: "SOS", exact: true }).click();
+  await runDemoMoment(page, "SOS");
+  await openPresenter(page);
   await expect(
     bar.getByRole("button", { name: "Lost far from home" }),
   ).toBeDisabled();

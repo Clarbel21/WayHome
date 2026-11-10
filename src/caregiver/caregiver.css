@@ -1,0 +1,118 @@
+@layer legacy, demo, companion, foundation;
+@layer foundation {
+  .care-priority {
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--wh-border);
+    border-radius: var(--wh-card-radius);
+    background: white;
+    color: var(--wh-ink);
+    margin-bottom: 16px;
+  }
+  .care-priority.tone-urgent {
+    border-color: #ca8d8d;
+    background: var(--wh-urgent-surface);
+  }
+  .care-priority.tone-attention {
+    background: var(--wh-warning-surface);
+    border-color: #d9b883;
+  }
+  .care-priority-context {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--wh-secondary);
+    font-size: 14px;
+  }
+  .care-priority-context time {
+    margin-left: auto;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .care-priority.tone-urgent .care-priority-context,
+  .care-priority.tone-urgent h3 {
+    color: var(--wh-urgent);
+  }
+  .care-priority h3 {
+    color: var(--wh-ink);
+    font: 600 22px/1.2 var(--wh-font);
+    margin: 0;
+    letter-spacing: 0;
+  }
+  .care-priority p,
+  .care-priority small {
+    color: var(--wh-secondary);
+    font-size: 16px;
+    line-height: 1.4;
+    margin: 0;
+  }
+  .care-priority small {
+    font-size: 14px;
+  }
+  .care-priority .wh-button {
+    width: 100%;
+    font-size: 16px;
+    min-height: 48px;
+    margin: 0;
+  }
+  .care-priority.tone-urgent .wh-button {
+    background: var(--wh-urgent);
+    border-color: var(--wh-urgent);
+  }
+  .care-concerns {
+    min-height: 44px;
+    border: 0;
+    background: transparent;
+    color: var(--wh-action);
+    font-size: 14px;
+    text-align: left;
+    padding: 8px 0;
+  }
+  .care-phone .phone-greeting {
+    margin-bottom: 16px;
+  }
+  .care-phone .phone-greeting p {
+    font-size: 14px;
+    color: var(--wh-secondary);
+  }
+  .care-phone .phone-quick-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin: 0 0 16px;
+  }
+  .care-phone .phone-quick-actions .wh-button {
+    width: 100%;
+  }
+  .care-phone .phone-location-card {
+    margin-top: 0;
+    border: 1px solid var(--wh-border);
+    border-radius: var(--wh-card-radius);
+    overflow: hidden;
+  }
+  .care-phone .phone-card-heading {
+    font-size: 14px;
+  }
+  .care-phone .location-caption strong,
+  .care-phone .location-caption small {
+    font-size: 14px;
+    color: var(--wh-secondary);
+  }
+  .care-phone .phone-overview-details {
+    margin: 16px 0;
+    padding: 12px;
+    border: 1px solid var(--wh-border);
+    border-radius: var(--wh-card-radius);
+  }
+  .care-phone .phone-overview-details summary {
+    min-height: 44px;
+    font-size: 16px;
+    color: var(--wh-action);
+    cursor: pointer;
+  }
+  .care-phone .phone-overview-details p {
+    color: var(--wh-secondary);
+    font-size: 14px;
+    margin-block: 12px;
+  }
+}

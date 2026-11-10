@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./demo/demo.css";
 import "./demo/companion.css";
+import "./design/tokens.css";
 class ErrorBoundary extends Component<
   { children: ReactNode },
   { failed: boolean }

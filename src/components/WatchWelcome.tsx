@@ -1,10 +1,13 @@
-import { ArrowRight, Flower2, House, MessageCircle, Phone } from "lucide-react";
+import { WatchScreen } from "../watch/WatchScreen";
+import { Button } from "../design/Controls";
+import { useState } from "react";
+import { ArrowRight, Flower2, House, Phone } from "lucide-react";
 import { Sprout } from "./Sprout";
 import { useMascotInteraction } from "./WatchMascot";
 import { useStore } from "../store";
 import { useLang, useT } from "../i18n";
 
-export type WelcomePage = "idle" | "welcome" | "help";
+export type WelcomePage = "idle" | "welcome" | "help" | "talk";
 
 export function WatchWelcome({
   page,
@@ -24,7 +27,18 @@ export function WatchWelcome({
   );
   const focus = mode === "focus" && page === "idle";
   const help = page === "help";
-  const dialogue = mode === "dialogue";
+  const dialogue = (mode === "dialogue" && page !== "help") || page === "talk";
+  const [talkReply, setTalkReply] = useState<string | null>(null);
+  const [topicPage, setTopicPage] = useState(0);
+  const replies = [
+    { label: t("talkWhere"), text: t("talkWhereReply") },
+    {
+      label: t("talkWho"),
+      text: t("talkWhoReply", { caregiver: s.settings.caregiver }),
+    },
+    { label: t("somethingComforting"), text: t("talkComfort") },
+    { label: t("talkSomethingNice"), text: t("talkSomethingNiceReply") },
+  ];
   const heading = help
     ? t("howHelp")
     : focus
@@ -38,8 +52,9 @@ export function WatchWelcome({
         : t("watchHello", { name: s.settings.wearer.split(" ")[0] });
 
   return (
-    <div
-      className={`watch-welcome watch-welcome-${page} mode-home-${mode} ${help ? "watch-help-home" : ""} ${touches ? "mascot-touched" : ""}`}
+    <WatchScreen
+      variant="home"
+      className={`watch-welcome watch-welcome-${page} mode-home-${dialogue ? "dialogue" : mode} ${help ? "watch-help-home" : ""} ${touches ? "mascot-touched" : ""}`}
     >
       <button
         className="mascot-touch"
@@ -53,8 +68,11 @@ export function WatchWelcome({
               : "Talk with ") + s.settings.companionName
         }
         onClick={() => {
-          hello();
-          if (mode === "normal" && !help) onPage("welcome");
+          if (dialogue) setTalkReply(t("talkIntro"));
+          else {
+            hello();
+            if (mode === "normal" && !help) onPage("welcome");
+          }
         }}
         data-caregiver-skip-notification="true"
       >
@@ -63,7 +81,11 @@ export function WatchWelcome({
       <div
         className={`watch-sentence-slot ${dialogue ? "watch-dialogue-bubble" : ""}`}
       >
-        {touches ? (
+        {dialogue && talkReply ? (
+          <p className="watch-greeting" role="status">
+            {talkReply}
+          </p>
+        ) : touches && !dialogue ? (
           <p className="watch-greeting" role="status">
             {reply}
           </p>
@@ -73,81 +95,81 @@ export function WatchWelcome({
       </div>
       {focus ? (
         <div className="watch-focus-actions">
-          <button
+          <Button
             className="watch-focus-primary"
             onClick={() => s.chooseAssistance("home")}
           >
             <House size={27} strokeWidth={1.8} />
             <span>{t("goHome")}</span>
             <ArrowRight size={21} />
-          </button>
+          </Button>
           <button
             className="watch-more-button"
-            onClick={() => onPage("welcome")}
+            onClick={() => s.chooseAssistance("family")}
           >
-            {id ? "Pilihan lainnya" : "More choices"}
+            <Phone size={20} />{" "}
+            {t("callPerson", { name: s.settings.caregiver.split(" ")[0] })}
+          </button>
+        </div>
+      ) : dialogue ? (
+        <div className="watch-dialogue-controls">
+          <div className="watch-dialogue-questions">
+            {replies
+              .slice(topicPage * 2, topicPage * 2 + 2)
+              .map(({ label, text }) => (
+                <button
+                  key={label}
+                  className="watch-dialogue-question"
+                  onClick={() => setTalkReply(text)}
+                >
+                  {label}
+                </button>
+              ))}
+          </div>
+          <button
+            type="button"
+            className="watch-more-button"
+            onClick={() => setTopicPage((page) => 1 - page)}
+          >
+            {t(topicPage ? "previousTopics" : "moreTopics")}
           </button>
         </div>
       ) : (
-        <div className="watch-visual-choices">
+        <div
+          className={`watch-visual-choices ${help ? "" : "watch-direct-actions"}`}
+        >
           <button
-            className={`watch-picture-card ${help ? "home" : "memories"}`}
-            aria-label={help ? t("goHome") : t("memories")}
-            onClick={help ? () => s.chooseAssistance("home") : onMemories}
+            className="watch-picture-card home"
+            onClick={() => s.chooseAssistance("home")}
           >
             <span className="watch-picture-symbol" aria-hidden="true">
-              {help ? (
-                <House size={28} strokeWidth={1.7} />
-              ) : (
-                <Flower2 size={28} strokeWidth={1.7} />
-              )}
+              <House size={24} />
             </span>
-            <span>
-              {help
-                ? id
-                  ? "Pulang"
-                  : "Help me home"
-                : dialogue
-                  ? id
-                    ? "Lihat kenangan"
-                    : "See my memories"
-                  : id
-                    ? "Kenangan"
-                    : "Memories"}
-            </span>
+            <span>{t("goHome")}</span>
           </button>
           <button
-            className={`watch-picture-card ${help ? "family" : "help"}`}
-            aria-label={
-              help
-                ? t("callPerson", { name: s.settings.caregiver.split(" ")[0] })
-                : t("needHelp")
-            }
-            onClick={
-              help ? () => s.chooseAssistance("family") : () => onPage("help")
-            }
+            className={`watch-picture-card ${help ? "family" : "memories"}`}
+            onClick={help ? () => s.chooseAssistance("family") : onMemories}
           >
             <span className="watch-picture-symbol" aria-hidden="true">
-              {help ? (
-                <Phone size={26} strokeWidth={1.7} />
-              ) : (
-                <MessageCircle size={28} strokeWidth={1.7} />
-              )}
+              {help ? <Phone size={24} /> : <Flower2 size={24} />}
             </span>
             <span>
               {help
                 ? t("callPerson", { name: s.settings.caregiver.split(" ")[0] })
-                : dialogue
-                  ? id
-                    ? "Aku perlu bantuan"
-                    : "I need some help"
-                  : id
-                    ? "Bantuan"
-                    : "Some help"}
+                : t("memories")}
             </span>
           </button>
+          {help && (
+            <button
+              className="watch-more-button watch-talk-link"
+              onClick={() => onPage("talk")}
+            >
+              {t("talk")}
+            </button>
+          )}
         </div>
       )}
-    </div>
+    </WatchScreen>
   );
 }

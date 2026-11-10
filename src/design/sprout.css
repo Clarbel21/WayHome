@@ -1,0 +1,43 @@
+@layer legacy, demo, companion, foundation;
+@layer foundation {
+  .sprout-svg {
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+    flex: none;
+    vertical-align: middle;
+  }
+  .sprout-svg.small {
+    width: 48px;
+    height: 48px;
+  }
+  .sprout-svg .sprout-figure {
+    animation: none;
+    transform: none;
+  }
+  .sprout-svg .sprout-response {
+    opacity: 0;
+  }
+  .mascot-touched .sprout-svg .sprout-response {
+    animation: sprout-response 700ms ease-out;
+  }
+  @keyframes sprout-response {
+    0%,
+    100% {
+      opacity: 0;
+    }
+    30%,
+    75% {
+      opacity: 1;
+    }
+  }
+  .reduce-motion .sprout-svg *,
+  .sprout-svg.is-still * {
+    animation: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sprout-svg * {
+      animation: none !important;
+    }
+  }
+}

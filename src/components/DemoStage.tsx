@@ -32,7 +32,7 @@ type Moment = {
 
 // One-click presenter moments. Each calls an existing store action, so every
 // guard (SOS precedence, blocked reset, wear inference) still applies.
-export function DemoStage() {
+export function DemoStage({ onRun }: { onRun?: () => void } = {}) {
   const s = useStore();
   const lang = useLang((l) => l.lang);
   const [last, setLast] = useState<Moment | null>(null);
@@ -223,6 +223,7 @@ export function DemoStage() {
           onClick={() => {
             s.reset();
             setLast(null);
+            onRun?.();
           }}
         >
           <RotateCcw size={15} aria-hidden="true" />
@@ -264,6 +265,7 @@ export function DemoStage() {
                     onClick={() => {
                       m.run();
                       setLast(m);
+                      onRun?.();
                       requestAnimationFrame(() =>
                         document
                           .querySelector(".demo-redesign .shared-devices")

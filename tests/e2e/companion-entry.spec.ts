@@ -1,12 +1,11 @@
+import { openMemoriesFromMenu } from "./watch-helpers";
 import { selectWatchActivity } from "./watch-helpers";
 import { test, expect } from "@playwright/test";
 test("Explore Memories opens and begins an activity on a fresh browser", async ({
   page,
 }) => {
   await page.goto("/#/companion");
-  await page
-    .getByRole("button", { name: "Explore Memories", exact: true })
-    .click();
+  await openMemoriesFromMenu(page);
   // The Memory Garden opens on the watch screen, not on a separate page.
   await expect(page).toHaveURL(/#\/companion$/);
   await expect(page.locator(".wos-memories")).toBeVisible();
@@ -41,18 +40,7 @@ test("old saved wear data shows an actionable pause and can be reviewed without 
   });
   await page.setViewportSize({ width: 390, height: 700 });
   await page.goto("/#/companion");
-  await page
-    .getByRole("button", { name: "Explore Memories", exact: true })
-    .scrollIntoViewIfNeeded();
-  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
-  await expect(
-    page.getByText(
-      "Memories pause while the watch needs attention. Open to see why.",
-    ),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Explore Memories", exact: true })
-    .click();
+  await openMemoriesFromMenu(page);
   await expect(
     page.getByRole("heading", { name: "Memory Garden is paused", exact: true }),
   ).toBeVisible();
@@ -91,9 +79,7 @@ test("opening paused memories during SOS gives a review route without bypassing 
   await page.goto("/#/companion");
   await page.getByRole("button", { name: "SOS Send help request" }).focus();
   await page.keyboard.press("Space");
-  await page
-    .getByRole("button", { name: "Explore Memories", exact: true })
-    .click();
+  await openMemoriesFromMenu(page);
   await expect(
     page.getByRole("heading", { name: "Memory Garden is paused", exact: true }),
   ).toBeVisible();

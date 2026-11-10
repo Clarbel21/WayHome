@@ -1,3 +1,5 @@
+import { showCaregiver, openPresenter } from "./watch-helpers";
+import { openMemoriesFromMenu } from "./watch-helpers";
 import { wakeWatch, openWatchMemories } from "./watch-helpers";
 import { openWatchHelp } from "./watch-helpers";
 import { test, expect, type Page } from "@playwright/test";
@@ -14,6 +16,7 @@ const picture = Buffer.from(
   "base64",
 );
 async function section(page: Page, value: string) {
+  await showCaregiver(page);
   const names: Record<string, string> = {
     contacts: "Contacts",
     policy: "Safety policy",
@@ -206,9 +209,7 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
     .click();
   await expect(page).toHaveURL(/#\/together$/);
   await expect(page.locator(".wos-memories")).toHaveCount(0);
-  await page
-    .getByRole("button", { name: "Explore Memories", exact: true })
-    .click();
+  await openMemoriesFromMenu(page);
   await expect(page.locator(".wos-memories")).toBeVisible();
   await page
     .locator(".wos-memories")
@@ -273,9 +274,7 @@ test("policy, optional journey, navigation roots and walkthrough exits work with
     .getByRole("navigation", { name: "Phone views", exact: true })
     .getByRole("button", { name: "Today", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Explore Memories", exact: true })
-    .click();
+  await openMemoriesFromMenu(page);
   await page.getByRole("button", { name: "Let's begin", exact: true }).click();
   await page
     .getByRole("link", { name: "A gentle afternoon", exact: true })
@@ -339,14 +338,12 @@ for (const [width, height] of [
         };
       });
       expect(boxes.pageWidth).toBeLessThanOrEqual(width);
-      expect(boxes.watch.width).toBe(324);
-      expect(boxes.watch.height).toBe(408);
+      expect(boxes.watch.width).toBe(276);
+      expect(boxes.watch.height).toBe(368);
       expect(boxes.sos.top).toBeGreaterThan(boxes.watch.top);
       expect(boxes.sos.bottom).toBeLessThan(boxes.watch.bottom);
-      expect(boxes.phone.right).toBeLessThan(boxes.watch.left);
-      expect(boxes.scenarios.top).toBeGreaterThan(
-        Math.max(boxes.phone.bottom, boxes.watch.bottom),
-      );
+      expect(boxes.watch.right).toBeLessThan(boxes.phone.left);
+      await expect(page.locator(".demo-more")).not.toHaveAttribute("open");
     }
     await fits();
     await page
@@ -389,9 +386,8 @@ test("mobile and 200% equivalent reflow preserve both interfaces and keyboard di
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
-    await expect(
-      page.getByRole("region", { name: "A little closer.", exact: true }),
-    ).toBeVisible();
+    await showCaregiver(page);
+    await expect(page.locator(".caregiver-interface")).toBeVisible();
     await section(page, "contacts");
     await page
       .getByRole("button", { name: "Add contact", exact: true })
@@ -415,9 +411,7 @@ test("standalone library close and Maybe later return to their parent interface"
     .getByRole("link", { name: "Close Memory Library", exact: true })
     .click();
   await expect(page).toHaveURL(/#\/together$/);
-  await page
-    .getByRole("button", { name: "Explore Memories", exact: true })
-    .click();
+  await openMemoriesFromMenu(page);
   await page.getByRole("button", { name: "Maybe later", exact: true }).click();
   await expect(page).toHaveURL(/#\/together$/);
   await expect(page.locator(".wos-memories")).toHaveCount(0);

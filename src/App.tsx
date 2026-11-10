@@ -1,3 +1,4 @@
+import { DemoShell } from "./demo/DemoShell";
 import { WayHomeMark } from "./components/WayHomeMark";
 import { CareRuntime, Contacts, SafetyPolicy } from "./care/Tools";
 import { JourneyPlayer } from "./care/JourneyPlayer";
@@ -19,12 +20,10 @@ import {
   Link,
   Navigate,
   useLocation,
-  useNavigate,
 } from "react-router-dom";
 import {
   Activity,
   ArrowRight,
-  ArrowDown,
   Bell,
   Battery,
   Check,
@@ -33,28 +32,22 @@ import {
   CircleHelp,
   Compass,
   Heart,
-  Home,
   LayoutDashboard,
   Leaf,
   MapPin,
   Menu,
   Monitor,
   Phone,
-  Plus,
-  Radio,
   RotateCcw,
   Settings,
   ShieldCheck,
   Sparkles,
-  Trash2,
   Watch,
   Wifi,
-  X,
 } from "lucide-react";
 import Landing from "./landing/Landing";
 import { useStore, status, type Event } from "./store";
-import { Wearable, Photo } from "./components/Wearable";
-import { LandmarkPhoto } from "./components/LandmarkPhoto";
+import { Wearable } from "./components/Wearable";
 import { WearableConfiguration } from "./components/WearableConfiguration";
 import { SafetyScenarios } from "./components/SafetyScenarios";
 import { wearLabels } from "./services/safety";
@@ -64,13 +57,11 @@ import {
   MemoryActivityHistory,
 } from "./memory/MemoryLibrary";
 import { MemoryGardenDemo } from "./memory/MemoryDemo";
-import { useMemory, safetyReady } from "./memory/store";
+import { useMemory } from "./memory/store";
 import { EmergencyAssistance } from "./components/EmergencyAssistance";
 import { CompanionPersonalization } from "./components/CompanionPersonalization";
 import { Sprout } from "./components/Sprout";
-import { DemoStage, LangSwitch } from "./components/DemoStage";
-import { DeviceConnect } from "./components/DeviceConnect";
-import { useLang, useT } from "./i18n";
+import { DemoStage } from "./components/DemoStage";
 import { ZoneRuntime } from "./zone/ZoneRuntime";
 import { useZone } from "./zone/store";
 import { useWatchUi } from "./components/watchUi";
@@ -839,229 +830,6 @@ function MemoriesRoute() {
   return normal ? <Navigate to="/companion" replace /> : <MemoryGardenHome />;
 }
 
-function Companion() {
-  const navigate = useNavigate();
-  const s = useStore();
-  const t = useT();
-  const lang = useLang((l) => l.lang);
-  const id = lang === "id";
-  const [deviceView, setDeviceView] = useState<
-    "together" | "watch" | "caregiver"
-  >("together");
-  return (
-    <div
-      className={
-        "companion-page shared-experience demo-redesign " +
-        (s.settings.largeText ? "large-text " : "") +
-        (s.settings.reducedMotion ? "reduce-motion" : "")
-      }
-    >
-      <a
-        className="demo-skip"
-        href="#demo-main"
-        onClick={(e) => {
-          e.preventDefault();
-          document.getElementById("demo-main")?.focus();
-        }}
-      >
-        {id ? "Ke pengalaman" : "Skip to the experience"}
-      </a>
-      <header className="public-header">
-        <Brand />
-        <span className="demo-header-label">
-          {id ? "Pengalaman interaktif" : "The interactive experience"}
-        </span>
-        <div className="stage-header-actions">
-          <LangSwitch />
-          <Link className="text-button demo-exit" to="/" onClick={s.closeDemo}>
-            {t("exitDemo")}
-          </Link>
-          <Link className="button light" to="/caregiver">
-            <LayoutDashboard size={16} />
-            {t("caregiverMode")}
-          </Link>
-        </div>
-      </header>
-      <main
-        id="demo-main"
-        tabIndex={-1}
-        className="companion-main viewport-stage"
-      >
-        <div className="stage-heading">
-          <div className="stage-intro-copy">
-            <p className="eyebrow">
-              {id
-                ? "SEDIKIT KETENANGAN. DAPAT DICOBA."
-                : "A LITTLE REASSURANCE. MADE TANGIBLE."}
-            </p>
-            <h1>
-              {t("stageTitle")}
-              <br />
-              <em>{t("stageEm")}</em>
-            </h1>
-            <p>
-              {id
-                ? "Coba jamnya. Lihat respons di ponsel. Rasakan bagaimana satu momen menghubungkan keduanya."
-                : "Try the watch. See the response on the phone. Discover how a small moment brings both sides closer."}
-            </p>
-          </div>
-          <div className="stage-intro-tools">
-            <span className="stage-live-label">
-              <i aria-hidden="true" />
-              {id
-                ? "Dua tampilan. Satu pengalaman."
-                : "Two views. One shared experience."}
-            </span>
-            <div
-              className="experience-view-switcher"
-              aria-label="Choose interface view"
-            >
-              <button
-                type="button"
-                aria-pressed={deviceView === "together"}
-                onClick={() => setDeviceView("together")}
-              >
-                <Monitor size={16} />
-                {t("viewTogether")}
-              </button>
-              <button
-                type="button"
-                aria-pressed={deviceView === "watch"}
-                onClick={() => setDeviceView("watch")}
-              >
-                <Watch size={16} />
-                {t("viewWatch")}
-              </button>
-              <button
-                type="button"
-                aria-pressed={deviceView === "caregiver"}
-                onClick={() => setDeviceView("caregiver")}
-              >
-                <Phone size={16} />
-                {t("viewCaregiver")}
-              </button>
-            </div>
-            <a
-              className="stage-scenario-link"
-              href="#demo-scenarios"
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById("demo-scenarios")?.scrollIntoView({
-                  behavior: s.settings.reducedMotion ? "instant" : "smooth",
-                  block: "start",
-                });
-                document
-                  .getElementById("demo-scenarios")
-                  ?.focus({ preventScroll: true });
-              }}
-            >
-              {id ? "Pilih sebuah momen" : "Choose a moment to try"}
-              <ArrowDown size={15} />
-            </a>
-            <DeviceConnect />
-          </div>
-        </div>
-        <div className={"shared-devices view-" + deviceView}>
-          {deviceView !== "watch" && (
-            <section
-              className="caregiver-interface"
-              aria-labelledby="caregiver-view-title"
-            >
-              <div className="device-caption">
-                <span className="device-number">01</span>
-                <div>
-                  <span>{id ? "UNTUK PENDAMPING" : "FOR THE CAREGIVER"}</span>
-                  <h2 id="caregiver-view-title">{t("littleCloser")}</h2>
-                </div>
-              </div>
-              <div className="device-presentation phone-presentation">
-                <CaregiverPhone />
-              </div>
-              <p className="device-note">
-                {id
-                  ? "Kirim sapaan. Lihat setiap langkah."
-                  : "A clear picture. A thoughtful next step."}
-              </p>
-            </section>
-          )}
-          {deviceView !== "caregiver" && (
-            <section
-              className="wearer-interface"
-              aria-labelledby="wearer-view-title"
-            >
-              <div className="device-caption">
-                <span className="device-number">02</span>
-                <div>
-                  <span>{id ? "UNTUK PEMAKAI" : "FOR THE WEARER"}</span>
-                  <h2 id="wearer-view-title" tabIndex={-1}>
-                    {t("familiarFriend")}
-                  </h2>
-                </div>
-              </div>
-              <div className="device-presentation watch-presentation">
-                <Wearable />
-              </div>
-              <div className="watch-stage-note">
-                <p className="device-note">
-                  {id
-                    ? "SOS: ketuk tombol samping."
-                    : "For SOS, tap the side button."}
-                </p>
-                <button
-                  type="button"
-                  className="stage-memory-link explore-memories"
-                  aria-describedby={
-                    !safetyReady() ? "memories-availability" : undefined
-                  }
-                  onClick={() => {
-                    if (s.mode !== "NORMAL") return navigate("/memories");
-                    useWatchUi.getState().openMemories();
-                  }}
-                >
-                  <Leaf size={17} />
-                  {t("exploreMemories")}
-                  <ArrowRight size={15} />
-                </button>
-                {!safetyReady() && (
-                  <p
-                    id="memories-availability"
-                    className="companion-memory-notice"
-                  >
-                    {id
-                      ? "Kenangan dijeda saat jam memerlukan perhatian. Buka untuk melihat alasannya."
-                      : "Memories pause while the watch needs attention. Open to see why."}
-                  </p>
-                )}
-              </div>
-            </section>
-          )}
-        </div>
-        <section
-          id="demo-scenarios"
-          tabIndex={-1}
-          className="stage-scenarios"
-          aria-label="Interactive demo scenarios"
-        >
-          <DemoStage />
-        </section>
-        <footer className="companion-foot">
-          <span>
-            <ShieldCheck size={16} />
-            {id
-              ? "Simulasi edukasi · lokasi, sinyal, dan permintaan bantuan disimulasikan. Tidak ada panggilan darurat sungguhan."
-              : "Educational simulation · location, device signals, and help requests are simulated. No real emergency calls."}
-          </span>
-          <Link to="/demo">
-            {t("demoControls")}
-            <ArrowRight size={14} />
-          </Link>
-          <small>{buildLabel}</small>
-        </footer>
-      </main>
-    </div>
-  );
-}
-
 const steps = [
   {
     title: "A little independence",
@@ -1336,8 +1104,8 @@ export default function App() {
       <CareRuntime />
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/companion" element={<Companion />} />
-        <Route path="/together" element={<Companion />} />
+        <Route path="/companion" element={<DemoShell />} />
+        <Route path="/together" element={<DemoShell />} />
         <Route path="/journeys/:id" element={<JourneyPlayer />} />
         <Route path="/memories" element={<MemoriesRoute />} />
         <Route

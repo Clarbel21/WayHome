@@ -1,5 +1,9 @@
+import { CaregiverPriorityCard } from "../caregiver/CaregiverPriorityCard";
+import { requestDemoDevice } from "../demo/demoUi";
+import { PhoneFrame } from "./devices/PhoneFrame";
+import { IconButton } from "../design/Controls";
+import { useWatchUi } from "./watchUi";
 import { WayHomeMark } from "./WayHomeMark";
-import { Sprout } from "./Sprout";
 import {
   Contacts,
   SafetyPolicy,
@@ -39,15 +43,14 @@ import {
   Settings,
   Watch,
   X,
-  MessageCircle,
   ChevronLeft,
 } from "lucide-react";
-import { status, useStore, navigable, simulatedLocation } from "../store";
+import { useStore, navigable, simulatedLocation } from "../store";
 import { useLang, useT, timeAgo } from "../i18n";
 import { useZone } from "../zone/store";
 import { RouteHomeMap, ZoneLadder, ZoneMap } from "../zone/ZoneViews";
 import { evaluateSignals } from "../services/safety";
-import { Check, BatteryLow, Satellite, AlertTriangle } from "lucide-react";
+import { BatteryLow, Satellite, AlertTriangle } from "lucide-react";
 import { wearLabels } from "../services/safety";
 import { CheckInHistory, FamilyResponse } from "./CheckInSupport";
 import { bleDevice } from "../services/ble";
@@ -79,6 +82,16 @@ export function CaregiverPhone() {
   useEffect(() => {
     scrollArea.current?.scrollTo({ top: 0 });
   }, [view]);
+  useEffect(() => {
+    if (
+      s.mode === "EMERGENCY_SIMULATED" ||
+      s.familyRequest?.status === "waiting" ||
+      s.checkIn?.stage === "question"
+    ) {
+      setView("today");
+      scrollArea.current?.scrollTo({ top: 0 });
+    }
+  }, [s.incident?.revision, s.familyRequest?.id, s.checkIn?.id]);
   const sections = [
     {
       id: "contacts",
@@ -117,204 +130,193 @@ export function CaregiverPhone() {
       icon: Settings,
     },
   ] as const;
-  const emergency = s.alerts.find(
-    (a) => a.emergency && !a.emergency.resolvedAt,
-  );
   const waiting = !!s.familyRequest && s.familyRequest.status !== "responded";
   const isEmergency = s.mode === "EMERGENCY_SIMULATED";
   const activeSection = sections.find((section) => section.id === view);
   return (
-    <div
-      className="care-phone"
-      data-phone-view={view}
-      aria-label="Caregiver phone interface"
-    >
-      <div className="phone-island" aria-hidden="true" />
-      <div className="care-phone-screen" data-view={view}>
-        <div className="phone-system" aria-hidden="true">
-          <span>9:41</span>
-          <span>
-            <Signal size={13} />
-            <Wifi size={13} />
-            <Battery size={17} />
+    <PhoneFrame view={view}>
+      <div className="phone-system" aria-hidden="true">
+        <span>9:41</span>
+        <span>
+          <Signal size={13} />
+          <Wifi size={13} />
+          <Battery size={17} />
+        </span>
+      </div>
+      <CaregiverPopupLayer />
+      {view !== "today" && (isEmergency || waiting) && (
+        <button
+          className={`phone-priority-banner ${isEmergency ? "emergency" : ""}`}
+          onClick={() => setView("today")}
+        >
+          {isEmergency ? "SOS needs review" : "Family response requested"}
+          <ArrowRight size={16} />
+        </button>
+      )}
+      <div className="phone-scroll" ref={scrollArea}>
+        <header className="phone-greeting">
+          <span className="phone-avatar">
+            <WayHomeMark />
           </span>
-        </div>
-        <CaregiverPopupLayer />
-        {view !== "today" && (isEmergency || waiting) && (
-          <button
-            className={`phone-priority-banner ${isEmergency ? "emergency" : ""}`}
-            onClick={() => setView("today")}
-          >
-            {isEmergency ? "SOS needs review" : "Family response requested"}
-            <ArrowRight size={16} />
-          </button>
-        )}
-        <div className="phone-scroll" ref={scrollArea}>
-          <header className="phone-greeting">
-            <span className="phone-avatar">
-              <WayHomeMark />
-            </span>
-            <div>
-              <p>{t("circle")}</p>
-              <strong>
-                {t("hello", { name: s.settings.caregiver.split(" ")[0] })}
-              </strong>
-            </div>
-            <button
-              className="phone-bell"
-              aria-label="View notifications"
-              onClick={() => setView("updates")}
-            >
-              <Bell size={20} />
-              {s.alerts.some((a) => !a.read) && (
-                <span className="notification-dot" />
-              )}
-            </button>
-          </header>
-          {view === "more" ? (
-            <section className="phone-tools">
-              <p className="phone-kicker">MADE FOR YOUR FAMILY</p>
-              <h3>Your care tools</h3>
-              <p>A few thoughtful ways to stay close.</p>
-              <div className="phone-tool-list">
-                {sections.map(({ id, label, detail, icon: Icon }) => (
-                  <button key={id} onClick={() => setView(id)}>
-                    <span className="tool-icon">
-                      <Icon size={20} />
-                    </span>
-                    <span>
-                      <strong>{label}</strong>
-                      <small>{detail}</small>
-                    </span>
-                    <ArrowRight size={16} />
-                  </button>
-                ))}
-              </div>
-            </section>
-          ) : null}
-          {view !== "today" && view !== "updates" && view !== "more" ? (
-            <div className="phone-manager">
-              <header className="phone-manager-head">
-                <button
-                  type="button"
-                  aria-label="Back to care tools"
-                  onClick={() => setView("more")}
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <span>
-                  <small>CARE TOOLS</small>
-                  <strong>{activeSection?.label}</strong>
-                </span>
-              </header>
-              {view === "contacts" ? (
-                <Contacts />
-              ) : view === "policy" ? (
-                <SafetyPolicy />
-              ) : view === "landmarks" ? (
-                <Landmarks />
-              ) : view === "library" ? (
-                <>
-                  <CaregiverMemoryLibrary />
-                  <Journeys />
-                </>
-              ) : view === "history" ? (
-                <>
-                  <PolicyHistory />
-                  <MemoryActivityHistory />
-                </>
-              ) : (
-                <PhoneSettings />
-              )}
-            </div>
-          ) : view === "today" ? (
-            <PhoneToday />
-          ) : view === "updates" ? (
-            <section className="phone-updates">
-              <div className="phone-updates-head">
-                <h3>{t("updatesTitle")}</h3>
-                {s.alerts.some((a) => !a.read) && (
-                  <button className="text-button" onClick={() => s.read()}>
-                    {t("markAllRead")}
-                  </button>
-                )}
-              </div>
-              {!s.alerts.length && (
-                <p>
-                  No updates yet. Send a check-in from Today to try the shared
-                  experience.
-                </p>
-              )}
-              <ul>
-                {s.alerts.slice(0, 8).map((a) => (
-                  <li
-                    key={a.id}
-                    className={`${a.urgent ? "urgent" : ""} ${a.read ? "is-read" : ""}`}
-                  >
-                    <span
-                      className={
-                        a.urgent ? "phone-alert-dot urgent" : "phone-alert-dot"
-                      }
-                    />
-                    <div>
-                      <strong>{a.title}</strong>
-                      <time dateTime={new Date(a.time).toISOString()}>
-                        {timeAgo(lang, a.time)}
-                      </time>
-                    </div>
-                    {!a.read && (
-                      <button
-                        className="text-button"
-                        aria-label={`Mark update read: ${a.title}`}
-                        onClick={() => s.read(a.id)}
-                      >
-                        Read
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-              <CheckInHistory />
-            </section>
-          ) : null}
-          {view === "more" && (
-            <>
-              <Link className="phone-workspace-link" to="/caregiver">
-                {t("workspace")} <ArrowRight size={16} />
-              </Link>
-              <p className="phone-disclaimer">{t("demoOnly")}</p>
-            </>
-          )}
-        </div>
-        <nav className="phone-bottom-nav" aria-label="Phone views">
-          <button
-            aria-pressed={view === "today"}
-            onClick={() => setView("today")}
-          >
-            <House size={20} />
-            <span>{t("navToday")}</span>
-          </button>
-          <button
-            aria-pressed={view === "updates"}
+          <div>
+            <p>{t("demoDevice")}</p>
+            <strong>{s.settings.wearer}</strong>
+          </div>
+          <IconButton
+            className="phone-bell"
+            aria-label="View notifications"
             onClick={() => setView("updates")}
           >
             <Bell size={20} />
-            <span>{t("navUpdates")}</span>
             {s.alerts.some((a) => !a.read) && (
-              <i className="notification-dot" />
+              <span className="notification-dot" />
             )}
-          </button>
-          <button
-            aria-pressed={view !== "today" && view !== "updates"}
-            onClick={() => setView("more")}
-          >
-            <Grid2X2 size={20} />
-            <span>{t("navTools")}</span>
-          </button>
-        </nav>
-        <div className="phone-home-indicator" aria-hidden="true" />
+          </IconButton>
+        </header>
+        {view === "more" ? (
+          <section className="phone-tools">
+            <p className="phone-kicker">MADE FOR YOUR FAMILY</p>
+            <h3>Your care tools</h3>
+            <p>A few thoughtful ways to stay close.</p>
+            <div className="phone-tool-list">
+              {sections.map(({ id, label, detail, icon: Icon }) => (
+                <button key={id} onClick={() => setView(id)}>
+                  <span className="tool-icon">
+                    <Icon size={20} />
+                  </span>
+                  <span>
+                    <strong>{label}</strong>
+                    <small>{detail}</small>
+                  </span>
+                  <ArrowRight size={16} />
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
+        {view !== "today" && view !== "updates" && view !== "more" ? (
+          <div className="phone-manager">
+            <header className="phone-manager-head">
+              <button
+                type="button"
+                aria-label="Back to care tools"
+                onClick={() => setView("more")}
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <span>
+                <small>CARE TOOLS</small>
+                <strong>{activeSection?.label}</strong>
+              </span>
+            </header>
+            {view === "contacts" ? (
+              <Contacts />
+            ) : view === "policy" ? (
+              <SafetyPolicy />
+            ) : view === "landmarks" ? (
+              <Landmarks />
+            ) : view === "library" ? (
+              <>
+                <CaregiverMemoryLibrary />
+                <Journeys />
+              </>
+            ) : view === "history" ? (
+              <>
+                <PolicyHistory />
+                <MemoryActivityHistory />
+              </>
+            ) : (
+              <>
+                <CaregiverModeDock />
+                <PhoneSettings />
+              </>
+            )}
+          </div>
+        ) : view === "today" ? (
+          <PhoneToday />
+        ) : view === "updates" ? (
+          <section className="phone-updates">
+            <div className="phone-updates-head">
+              <h3>{t("updatesTitle")}</h3>
+              {s.alerts.some((a) => !a.read) && (
+                <button className="text-button" onClick={() => s.read()}>
+                  {t("markAllRead")}
+                </button>
+              )}
+            </div>
+            {!s.alerts.length && (
+              <p>
+                No updates yet. Send a check-in from Today to try the shared
+                experience.
+              </p>
+            )}
+            <ul>
+              {s.alerts.slice(0, 8).map((a) => (
+                <li
+                  key={a.id}
+                  className={`${a.urgent ? "urgent" : ""} ${a.read ? "is-read" : ""}`}
+                >
+                  <span
+                    className={
+                      a.urgent ? "phone-alert-dot urgent" : "phone-alert-dot"
+                    }
+                  />
+                  <div>
+                    <strong>{a.title}</strong>
+                    <time dateTime={new Date(a.time).toISOString()}>
+                      {timeAgo(lang, a.time)}
+                    </time>
+                  </div>
+                  {!a.read && (
+                    <button
+                      className="text-button"
+                      aria-label={`Mark update read: ${a.title}`}
+                      onClick={() => s.read(a.id)}
+                    >
+                      Read
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <CheckInHistory />
+          </section>
+        ) : null}
+        {view === "more" && (
+          <>
+            <Link className="phone-workspace-link" to="/caregiver">
+              {t("workspace")} <ArrowRight size={16} />
+            </Link>
+            <p className="phone-disclaimer">{t("demoOnly")}</p>
+          </>
+        )}
       </div>
-    </div>
+      <nav className="phone-bottom-nav" aria-label="Phone views">
+        <button
+          aria-pressed={view === "today"}
+          onClick={() => setView("today")}
+        >
+          <House size={20} />
+          <span>{t("navToday")}</span>
+        </button>
+        <button
+          aria-pressed={view === "updates"}
+          onClick={() => setView("updates")}
+        >
+          <Bell size={20} />
+          <span>{t("navUpdates")}</span>
+          {s.alerts.some((a) => !a.read) && <i className="notification-dot" />}
+        </button>
+        <button
+          aria-pressed={view !== "today" && view !== "updates"}
+          onClick={() => setView("more")}
+        >
+          <Grid2X2 size={20} />
+          <span>{t("navTools")}</span>
+        </button>
+      </nav>
+      <div className="phone-home-indicator" aria-hidden="true" />
+    </PhoneFrame>
   );
 }
 
@@ -377,7 +379,7 @@ function CaregiverPopupLayer() {
   );
 }
 
-function CaregiverModeDock() {
+export function CaregiverModeDock() {
   const s = useStore();
   const t = useT();
   const modes = [
@@ -422,7 +424,10 @@ function CaregiverModeDock() {
             key={id}
             aria-label={`${label}: ${hint}`}
             aria-pressed={s.settings.experienceMode === id}
-            onClick={() => s.setExperienceMode(id, "caregiver")}
+            onClick={() => {
+              s.setExperienceMode(id, "caregiver");
+              useWatchUi.getState().openMode();
+            }}
           >
             <span>{label}</span>
           </button>
@@ -432,296 +437,126 @@ function CaregiverModeDock() {
   );
 }
 
-const statusId: Record<string, string> = {
-  "No active alerts": "Tidak ada peringatan",
-  "Check-in Needed": "Perlu disapa",
-  "Guidance Active": "Panduan aktif",
-  "Caregiver Assistance Requested": "Bantuan diminta",
-  "Simulated SOS": "SOS simulasi",
-};
-
-// Today tab: one status, one next action, then context. Safety rules stay in the store.
+// One scroll region: priority and its action first, then relevant context.
 function PhoneToday() {
-  const s = useStore();
-  const lang = useLang((l) => l.lang);
-  const t = useT();
-  const find = useFind();
-  const wearer = s.settings.wearer;
-  const first = wearer.split(" ")[0];
-  const isEmergency = s.mode === "EMERGENCY_SIMULATED";
-  const waiting = !!s.familyRequest && s.familyRequest.status !== "responded";
+  const s = useStore(),
+    t = useT();
+  const find = useFind(),
+    zone = useZone();
+  const details = useRef<HTMLDetailsElement>(null);
   const findings = evaluateSignals(s.signals);
-  const emergency = s.alerts.find(
-    (a) => a.emergency && !a.emergency.resolvedAt,
-  );
   const approved = s.landmarks.filter(navigable);
-  const zone = useZone();
-  const tone =
-    isEmergency || (zone.active && zone.level >= 3)
-      ? "urgent"
-      : s.mode === "GUIDED_RETURN" && !findings.length && s.connected
-        ? "guidance"
-        : s.mode === "NORMAL" && !findings.length && s.connected && !zone.active
-          ? "calm"
-          : "attention";
-  const heading =
-    zone.active && s.mode === "NORMAL"
-      ? t("zoneOutside")
-      : lang === "id"
-        ? (statusId[status[s.mode]] ?? status[s.mode])
-        : status[s.mode];
-  const subtitle = isEmergency
-    ? t("sosSub")
-    : zone.active && s.mode !== "GUIDED_RETURN"
-      ? t("zoneFor", {
-          min: Math.floor(zone.vmin),
-          km: (zone.distanceM / 1000).toFixed(2),
-        })
-      : s.mode === "GUIDED_RETURN"
-        ? t("walkingHome", { wearer: first })
-        : s.checkIn?.stage === "question"
-          ? t("waitingAnswer", { wearer: first })
-          : waiting
-            ? t("familySub")
-            : s.mode === "NORMAL" && !findings.length
-              ? t("calmSub")
-              : t("changedSub");
-  const sendCheckIn = () => {
+  const isEmergency = s.mode === "EMERGENCY_SIMULATED";
+  function review() {
+    if (details.current) {
+      details.current.open = true;
+      details.current.querySelector("summary")?.focus();
+    }
+  }
+  function sendCheckIn() {
     s.event("CHECK");
-    // A paired watch shows the same question; the simulated one renders below.
     void bleDevice.sendCheckInRequest().catch(() => {});
-    requestAnimationFrame(() => {
-      const heading = document.getElementById("wearer-view-title");
-      if (
-        !matchMedia("(min-width: 1000px) and (min-height: 650px)").matches ||
-        s.settings.largeText
-      )
-        heading?.scrollIntoView({
-          behavior: s.settings.reducedMotion ? "instant" : "smooth",
-          block: "start",
-        });
-      heading?.focus({ preventScroll: true });
-    });
-  };
-  const ack = emergency?.emergency?.acknowledgedAt;
+    requestDemoDevice("watch");
+  }
   return (
     <>
-      <section
-        className={`phone-status tone-${tone} ${isEmergency ? "phone-emergency" : ""}`}
-        aria-live="polite"
-      >
-        <div className="phone-person">
-          <span className="phone-person-initial" aria-hidden="true">
-            {first[0]}
-          </span>
-          <span className="phone-status-label">
-            {wearer}
-            <small>
-              {lang === "id"
-                ? "Perangkat pendamping · demo"
-                : "Companion device · demo"}
-            </small>
-          </span>
-        </div>
-        <span className={`phone-tone-chip ${tone}`}>
-          {tone === "urgent"
-            ? t("urgent")
-            : tone === "calm"
-              ? t("allCalm")
-              : tone === "guidance"
-                ? t("routeLabel")
-                : t("needsAttention")}
-        </span>
-        {tone === "calm" && (
-          <span className="phone-companion-art" aria-hidden="true">
-            <Sprout small />
-          </span>
-        )}
-        <h3>{heading}</h3>
-        <p>{subtitle}</p>
-        {s.mode === "CHECK_IN" && s.checkIn?.stage === "question" && (
-          <span className="phone-live-dot" aria-hidden="true" />
-        )}
-      </section>
-
-      {!isEmergency && (
-        <section className="phone-quick-actions" aria-label="Caregiver actions">
-          <button className="button" disabled={waiting} onClick={sendCheckIn}>
-            <MessageCircle size={16} />
-            {t("sendCheckIn")}
-          </button>
-          <button
-            className={`button light ${find.ringing ? "is-ringing" : ""}`}
-            disabled={!s.connected && !find.ringing}
-            title={!s.connected ? t("findOffline") : undefined}
-            aria-pressed={Boolean(find.ringing)}
-            onClick={() =>
-              find.ringing
-                ? useFind.getState().stop()
-                : useFind.getState().start(s.settings.caregiver)
-            }
-          >
-            {find.ringing ? <BellOff size={16} /> : <BellRing size={16} />}
-            {find.ringing ? t("findStop") : t("findBand")}
-          </button>
-          {waiting && <p>{t("respondFirst")}</p>}
-          {find.ringing && (
-            <p className="phone-find-note" role="status">
-              {t("findNote")}
-            </p>
-          )}
-        </section>
-      )}
-
-      {!isEmergency && <CaregiverModeDock />}
-
+      <CaregiverPriorityCard onCheckIn={sendCheckIn} onReview={review} />
       {!isEmergency && (
         <section
-          className="phone-location-card phone-location-primary"
-          aria-label="Simulated location overview"
+          className="phone-quick-actions"
+          aria-label={t("caregiverActions")}
+        >
+          <button
+            className="wh-button"
+            data-variant="secondary"
+            disabled={!s.connected && !find.ringing}
+            aria-pressed={Boolean(find.ringing)}
+            onClick={() =>
+              find.ringing ? find.stop() : find.start(s.settings.caregiver)
+            }
+          >
+            {find.ringing ? <BellOff size={18} /> : <BellRing size={18} />}
+            {find.ringing ? t("findStop") : t("findBand")}
+          </button>
+          {!s.connected && <p>{t("findOffline")}</p>}
+          {find.ringing && <p role="status">{t("findNote")}</p>}
+        </section>
+      )}
+      {!isEmergency && (
+        <section
+          className="phone-location-card"
+          aria-label={t("locationOverview")}
         >
           <header className="phone-card-heading">
             <span>
-              <MapPin size={15} /> {t("lastKnown")}
+              <MapPin size={16} />{" "}
+              {s.mode === "GUIDED_RETURN" ? t("routeLabel") : t("lastKnown")}
             </span>
-            <small>{Math.round(s.signals.gpsConfidence * 100)}% GPS</small>
           </header>
-          <ZoneMap withSlider={false} />
+          {s.mode === "GUIDED_RETURN" && zone.guideStartM !== null ? (
+            <RouteHomeMap />
+          ) : (
+            <ZoneMap withSlider={false} />
+          )}
           <div className="location-caption">
             <div>
               <strong>
-                {zone.distanceM > 0
-                  ? `About ${(zone.distanceM / 1000).toFixed(2)} km from home`
+                {s.mode === "GUIDED_RETURN"
+                  ? t("nextStop", {
+                      place:
+                        approved[s.guideIndex]?.name ??
+                        t("navigationApprovalNeeded"),
+                    })
                   : simulatedLocation(s.position)}
               </strong>
-              <small>Simulated location · latest available reading</small>
+              <small>{t("simulatedLocationReading")}</small>
             </div>
           </div>
         </section>
       )}
-
-      {isEmergency ? (
-        <section className="phone-action-card urgent">
-          <h3>{t("attention")}</h3>
-          <ol className="phone-timeline" aria-label={t("sosTimeline")}>
-            <li className="done">
-              <Check size={14} />
-              <span>{t("tlSent")}</span>
-              {emergency && <time>{timeAgo(lang, emergency.time)}</time>}
-            </li>
-            <li className={ack ? "done" : "current"}>
-              {ack ? <Check size={14} /> : <i />}
-              <span>{t("tlAcked")}</span>
-              {ack && <time>{timeAgo(lang, ack)}</time>}
-            </li>
-            <li>
-              <i />
-              <span>{t("tlResolved")}</span>
-            </li>
-          </ol>
-          {emergency && !ack && (
-            <button
-              className="button"
-              onClick={() => s.acknowledgeEmergency(emergency.id)}
-            >
-              {t("ackSos")}
-            </button>
-          )}
-          {ack && <p>{t("sosAckRecorded")}</p>}
-          <Link className="button light" to="/caregiver/emergency">
-            {t("reviewSos")} <ArrowRight size={15} />
-          </Link>
-        </section>
-      ) : (
-        <>
-          {!(s.mode === "GUIDED_RETURN" && zone.guideStartM !== null) && (
-            <ZoneLadder />
-          )}
-          {waiting && <FamilyResponse />}
-          <section className="phone-action-card">
-            {s.mode === "GUIDED_RETURN" && approved.length > 0 ? (
-              <>
-                <h3>{t("routeLabel")}</h3>
-                {zone.guideStartM !== null && <RouteHomeMap />}
-                <div className="phone-stops" aria-hidden="true">
-                  {approved.map((l, i) => (
-                    <span
-                      key={l.id}
-                      className={
-                        i < s.guideIndex
-                          ? "done"
-                          : i === s.guideIndex
-                            ? "now"
-                            : ""
-                      }
-                    >
-                      <i />
-                      <small data-name={l.name} />
-                    </span>
-                  ))}
-                </div>
-                <p>
-                  {t("nextStop", {
-                    place: approved[s.guideIndex]?.name ?? "—",
-                  })}
-                </p>
-              </>
-            ) : findings.length ? (
-              <>
-                <h3>{t("whyAttention")}</h3>
-                <ul className="phone-findings">
-                  {findings.map((f) => (
-                    <li key={f.key}>
-                      <AlertTriangle size={15} />
-                      <span>{f.reason.split(":")[0]}</span>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ) : (
-              <>
-                <h3>{t("reassureTitle")}</h3>
-                <p>{t("reassureBody")}</p>
-              </>
-            )}
-          </section>
-          {s.mode === "GUIDED_RETURN" && zone.guideStartM !== null && (
-            <ZoneLadder />
-          )}
-        </>
-      )}
-      {(!waiting || isEmergency) && <FamilyResponse />}
       {s.battery <= 20 && (
         <p className="phone-banner warn">
           <BatteryLow size={16} />
-          {t("lowBattery", { n: s.battery, wearer: first })}
+          {t("lowBattery", {
+            n: s.battery,
+            wearer: s.settings.wearer.split(" ")[0],
+          })}
         </p>
       )}
-      <div className="phone-readings four">
-        <div className={s.connected ? "ok" : "bad"}>
-          <Wifi size={17} />
-          <span>{t("device")}</span>
-          <strong>{s.connected ? t("connected") : t("disconnected")}</strong>
+      <details ref={details} className="phone-overview-details">
+        <summary>{t("deviceCheckinDetails")}</summary>
+        <div className="phone-readings four">
+          <div className={s.connected ? "ok" : "bad"}>
+            <Wifi size={17} />
+            <span>{t("device")}</span>
+            <strong>{s.connected ? t("connected") : t("disconnected")}</strong>
+          </div>
+          <div className={s.wearStatus === "likely_worn" ? "ok" : "warn"}>
+            <Heart size={17} />
+            <span>{t("wearInference")}</span>
+            <strong>{wearLabels[s.wearStatus]}</strong>
+          </div>
+          <div className={s.battery <= 20 ? "warn" : "ok"}>
+            <Battery size={17} />
+            <span>{t("battery")}</span>
+            <strong>{s.battery}%</strong>
+          </div>
+          <div className={s.signals.gpsConfidence < 0.6 ? "warn" : "ok"}>
+            <Satellite size={17} />
+            <span>{t("gps")}</span>
+            <strong>{Math.round(s.signals.gpsConfidence * 100)}%</strong>
+          </div>
         </div>
-        <div className={s.wearStatus === "likely_worn" ? "ok" : "warn"}>
-          <Heart size={17} />
-          <span>Wear inference</span>
-          <strong>{wearLabels[s.wearStatus]}</strong>
-        </div>
-        <div className={s.battery <= 20 ? "warn" : "ok"}>
-          <Battery size={17} />
-          <span>{t("battery")}</span>
-          <strong>{s.battery}%</strong>
-        </div>
-        <div className={s.signals.gpsConfidence < 0.6 ? "warn" : "ok"}>
-          <Satellite size={17} />
-          <span>{t("gps")}</span>
-          <strong>{Math.round(s.signals.gpsConfidence * 100)}%</strong>
-        </div>
-      </div>
-
-      <details className="phone-overview-details">
-        <summary>Device & check-in details</summary>
+        {findings.length > 0 && (
+          <ul className="phone-findings">
+            {findings.map((f) => (
+              <li key={f.key}>
+                <AlertTriangle size={16} />
+                {f.reason}
+              </li>
+            ))}
+          </ul>
+        )}
         <label className="zone-radius">
           <span>
             {t("safeRadius")} <b>{zone.radiusM} m</b>
@@ -736,32 +571,14 @@ function PhoneToday() {
             onChange={(e) => zone.setRadius(Number(e.target.value))}
           />
         </label>
-        <p>Battery: {s.battery}% · Heart rate: not measured (no sensor)</p>
-        <p>
-          {s.mode === "GUIDED_RETURN"
-            ? "Guidance is active."
-            : "Guidance is not active."}{" "}
-          Next approved landmark:{" "}
-          {approved[s.guideIndex]?.name ?? "None available"}
-        </p>
-        <p>
-          {s.checkIn?.stage === "question"
-            ? `Waiting for ${wearer} to respond.`
-            : s.checkIn?.response
-              ? `${wearer} ${s.checkIn.source === "caregiver" ? "had a caregiver review" : s.checkIn.response === "okay" ? "said they are okay" : "asked for help"}.`
-              : "No check-in response yet."}
-        </p>
-        <time>
-          Latest update:{" "}
-          {new Date(
-            Math.max(s.lastCheck, s.alerts[0]?.time ?? 0),
-          ).toLocaleTimeString()}
-        </time>
+        <ZoneLadder />
+        <p>{t("deviceObservationNote")}</p>
+        <Link className="wh-button" to="/caregiver/emergency">
+          {t("resolveOpenReview")}
+        </Link>
+        <CheckInHistory />
+        {s.familyRequest && isEmergency && <FamilyResponse />}
       </details>
-      <p className="phone-disclaimer">
-        Wear status is inferred. GPS confidence:{" "}
-        {Math.round(s.signals.gpsConfidence * 100)}% · simulated readings.
-      </p>
     </>
   );
 }

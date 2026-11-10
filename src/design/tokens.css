@@ -1,0 +1,112 @@
+@layer legacy, demo, companion, foundation;
+@layer foundation {
+  :root {
+    --wh-canvas: #f7f8f5;
+    --wh-surface: #fff;
+    --wh-ink: #1d2a25;
+    --wh-secondary: #526159;
+    --wh-action: #245d4b;
+    --wh-quiet: #eaf1ec;
+    --wh-border: #d8dfd8;
+    --wh-warning: #704812;
+    --wh-warning-surface: #fff2da;
+    --wh-urgent: #a82e33;
+    --wh-urgent-surface: #fff0ef;
+    --wh-radius: 12px;
+    --wh-card-radius: 16px;
+    --wh-font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --wh-space-1: 4px;
+    --wh-space-2: 8px;
+    --wh-space-3: 12px;
+    --wh-space-4: 16px;
+    --wh-space-6: 24px;
+    --wh-space-8: 32px;
+  }
+  .demo-redesign {
+    --demo-ink: var(--wh-ink);
+    --demo-muted: var(--wh-secondary);
+    --demo-paper: var(--wh-canvas);
+    --demo-line: var(--wh-border);
+    font-family: var(--wh-font);
+    background: var(--wh-canvas);
+    color: var(--wh-ink);
+  }
+  .wh-button,
+  .wh-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 10px 16px;
+    border: 1px solid var(--wh-action);
+    border-radius: var(--wh-radius);
+    background: var(--wh-action);
+    color: white;
+    font: 500 16px/1.25 var(--wh-font);
+  }
+  .wh-button[data-variant="secondary"],
+  .wh-icon-button {
+    background: var(--wh-surface);
+    color: var(--wh-action);
+  }
+  .wh-icon-button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+  }
+  .wh-button:disabled {
+    opacity: 1;
+    color: var(--wh-secondary);
+    background: var(--wh-quiet);
+    border-color: var(--wh-border);
+  }
+  .wh-card {
+    padding: 16px;
+    border: 1px solid var(--wh-border);
+    border-radius: var(--wh-card-radius);
+    background: var(--wh-surface);
+  }
+  .wh-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--wh-secondary);
+    font-size: 14px;
+  }
+  .demo-redesign
+    :is(button, a, input, select, textarea, summary):focus-visible {
+    outline: 3px solid var(--wh-action);
+    outline-offset: 3px;
+  }
+  .demo-redesign :is(.emergency-dialog, .wh-dialog) {
+    border: 1px solid var(--wh-border);
+    border-radius: var(--wh-card-radius);
+    color: var(--wh-ink);
+    background: var(--wh-surface);
+    font-family: var(--wh-font);
+    max-width: min(540px, calc(100vw - 32px));
+    max-height: calc(100dvh - 32px);
+    overflow: auto;
+  }
+  .demo-redesign :is(.emergency-dialog, .wh-dialog)::backdrop {
+    background: #1d2a2570;
+  }
+  .wh-disclosure > summary {
+    min-height: 44px;
+    padding: 12px 0;
+    cursor: pointer;
+  }
+  .wh-tabs {
+    display: flex;
+    gap: 4px;
+  }
+  .wh-tabs button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .wh-tabs button[aria-selected="true"] {
+    color: var(--wh-action);
+    background: var(--wh-quiet);
+  }
+}

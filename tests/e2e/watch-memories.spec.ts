@@ -1,3 +1,4 @@
+import { openMemoriesFromMenu } from "./watch-helpers";
 import { selectWatchActivity } from "./watch-helpers";
 import { openWatchMemories } from "./watch-helpers";
 import { test, expect } from "@playwright/test";
@@ -48,9 +49,7 @@ test("Familiar Faces shows a realistic person first and can return to the watch 
   page,
 }) => {
   await page.goto("/#/companion");
-  await page
-    .getByRole("button", { name: "Explore Memories", exact: true })
-    .click();
+  await openMemoriesFromMenu(page);
   const screen = page.locator(".wos-memories");
   await screen.getByRole("button", { name: "Let's begin" }).click();
   await selectWatchActivity(page, "Familiar Faces");

@@ -1,0 +1,369 @@
+@layer legacy, demo, companion, foundation;
+@layer foundation {
+  /* One owner for case, screen and strap geometry at every viewport. */
+  .watch-area.fixed-watch {
+    --watch-width: 276px;
+    --watch-height: 368px;
+    width: calc(var(--watch-width) + 44px);
+    max-width: none;
+    height: calc(var(--watch-height) + 56px);
+    min-height: calc(var(--watch-height) + 56px);
+    display: grid;
+    place-items: center start;
+    position: relative;
+    left: auto;
+    transform: none;
+    flex: none;
+    margin: 0;
+    padding: 0;
+    font-family: var(--wh-font);
+    color: var(--wh-ink);
+  }
+  .fixed-watch .watch {
+    width: var(--watch-width);
+    min-width: var(--watch-width);
+    max-width: var(--watch-width);
+    height: var(--watch-height);
+    min-height: var(--watch-height);
+    max-height: var(--watch-height);
+    box-sizing: border-box;
+    contain: size layout;
+    flex: none;
+    position: relative;
+    z-index: 1;
+    padding: 8px;
+    border: 1px solid #a7b1a9;
+    border-radius: 39px;
+    background: #c9cec8;
+    box-shadow:
+      inset 0 0 0 1px #e9ece6,
+      0 18px 28px -20px #1d2a2570;
+  }
+  .fixed-watch .watch-strap {
+    position: absolute;
+    display: block;
+    pointer-events: none;
+    width: 132px;
+    height: 66px;
+    left: calc(var(--watch-width) / 2 - 66px);
+    transform: none;
+    top: 0;
+    bottom: auto;
+    border: 1px solid #b2beb3;
+    border-radius: 15px 15px 0 0;
+    background: #bec9bb;
+    box-shadow: none;
+    opacity: 1;
+  }
+  .fixed-watch .watch-strap.bottom {
+    top: auto;
+    bottom: 0;
+    border-radius: 0 0 15px 15px;
+  }
+  .fixed-watch.pendant .watch-strap.top {
+    width: 12px;
+    left: calc(var(--watch-width) / 2 - 6px);
+    border-radius: 6px;
+  }
+  .fixed-watch.pendant .watch-strap.bottom,
+  .fixed-watch.clip .watch-strap {
+    display: none;
+  }
+  .fixed-watch .watch-screen.wos {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow: hidden;
+    border: 1px solid #a7b1a9;
+    border-radius: 30px;
+    padding: 8px 12px;
+    background: var(--wh-canvas);
+    color: var(--wh-ink);
+    font: inherit;
+    box-shadow: none;
+  }
+  .fixed-watch .watch-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 24px;
+    height: 24px;
+    flex: 0 0 24px;
+    padding: 0 1px;
+    margin: 0;
+    color: var(--wh-secondary);
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .fixed-watch .watch-status > span,
+  .fixed-watch .watch-status > span:last-child {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+  }
+  .fixed-watch .watch-status .wos-wear {
+    font-size: 11px;
+    color: var(--wh-secondary);
+  }
+  .fixed-watch .watch-status .wos-wear .sprout-svg {
+    width: 26px;
+    height: 26px;
+  }
+  .fixed-watch .wos-live {
+    width: 5px;
+    height: 5px;
+    background: var(--wh-action);
+    box-shadow: none;
+  }
+  .fixed-watch .wos-body {
+    min-height: 0;
+    flex: 1 1 0%;
+    overflow: auto;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    padding: 2px 0;
+    animation: none;
+    color: var(--wh-ink);
+    scrollbar-width: thin;
+    scrollbar-color: #a7b1a9 transparent;
+  }
+  .fixed-watch .wos-body > * {
+    flex-shrink: 0;
+    max-height: none;
+  }
+  .fixed-watch .wos-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    padding: 0;
+    border: 0;
+  }
+  .fixed-watch .watch-main-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    min-height: 44px;
+    height: auto;
+    padding: 8px;
+    border: 1px solid var(--wh-border);
+    border-radius: var(--wh-radius);
+    background: var(--wh-surface);
+    color: var(--wh-action);
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .fixed-watch .watch-sos-side {
+    position: absolute;
+    top: 42%;
+    right: -44px;
+    width: 44px;
+    height: 64px;
+    z-index: 5;
+  }
+  .fixed-watch .watch-sos-side::before {
+    content: "";
+    position: absolute;
+    left: -1px;
+    top: 10px;
+    bottom: 10px;
+    width: 12px;
+    background: #c9cec8;
+    border-block: 1px solid #a7b1a9;
+  }
+  .fixed-watch .watch-sos-side .sos-hold {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    min-width: 44px;
+    height: 64px;
+    min-height: 44px;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #fff;
+    font: 600 12px/1 var(--wh-font);
+    letter-spacing: 0;
+    box-shadow: none;
+    overflow: visible;
+    writing-mode: horizontal-tb;
+  }
+  .fixed-watch .watch-sos-side .sos-hold::before {
+    content: "";
+    position: absolute;
+    inset: 3px 5px 3px 9px;
+    z-index: -1;
+    border-radius: 8px;
+    border: 1px solid #8a2428;
+    background: var(--wh-urgent);
+  }
+  .fixed-watch .watch-sos-side .sos-hold > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .fixed-watch :is(button, summary):focus-visible {
+    outline: 3px solid var(--wh-ink);
+    outline-offset: 2px;
+    box-shadow: inset 0 0 0 2px white;
+  }
+  .fixed-watch .watch-sos-side button:focus-visible {
+    outline-offset: 1px;
+  }
+  .care-phone {
+    --phone-height: 620px;
+    width: 320px;
+    max-width: 100%;
+    height: var(--phone-height);
+    min-height: var(--phone-height);
+    max-height: var(--phone-height);
+    position: relative;
+    flex: none;
+    aspect-ratio: auto;
+    padding: 6px;
+    border: 1px solid #465149;
+    border-radius: 38px;
+    background: #28352e;
+    box-shadow: 0 20px 32px -22px #1d2a2570;
+    font-family: var(--wh-font);
+  }
+  .care-phone::before,
+  .care-phone::after {
+    display: none;
+  }
+  .care-phone-screen {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 31px;
+    background: var(--wh-canvas);
+    color: var(--wh-ink);
+  }
+  .phone-island {
+    position: absolute;
+    z-index: 2;
+    width: 52px;
+    height: 5px;
+    left: calc(50% - 26px);
+    top: 14px;
+    background: #28352e;
+    border-radius: 5px;
+  }
+  .care-phone .phone-system {
+    min-height: 36px;
+    flex: 0 0 36px;
+    padding: 14px 18px 6px;
+    background: var(--wh-canvas);
+    color: var(--wh-secondary);
+    font-size: 11px;
+  }
+  .care-phone .phone-scroll {
+    min-height: 0;
+    flex: 1 1 0%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px 16px 20px;
+    font-size: 16px;
+    scrollbar-width: thin;
+  }
+  .care-phone .phone-greeting p {
+    color: var(--wh-secondary);
+    font-size: 14px;
+    letter-spacing: 0;
+  }
+  .care-phone .phone-greeting strong {
+    color: var(--wh-ink);
+    font-size: 22px;
+    letter-spacing: 0;
+  }
+  .care-phone .phone-bell {
+    min-width: 44px;
+    min-height: 44px;
+    background: var(--wh-surface);
+    border: 1px solid var(--wh-border);
+    color: var(--wh-action);
+    border-radius: var(--wh-radius);
+  }
+  .care-phone .phone-bottom-nav button {
+    min-width: 44px;
+    min-height: 48px;
+    color: var(--wh-secondary);
+    font-size: 14px;
+  }
+  .care-phone .phone-bottom-nav button.active {
+    color: var(--wh-action);
+  }
+  .care-phone .phone-status {
+    border-radius: var(--wh-card-radius);
+    box-shadow: none;
+  }
+  .care-phone .phone-status.tone-calm {
+    background: var(--wh-quiet);
+    border-color: var(--wh-border);
+    min-height: 142px;
+  }
+  .care-phone .phone-status.tone-attention {
+    background: var(--wh-warning-surface);
+    color: var(--wh-warning);
+  }
+  .care-phone .phone-status.tone-urgent {
+    background: var(--wh-urgent-surface);
+    color: var(--wh-urgent);
+  }
+  .care-phone .phone-companion-art,
+  .care-phone .phone-companion-art .sprout-svg {
+    width: 64px;
+    height: 64px;
+  }
+  @media (min-width: 1000px) and (min-height: 900px) {
+    .care-phone {
+      --phone-height: 660px;
+    }
+  }
+  @media (max-width: 359px) {
+    .watch-area.fixed-watch {
+      --watch-width: 268px;
+    }
+    .fixed-watch .watch-screen.wos {
+      padding-inline: 10px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fixed-watch *,
+    .care-phone * {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto;
+    }
+  }
+}
+@layer foundation {
+  .care-phone .phone-bottom-nav button[aria-pressed="true"] {
+    color: var(--wh-action);
+    background: var(--wh-quiet);
+  }
+  .care-phone .phone-tone-chip {
+    font-size: 14px;
+    color: var(--wh-secondary);
+  }
+}

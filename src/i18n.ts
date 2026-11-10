@@ -17,6 +17,131 @@ type Dict = Record<string, string>;
 
 // Keys are short ids; {name}-style placeholders are filled by t().
 const en: Dict = {
+  demoMemoryInstruction:
+    "Continue your memory activity, or use Home to return to the watch.",
+  demoZonePrompt:
+    "On the watch, choose whether you would like help getting home.",
+  priorityZoneBody:
+    "The fictional walk is outside the demo radius. Review the zone details below.",
+  navigationApprovalNeeded: "Navigation needs independently approved places.",
+  resolveWatchLabel: "Help received — resolve SOS",
+  resolveTitle: "Has help arrived and the situation been resolved?",
+  resolveBody:
+    "Confirm only after a caregiver has independently checked on the wearer. This ends the simulated SOS and keeps its alert history. It does not change device readings or guarantee safety.",
+  resolveChanged:
+    "A new SOS arrived. Close this confirmation and review the latest request.",
+  resolveWarnings:
+    "These device warnings will stay visible after resolving SOS. You can still continue local memories after caregiver confirmation:",
+  resolveOpenReview: "Open caregiver review",
+  resolveKeep: "Keep SOS active",
+  resolveConfirm: "Caregiver confirms — resolve SOS",
+  resolveChangedError:
+    "A new help request arrived. Close this confirmation and review the latest SOS.",
+  resolveFailed:
+    "The incident could not be closed. Review the latest request and device observations.",
+  moreChoices: "More choices",
+  priorityLabel: "Next action",
+  prioritySos: "SOS from {name}",
+  prioritySosActive: "SOS still active",
+  priorityFamily: "{name} asked for help",
+  priorityFamilyReply: "{name} is waiting for your response",
+  priorityFamilyDone: "Response recorded",
+  priorityCheckin: "Waiting for {name}’s answer",
+  priorityGuidance: "{name} is following the demo route",
+  priorityReview: "Review needed",
+  priorityClear: "No active alerts",
+  prioritySosBody:
+    "A simulated SOS needs your acknowledgment. It remains active.",
+  prioritySosReviewBody:
+    "Acknowledgment is recorded. Independently check on the wearer before resolving.",
+  priorityFamilyBody: "No real call is made. Acknowledge this demo request.",
+  priorityFamilyReplyBody:
+    "Record a simulated response so the wearer can continue.",
+  priorityFamilyDoneBody: "The wearer can now choose Continue on the watch.",
+  priorityCheckinBody:
+    "Answer on the watch. This does not verify device readings.",
+  priorityGuidanceBody: "Current familiar place: {place}.",
+  priorityReviewBody:
+    "Review the watch observations and any outstanding check-in.",
+  priorityClearBody: "No request is waiting. This does not establish safety.",
+  priorityLastAnswer: "Last check-in answered at",
+  priorityResolve: "Review and resolve SOS",
+  ackFamily: "Acknowledge family request",
+  respondFamily: "Simulate caregiver response",
+  reviewDetails: "Review details",
+  otherConcerns: "{n} device concerns to review",
+  demoDevice: "Demo watch · browser prototype",
+  caregiverActions: "Caregiver actions",
+  locationOverview: "Simulated location overview",
+  simulatedLocationReading: "Simulated location · latest available reading",
+  deviceCheckinDetails: "Device & check-in details",
+  wearInference: "Wear inference",
+  deviceObservationNote:
+    "Wear is inferred. Location and help actions are simulated. Device observations remain independent of acknowledgment.",
+  demoLabel: "Demo",
+  demoSkip: "Skip to the demo",
+  demoMore: "More",
+  demoOptions: "Demo options",
+  demoNew: "Start a new demo",
+  demoResolveFirst: "Resolve the active SOS before starting a new demo.",
+  demoMoreScenarios: "More scenarios",
+  demoAbout:
+    "An educational prototype. Location, messaging and emergency actions are simulated. Optional paired-watch readings are separate. Dialogue replies are authored.",
+  demoExit: "Exit",
+  demoStories: "Choose a demo story",
+  demoWalk: "Walk home",
+  demoCheckin: "Check-in",
+  demoFamily: "Get help",
+  demoWalkTitle: "Help {name} get home",
+  demoCheckinTitle: "Check in with {name}",
+  demoFamilyTitle: "Connect {name} with family",
+  demoExploreTitle: "Explore WayHome",
+  demoSosTitle: "SOS demonstration",
+  demoResume: "Resume demo",
+  demoInteractive: "Interactive prototype",
+  demoDeviceView: "Choose device",
+  demoTaskWaiting: "Task waiting",
+  demoAnswerWatch: "Answer on the watch",
+  demoSeeCaregiver: "See {caregiver}’s app",
+  demoWatchLabel: "{name}’s watch",
+  demoCaregiverLabel: "{name}’s app",
+  demoSosHint: "For a simulated SOS, tap the side button.",
+  demoSimulation: "Interactive prototype · location and messages are simulated",
+  demoNewQuestion: "Start a new demo?",
+  demoResetExplanation:
+    "This resets the fictional scenario and its event history. Saved profiles, landmarks, memories and garden progress stay in this browser.",
+  demoKeepCurrent: "Keep current demo",
+  demoStartNew: "Start new demo",
+  demoTryCheckin: "Try a check-in",
+  demoFreeExplore: "Explore on your own",
+  watchPaired: "Watch paired",
+  demoSosInstruction:
+    "In the caregiver app, acknowledge the SOS, then review and explicitly resolve it.",
+  demoAckFamily: "In the caregiver app, acknowledge the request.",
+  demoReplyFamily: "In the caregiver app, record a simulated response.",
+  demoContinueFamily: "On the watch, choose “I’m ready to continue”.",
+  demoHelpOptions: "On the watch, choose the help you need.",
+  demoAnswerCheckin: "On the watch, answer the check-in question.",
+  demoGuidanceReview:
+    "Guidance is paused. Review the device observations in the caregiver app.",
+  demoRecognize:
+    "Choose “I see it” when you recognize the landmark, or “Not yet”.",
+  demoSupport:
+    "On the watch, choose a support action. The current concern is still active.",
+  demoWalkComplete:
+    "The demo journey is complete. No real location was tracked.",
+  demoCheckinComplete: "The caregiver can see the recorded answer.",
+  demoFamilyComplete:
+    "The demo response is recorded and the wearer has continued.",
+  demoSendCheckin: "In the caregiver app, choose “Send a check-in”.",
+  demoContactFamily: "On the watch, contact {caregiver}. No real call is made.",
+  demoOpenHelp:
+    "On the watch, choose “More choices”, then contact {caregiver}.",
+  demoExplore:
+    "Try the watch and caregiver actions. Saved data stays in this browser.",
+  demoStartWalk: "On the watch, choose “Help me home”.",
+  demoNoLandmarks:
+    "No landmarks are approved for navigation. Review places in the caregiver app.",
   watchScreen: "Watch screen",
   watchHello: "Hello, {name}.",
   hereWithYou: "I’m here with you.",
@@ -71,9 +196,14 @@ const en: Dict = {
   talkIntro:
     "I'm here to keep you company. We can take a quiet moment together.",
   talkComfort: "Take your time. You are welcome here, just as you are.",
+  moreTopics: "More topics",
+  previousTopics: "Previous topics",
+  waitingForFamily: "Waiting for {caregiver}",
+  familySeen: "{caregiver} has seen your request",
+  familyResponded: "{caregiver} has responded",
   talkWhere: "Where am I?",
   talkWhereReply:
-    "You're on a familiar walk near home. I can guide you, or call your family.",
+    "I can’t confirm your location. You can ask for help getting home.",
   talkWho: "Who is my family?",
   talkWhoReply: "{caregiver} cares about you and is one tap away.",
   somethingComforting: "Something comforting",
@@ -110,7 +240,7 @@ const en: Dict = {
   needsAttention: "Needs attention",
   urgent: "Urgent",
   sendCheckIn: "Send a check-in",
-  findBand: "Find My",
+  findBand: "Ring watch",
   findTitle: "Find My is ringing {companion}",
   findBody: "{caregiver} is looking for the band (simulated Find My).",
   findStop: "Found it — stop ringing",
@@ -200,6 +330,128 @@ const en: Dict = {
 };
 
 const id: Dict = {
+  demoMemoryInstruction:
+    "Lanjutkan aktivitas kenangan, atau pilih Utama untuk kembali ke jam.",
+  demoZonePrompt: "Di jam, pilih apakah kamu ingin bantuan untuk pulang.",
+  priorityZoneBody:
+    "Perjalanan fiktif berada di luar radius demo. Periksa detail zona di bawah.",
+  navigationApprovalNeeded:
+    "Navigasi memerlukan tempat yang disetujui secara mandiri.",
+  resolveWatchLabel: "Bantuan diterima — selesaikan SOS",
+  resolveTitle: "Apakah bantuan sudah tiba dan situasinya selesai?",
+  resolveBody:
+    "Konfirmasi hanya setelah pendamping memeriksa pemakai secara mandiri. Ini mengakhiri SOS simulasi dan menyimpan riwayatnya. Pembacaan perangkat tidak berubah dan keselamatan tidak dijamin.",
+  resolveChanged:
+    "SOS baru tiba. Tutup konfirmasi ini dan periksa permintaan terbaru.",
+  resolveWarnings:
+    "Peringatan perangkat ini tetap terlihat setelah SOS selesai. Kenangan lokal dapat dilanjutkan setelah konfirmasi pendamping:",
+  resolveOpenReview: "Buka pemeriksaan pendamping",
+  resolveKeep: "Biarkan SOS aktif",
+  resolveConfirm: "Pendamping mengonfirmasi — selesaikan SOS",
+  resolveChangedError:
+    "Permintaan bantuan baru tiba. Tutup konfirmasi ini dan periksa SOS terbaru.",
+  resolveFailed:
+    "Insiden tidak dapat ditutup. Periksa permintaan dan pengamatan perangkat terbaru.",
+  moreChoices: "Pilihan lainnya",
+  priorityLabel: "Tindakan berikutnya",
+  prioritySos: "SOS dari {name}",
+  prioritySosActive: "SOS masih aktif",
+  priorityFamily: "{name} meminta bantuan",
+  priorityFamilyReply: "{name} menunggu responsmu",
+  priorityFamilyDone: "Respons tercatat",
+  priorityCheckin: "Menunggu jawaban {name}",
+  priorityGuidance: "{name} mengikuti rute demo",
+  priorityReview: "Perlu diperiksa",
+  priorityClear: "Tidak ada peringatan aktif",
+  prioritySosBody: "Konfirmasi penerimaan SOS simulasi ini. SOS tetap aktif.",
+  prioritySosReviewBody:
+    "Penerimaan tercatat. Periksa pemakai secara mandiri sebelum menyelesaikan SOS.",
+  priorityFamilyBody:
+    "Tidak ada panggilan sungguhan. Konfirmasi permintaan demo ini.",
+  priorityFamilyReplyBody:
+    "Catat respons simulasi agar pemakai dapat melanjutkan.",
+  priorityFamilyDoneBody: "Pemakai dapat memilih Lanjutkan di jam.",
+  priorityCheckinBody:
+    "Jawab di jam. Ini tidak memverifikasi pembacaan perangkat.",
+  priorityGuidanceBody: "Tempat yang sedang dituju: {place}.",
+  priorityReviewBody: "Periksa pengamatan jam dan sapaan yang masih menunggu.",
+  priorityClearBody:
+    "Tidak ada permintaan menunggu. Ini tidak memastikan keselamatan.",
+  priorityLastAnswer: "Sapaan terakhir dijawab pukul",
+  priorityResolve: "Tinjau dan selesaikan SOS",
+  ackFamily: "Konfirmasi permintaan keluarga",
+  respondFamily: "Simulasikan respons pendamping",
+  reviewDetails: "Periksa detail",
+  otherConcerns: "{n} kondisi perangkat perlu diperiksa",
+  demoDevice: "Jam demo · prototipe browser",
+  caregiverActions: "Tindakan pendamping",
+  locationOverview: "Ikhtisar lokasi simulasi",
+  simulatedLocationReading: "Lokasi simulasi · pembacaan terakhir",
+  deviceCheckinDetails: "Detail perangkat dan sapaan",
+  wearInference: "Perkiraan pemakaian",
+  deviceObservationNote:
+    "Pemakaian diperkirakan. Lokasi dan bantuan disimulasikan. Konfirmasi tidak mengubah pengamatan perangkat.",
+  demoLabel: "Demo",
+  demoSkip: "Ke demo",
+  demoMore: "Lainnya",
+  demoOptions: "Pilihan demo",
+  demoNew: "Mulai demo baru",
+  demoResolveFirst: "Selesaikan SOS aktif sebelum memulai demo baru.",
+  demoMoreScenarios: "Skenario lainnya",
+  demoAbout:
+    "Prototipe edukasi. Lokasi, pesan, dan tindakan darurat disimulasikan. Pembacaan jam yang dipasangkan terpisah. Balasan dialog telah ditulis.",
+  demoExit: "Keluar",
+  demoStories: "Pilih cerita demo",
+  demoWalk: "Pulang",
+  demoCheckin: "Sapaan",
+  demoFamily: "Bantuan",
+  demoWalkTitle: "Bantu {name} pulang",
+  demoCheckinTitle: "Sapa {name}",
+  demoFamilyTitle: "Hubungkan {name} dengan keluarga",
+  demoExploreTitle: "Jelajahi WayHome",
+  demoSosTitle: "Demonstrasi SOS",
+  demoResume: "Lanjutkan demo",
+  demoInteractive: "Prototipe interaktif",
+  demoDeviceView: "Pilih perangkat",
+  demoTaskWaiting: "Tindakan menunggu",
+  demoAnswerWatch: "Jawab di jam",
+  demoSeeCaregiver: "Lihat aplikasi {caregiver}",
+  demoWatchLabel: "Jam {name}",
+  demoCaregiverLabel: "Aplikasi {name}",
+  demoSosHint: "Untuk SOS simulasi, ketuk tombol samping.",
+  demoSimulation: "Prototipe interaktif · lokasi dan pesan disimulasikan",
+  demoNewQuestion: "Mulai demo baru?",
+  demoResetExplanation:
+    "Ini mengatur ulang skenario fiktif dan riwayat peristiwanya. Profil, tempat, kenangan, dan kemajuan taman tetap tersimpan di browser ini.",
+  demoKeepCurrent: "Pertahankan demo",
+  demoStartNew: "Mulai demo baru",
+  demoTryCheckin: "Coba sapaan",
+  demoFreeExplore: "Jelajahi sendiri",
+  watchPaired: "Jam terpasang",
+  demoSosInstruction:
+    "Di aplikasi pendamping, konfirmasi SOS, lalu tinjau dan selesaikan secara eksplisit.",
+  demoAckFamily: "Di aplikasi pendamping, konfirmasi permintaan.",
+  demoReplyFamily: "Di aplikasi pendamping, catat respons simulasi.",
+  demoContinueFamily: "Di jam, pilih “Saya siap melanjutkan”.",
+  demoHelpOptions: "Di jam, pilih bantuan yang dibutuhkan.",
+  demoAnswerCheckin: "Di jam, jawab pertanyaan sapaan.",
+  demoGuidanceReview:
+    "Panduan dijeda. Periksa pengamatan perangkat di aplikasi pendamping.",
+  demoRecognize: "Pilih “Saya melihatnya” saat mengenali tempat, atau “Belum”.",
+  demoSupport: "Di jam, pilih bantuan. Kondisi saat ini masih aktif.",
+  demoWalkComplete:
+    "Perjalanan demo selesai. Tidak ada lokasi sungguhan yang dilacak.",
+  demoCheckinComplete: "Pendamping dapat melihat jawaban yang tercatat.",
+  demoFamilyComplete: "Respons demo tercatat dan pemakai sudah melanjutkan.",
+  demoSendCheckin: "Di aplikasi pendamping, pilih “Kirim sapaan”.",
+  demoContactFamily:
+    "Di jam, hubungi {caregiver}. Tidak ada panggilan sungguhan.",
+  demoOpenHelp: "Di jam, pilih “Pilihan lainnya”, lalu hubungi {caregiver}.",
+  demoExplore:
+    "Coba tindakan di jam dan aplikasi pendamping. Data tersimpan di browser ini.",
+  demoStartWalk: "Di jam, pilih “Bantu saya pulang”.",
+  demoNoLandmarks:
+    "Belum ada tempat yang disetujui untuk navigasi. Periksa tempat di aplikasi pendamping.",
   watchScreen: "Layar jam",
   watchHello: "Halo, {name}.",
   hereWithYou: "Aku di sini bersamamu.",
@@ -253,9 +505,14 @@ const id: Dict = {
   stayHere: "Tetap di tempatmu. Kamu tidak sendirian.",
   talkIntro: "Aku di sini menemanimu. Kita bisa diam sejenak bersama.",
   talkComfort: "Pelan-pelan saja. Kamu diterima di sini, apa adanya.",
+  moreTopics: "Topik lainnya",
+  previousTopics: "Topik sebelumnya",
+  waitingForFamily: "Menunggu {caregiver}",
+  familySeen: "{caregiver} telah melihat permintaanmu",
+  familyResponded: "{caregiver} telah merespons",
   talkWhere: "Saya di mana?",
   talkWhereReply:
-    "Kamu sedang berjalan di dekat rumah. Aku bisa memandu, atau menelepon keluargamu.",
+    "Aku tidak bisa memastikan lokasimu. Kamu bisa meminta bantuan untuk pulang.",
   talkWho: "Siapa keluarga saya?",
   talkWhoReply:
     "{caregiver} menyayangimu dan bisa dihubungi dengan satu sentuhan.",
@@ -293,7 +550,7 @@ const id: Dict = {
   needsAttention: "Perlu perhatian",
   urgent: "Mendesak",
   sendCheckIn: "Kirim sapaan",
-  findBand: "Find My",
+  findBand: "Bunyikan jam",
   findTitle: "Find My sedang membunyikan {companion}",
   findBody: "{caregiver} mencari gelang ini (Find My simulasi).",
   findStop: "Sudah ketemu — hentikan bunyi",

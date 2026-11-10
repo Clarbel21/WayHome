@@ -1,3 +1,4 @@
+import { openPresenter, showCaregiver } from "./watch-helpers";
 import { test, expect, type Page } from "@playwright/test";
 import { wakeWatch, openWatchHelp, openWatchMemories } from "./watch-helpers";
 
@@ -29,12 +30,12 @@ test("home shows two clear choices and a mascot that reacts to touch and respect
 }) => {
   await fresh(page);
   await atHome(page);
-  await expect(watch(page).getByRole("button")).toHaveCount(4); // Two choices, mascot and physical SOS.
+  await expect(watch(page).getByRole("button")).toHaveCount(5); // Two choices, conversation, mascot and physical SOS.
   expect(
     await watch(page)
       .locator(".sprout-figure")
       .evaluate((el) => getComputedStyle(el).animationName),
-  ).toBe("sprout-breathe");
+  ).toBe("none");
   await watch(page).scrollIntoViewIfNeeded();
   const initialMascot = (await watch(page)
     .locator(".mascot-touch")
@@ -208,6 +209,7 @@ test("the minimal watch remains fixed and usable on a narrow screen and after de
   await main(page).click();
   await openWatchMemories(page);
   expect((await watch(page).boundingBox())!.height).toBe(first.height);
+  await openPresenter(page);
   await page.getByRole("button", { name: "Reset demo", exact: true }).click();
   await atHome(page);
   expect(
@@ -219,7 +221,7 @@ test("the minimal watch remains fixed and usable on a narrow screen and after de
   });
 });
 
-test("waiting screen keeps only a stationary mascot and its replies", async ({
+test("waiting screen keeps a stationary mascot, factual request state and its replies", async ({
   page,
 }) => {
   await fresh(page);
@@ -236,6 +238,9 @@ test("waiting screen keeps only a stationary mascot and its replies", async ({
     exact: true,
   });
   const position = (await mascot.boundingBox())!;
+  await expect(
+    screen.getByText("Waiting for Jamie", { exact: true }),
+  ).toBeVisible();
   await expect(screen.getByRole("status")).toHaveText("");
   for (const reply of [
     "It’s lovely to see you.",
@@ -305,6 +310,7 @@ for (const width of [390, 320]) {
     await expect(
       watch(page).getByText("Help request sent — simulation", { exact: true }),
     ).toBeVisible();
+    await showCaregiver(page);
     await expect(
       page
         .locator(".care-phone")

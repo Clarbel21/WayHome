@@ -1,8 +1,10 @@
 # WayHome
 
-> **New:** simpler four-tile wearable, colour-coded caregiver phone, one-click demo moments and an EN/ID switch on `#/together`. See [UI_UPGRADE.md](UI_UPGRADE.md).
+For the shared presentation direction, current redesign status and next implementation steps, see [REDESIGN_HANDOFF.md](REDESIGN_HANDOFF.md).
 
-**Helping people find their way home.** A working, local-first Moonshot 101 prototype for a dementia-support companion and caregiver dashboard. Educational simulation, not a medical device. No real location tracking, calls, messages, emergency dispatch, authentication, paid APIs, or hardware.
+> **Demo:** open `#/together` for three guided interactions with the real watch and caregiver controls. On a phone, use the Watch / Caregiver tabs.
+
+**Helping people find their way home.** A working, local-first Moonshot 101 prototype for a dementia-support companion and caregiver dashboard. Educational simulation, not a medical device. Location, calls, messages and emergency dispatch are simulated. The browser demo needs no hardware, authentication or paid APIs. An optional ESP32-S3 watch supplies real battery/motion observations over Bluetooth; the board has no GNSS.
 
 ## Run on your laptop
 
@@ -27,13 +29,15 @@ Static hosting works without rewrite rules: the app uses hash routes (for exampl
 
 ## Demonstrate in 2–3 minutes
 
-1. Choose **Start Guided Demo** on the landing page. Click **Begin story**.
-2. Use **Next** and **Back** to explore the eight narrated steps. Spend 15–20 seconds on each.
-3. Try the wearable controls, including **I need help**, approved landmark recognition, **I'm confused**, and caregiver help.
-4. The final step demonstrates an alternate **simulated SOS**. No real emergency services are contacted.
-5. Open **Alerts** to see timestamps and mark requests read. **Reset presentation** starts the scenario again.
+1. Open `/#/together`. **Walk home** starts with the instruction to choose **Help me home** on the watch.
+2. Recognize each independently approved landmark with **I see it**, or choose **Not yet** for support. The caregiver sees the same current place. Completion is based on the existing route state.
+3. Try **Check-in**: send the question in the caregiver app, then answer on the watch. Try **Get help**: More choices → contact the caregiver → acknowledge → simulated response → wearer continuation.
+4. On a phone, switch using **Watch / Caregiver** tabs or the explicit handoff button. The selected device never changes automatically when a request arrives.
+5. For a simulated SOS, tap the side button. The caregiver first acknowledges, then chooses **Review and resolve SOS** and explicitly confirms after independent review. Acknowledgment does not resolve the incident or repair device readings.
 
-For a side-by-side pitch, open `/#/together`: the wearable and the caregiver phone share one desktop viewport and respond to the same event at the same moment; on small screens they stack. To show the two interfaces on separate screens of the same browser instead, open `/#/companion` and `/#/caregiver` in two tabs on the same origin. Click SOS on the wearable (or press Space/Enter with focus on the button) to start the simulated help request immediately. The caregiver alert and digital twin synchronize via localStorage events. Separate browsers/devices are not connected; there is no backend. Simulated contact requests are recorded in the app only.
+**More** contains watch modes, optional pairing, additional scenarios, memories and presenter tools. Starting a new primary story from an existing scenario asks before resetting the fictional scenario/history; saved profiles, landmarks, memory content and garden progress remain. An active SOS blocks a new scenario. Refresh and route changes preserve current tasks.
+
+For a side-by-side pitch, open `/#/together`: the watch is on the left and caregiver app on the right. To use separate tabs in the same browser, open `/#/companion` and `/#/caregiver` on the same origin. SOS and other state synchronize via localStorage events. Separate browsers/devices are not connected; there is no backend. Simulated contact requests are recorded in the app only. The older `/#/guided` presentation remains available while its content is being consolidated.
 
 The **Demo Control Center** offers all nine scenario events plus reset. Full demo reset recreates fictional starting observations and is blocked during an unresolved S5; it preserves edited profiles and landmarks. Starting a normal walk changes the walking scenario only; it never reconnects the device or confirms wear. Device disconnection retains last known location and blocks simulated movement. Route progress is discrete demo movement, not real directions.
 
@@ -43,7 +47,7 @@ WayHome is organized as two experiences instead of separate screens:
 
 ```
 Wearer experience — Companion Mode (`#/companion`)
-├── Home            four large tiles: Go home, Call family, Talk, Memories
+├── Home            Help me home, My memories, More choices
 ├── Companion       Sprout conversations and gentle check-ins
 ├── Memory Garden   reminiscence activities and the growing garden
 └── Guided return   landmark-photo route home
@@ -61,7 +65,7 @@ The caregiver sidebar groups its pages under **Overview & safety**, **Care setti
 
 ## Features
 
-- Sprout wearable with blinking, breathing, reassuring expressions and optional browser speech
+- Fixed-frame Sprout watch with one SVG character family, brief touch feedback, reduced-motion support and optional browser speech
 - Six explicit companion states, deterministic simulation events, one-click SOS
 - Caregiver overview, live sample map, offline route, alert center, synchronized digital twin
 - Landmark create/edit/delete, built-in images/custom photo URLs, approval gates for guidance
@@ -85,7 +89,7 @@ Data stays in this browser under `wayhome-v1`. This app is a presentation protot
 
 ## ESP32-S3 Sprout watch
 
-The watch firmware in [`firmware/wayhome-watch/`](firmware/wayhome-watch/) runs on the Waveshare ESP32-S3-Touch-AMOLED-2.06. It shows the companion UI (tiles, route steps, 2-second-hold SOS) and streams the device events over BLE: real battery percentage from the AXP2101, wear motion from the QMI8658 IMU, and simulated route progress (the board has no GNSS). To pair, open the demo page's **Wearable configuration** panel and click **Connect Sprout watch** (Web Bluetooth needs Chrome/Edge/Android on HTTPS or localhost). The watch is a demo aid: no call, GPS fix or emergency service is ever real. Protocol and build instructions are in the firmware README.
+The watch firmware in [`firmware/wayhome-watch/`](firmware/wayhome-watch/) runs on the Waveshare ESP32-S3-Touch-AMOLED-2.06. It shows the companion UI (tiles, route steps, 2-second-hold SOS) and streams the device events over BLE: real battery percentage from the AXP2101, wear motion from the QMI8658 IMU, and simulated route progress (the board has no GNSS). To pair, open the demo page's **More** panel and click **Connect Sprout watch** (Web Bluetooth needs Chrome/Edge/Android on HTTPS or localhost). The watch is a demo aid: no call, GPS fix or emergency service is ever real. Protocol and build instructions are in the firmware README.
 
 ## GitHub Pages deployment
 

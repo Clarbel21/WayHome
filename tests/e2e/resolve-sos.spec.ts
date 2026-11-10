@@ -1,3 +1,4 @@
+import { openMemoriesFromMenu } from "./watch-helpers";
 import { selectWatchActivity } from "./watch-helpers";
 import { test, expect } from "@playwright/test";
 async function sos(page: import("@playwright/test").Page) {
@@ -80,9 +81,7 @@ test("caregiver confirmation ends SOS and allows memories despite preserved devi
   expect(state.mode).toBe("CHECK_IN");
   expect(state.connected).toBe(false);
   expect(state.worn).toBe(false);
-  await page
-    .getByRole("button", { name: "Explore Memories", exact: true })
-    .click();
+  await openMemoriesFromMenu(page);
   await expect(
     page.getByText(/SOS is resolved. Local memories can continue/),
   ).toBeVisible();
