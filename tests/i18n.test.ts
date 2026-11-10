@@ -52,4 +52,29 @@ describe("language layer", () => {
     expect(translate("en", "returnHome")).toBe("Maybe later");
     expect(translate("id", "cancelGuidance")).toBe("Saya tahu jalannya");
   });
+
+  it("localizes watch completion, pause and return states", () => {
+    const stateKeys = [
+      "watchMemoriesWaitTitle",
+      "watchMemoriesWaitBody",
+      "watchNeedsReview",
+      "watchArrived",
+      "watchReturnSos",
+      "watchReturnGuidance",
+      "watchReturnCheckin",
+      "watchReturnPending",
+      "watchGoBack",
+    ] as const;
+    for (const key of stateKeys) {
+      expect(translate("en", key)).toBeTruthy();
+      expect(translate("id", key)).toBeTruthy();
+      expect(translate("id", key)).not.toBe(translate("en", key));
+    }
+    expect(
+      translate("id", "watchReturnFamilyResponded", { caregiver: "Ayu" }),
+    ).toBe("Ayu sudah menanggapi.");
+    expect(translate("en", "watchThanks", { name: "Jamie" })).toBe(
+      "Thank you, Jamie.",
+    );
+  });
 });

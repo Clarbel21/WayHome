@@ -616,14 +616,8 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         ) : (
           <div className="wos-center watch-memory-paused">
             <WatchMascot />
-            <h2>
-              {lang === "id" ? "Kenangan bisa menunggu." : "Memories can wait."}
-            </h2>
-            <p>
-              {lang === "id"
-                ? "Minta pendamping memeriksa perangkat."
-                : "Ask your caregiver to check the device."}
-            </p>
+            <h2>{t("watchMemoriesWaitTitle")}</h2>
+            <p>{t("watchMemoriesWaitBody")}</p>
             <button
               className="watch-action"
               onClick={() => s.chooseAssistance("family")}
@@ -640,14 +634,10 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     screen = (
       <div className="wos-center watch-thanks">
         <WatchMascot />
-        {speech(
-          lang === "id" ? "Terima kasih." : "Thank you, " + wearerFirst + ".",
-        )}
+        {speech(t("watchThanks", { name: wearerFirst }))}
         {s.mode !== "NORMAL" && (
           <p className="wos-note" role="status">
-            {lang === "id"
-              ? "Pendamping perlu memeriksa jam."
-              : "Your caregiver needs to check the watch."}
+            {t("watchNeedsReview")}
           </p>
         )}
         <button className="watch-action" onClick={openMemories}>
@@ -663,9 +653,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         <div className="wos-arrived-badge" aria-hidden="true">
           <House size={30} />
         </div>
-        <strong className="wos-arrived-title">
-          {lang === "id" ? "Selamat datang di rumah." : "Welcome home."}
-        </strong>
+        <strong className="wos-arrived-title">{t("watchArrived")}</strong>
         <WatchMascot />
         {speech(modeMessage(lang, "NORMAL", name))}
         <button
@@ -701,26 +689,22 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         <WatchMascot />
         <p>
           {s.mode === "EMERGENCY_SIMULATED"
-            ? lang === "id"
-              ? "SOS masih aktif."
-              : "Your SOS is still active."
+            ? t("watchReturnSos")
             : s.mode === "GUIDED_RETURN"
-              ? lang === "id"
-                ? "Mau mengakhiri panduan?"
-                : "Would you like to end directions?"
+              ? t("watchReturnGuidance")
               : s.mode === "CHECK_IN"
-                ? lang === "id"
-                  ? "Bagaimana perasaanmu?"
-                  : homeNeedsReview
-                    ? "Your caregiver needs to check the watch."
-                    : "How are you feeling?"
+                ? homeNeedsReview
+                  ? t("watchNeedsReview")
+                  : t("watchReturnCheckin")
                 : s.mode === "CAREGIVER_HANDOVER"
                   ? s.familyRequest?.status === "responded"
-                    ? caregiver.split(" ")[0] + " has responded."
-                    : "Waiting for " + caregiver.split(" ")[0] + "."
-                  : lang === "id"
-                    ? "Seseorang masih memerlukan kabar darimu."
-                    : "There is still a request to finish."}
+                    ? t("watchReturnFamilyResponded", {
+                        caregiver: caregiver.split(" ")[0],
+                      })
+                    : t("watchReturnFamilyWaiting", {
+                        caregiver: caregiver.split(" ")[0],
+                      })
+                  : t("watchReturnPending")}
         </p>
         {s.mode === "GUIDED_RETURN" ? (
           <button
@@ -762,7 +746,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         ) : null}
         <button className="wos-secondary" onClick={() => setHomePrompt(false)}>
           <ChevronLeft size={18} />
-          {lang === "id" ? "Kembali" : "Go back"}
+          {t("watchGoBack")}
         </button>
       </div>
     );

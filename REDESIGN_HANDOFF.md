@@ -17,6 +17,9 @@ As of this update, the presentation redesign's first three milestones are implem
 - **Foundation:** shared visual tokens and controls; fixed watch and phone frames; one SVG Sprout family; watch templates for the principal tasks. The browser watch case is 276 × 368 CSS px (268 × 368 below 360 px), with a separate 44 × 64 px SOS target. These are presentation sizes, not physical watch specifications.
 - **Paired demo:** three stories use real store actions. On-screen instructions and completion derive from current state. Refresh can resume the task. Changing stories asks before resetting fictional scenario/history, preserves personal content and memory progress, and is blocked by an unresolved SOS.
 - **Caregiver priority:** the current request and next valid action appear above map and settings. Acknowledging SOS remains separate from independently reviewing and resolving it. The phone and watch retain explicit handoffs on narrow screens.
+- **Presentation fit:** on desktop viewports at least 880 × 700 CSS px, `#/together` keeps the story controls, watch, caregiver phone and simulation footer inside one browser frame. Long content scrolls inside its device; smaller, zoomed or large-text layouts retain the explicit mobile tabs or document reflow.
+
+The watch completion, memory-pause and return prompts now use the shared EN/ID language layer instead of component-local copy. The remaining watch-state audit still includes long-name, large-text and reduced-motion inspection.
 
 Useful code: `src/demo/DemoShell.tsx`, `src/demo/story.ts`, `src/design/`, `src/components/devices/`, `src/watch/`, `src/caregiver/priority.ts`, `src/components/Wearable.tsx`, `src/store.ts`. `src/design/README.md` records current style ownership. The existing `/guided` presentation and standalone caregiver views still need consolidation.
 
