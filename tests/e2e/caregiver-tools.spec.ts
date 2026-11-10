@@ -334,7 +334,7 @@ for (const [width, height] of [
           phone: r(".care-phone"),
           watch: r(".watch"),
           sos: r(".sos-hold"),
-          scenarios: r(".stage-scenarios"),
+          scenarios: r(".demo-stage-dock"),
         };
       });
       expect(boxes.pageWidth).toBeLessThanOrEqual(width);
@@ -342,7 +342,8 @@ for (const [width, height] of [
       expect(boxes.watch.height).toBe(368);
       expect(boxes.sos.top).toBeGreaterThan(boxes.watch.top);
       expect(boxes.sos.bottom).toBeLessThan(boxes.watch.bottom);
-      expect(boxes.watch.right).toBeLessThan(boxes.phone.left);
+      // TEAM_PLAN phase 0: the caregiver phone sits left of the watch.
+      expect(boxes.phone.right).toBeLessThan(boxes.watch.left);
       await expect(page.locator(".demo-more")).not.toHaveAttribute("open");
     }
     await fits();

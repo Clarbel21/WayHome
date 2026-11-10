@@ -4,6 +4,7 @@ import {
   ArrowRight,
   ChevronDown,
   Check,
+  Monitor,
   Watch,
   Smartphone,
 } from "lucide-react";
@@ -62,6 +63,11 @@ export function DemoShell() {
   );
   const [paired, setPaired] = useState(bleDevice.connected);
   const [pendingStory, setPendingStory] = useState<DemoStory | null>(null);
+  // Classic presentation switcher (TEAM_PLAN phase 0): side-by-side is the
+  // desktop default; the explicit tabs stay for narrow screens.
+  const [view, setView] = useState<"together" | "watch" | "caregiver">(
+    "together",
+  );
   const resetDialog = useRef<HTMLDialogElement>(null),
     more = useRef<HTMLDetailsElement>(null);
   const resetTitle = useId();
@@ -259,20 +265,6 @@ export function DemoShell() {
               >
                 {t("exploreMemories")}
               </button>
-              <details className="demo-presenter">
-                <summary>{t("demoMoreScenarios")}</summary>
-                <section
-                  id="demo-scenarios"
-                  className="stage-scenarios"
-                  aria-label={t("demoMoreScenarios")}
-                >
-                  <DemoStage
-                    onRun={() => {
-                      if (more.current) more.current.open = false;
-                    }}
-                  />
-                </section>
-              </details>
               <Link to="/caregiver">
                 {t("caregiverMode")} <ArrowRight size={16} />
               </Link>
@@ -408,13 +400,63 @@ export function DemoShell() {
             </button>
           )}
         </div>
-        <div className="shared-devices demo-devices">
+        <nav
+          className="demo-view-switcher"
+          aria-label={t("demoDeviceView")}
+        >
+          {(["together", "watch", "caregiver"] as const).map((name) => (
+            <button
+              key={name}
+              type="button"
+              aria-pressed={view === name}
+              onClick={() => setView(name)}
+            >
+              {name === "together" ? (
+                <Monitor size={16} aria-hidden="true" />
+              ) : name === "watch" ? (
+                <Watch size={16} aria-hidden="true" />
+              ) : (
+                <Smartphone size={16} aria-hidden="true" />
+              )}
+              {t(
+                name === "together"
+                  ? "viewTogether"
+                  : name === "watch"
+                    ? "viewWatch"
+                    : "viewCaregiver",
+              )}
+            </button>
+          ))}
+        </nav>
+        <div
+          className={`shared-devices demo-devices view-${view}`}
+        >
+          <section
+            id="caregiver-panel"
+            className="caregiver-interface demo-device-panel"
+            role={narrow ? "tabpanel" : "region"}
+            aria-labelledby="caregiver-view-title"
+            hidden={
+              (narrow && ui.device !== "caregiver") ||
+              (!narrow && view === "watch")
+            }
+          >
+            <h2 id="caregiver-view-title" tabIndex={-1}>
+              {t("demoCaregiverLabel", { name: caregiver })}
+            </h2>
+            <div className="device-presentation phone-presentation">
+              <CaregiverPhone />
+            </div>
+          </section>
           <section
             id="watch-panel"
             className="wearer-interface demo-device-panel"
             role={narrow ? "tabpanel" : "region"}
             aria-labelledby="wearer-view-title"
-            hidden={narrow && ui.device !== "watch"}
+            hidden={
+              (narrow && ui.device !== "watch") ||
+              (!narrow && view === "caregiver")
+            }
           >
             <h2 id="wearer-view-title" tabIndex={-1}>
               {t("demoWatchLabel", { name: first })}
@@ -424,21 +466,10 @@ export function DemoShell() {
             </div>
             <p className="demo-device-note">{t("demoSosHint")}</p>
           </section>
-          <section
-            id="caregiver-panel"
-            className="caregiver-interface demo-device-panel"
-            role={narrow ? "tabpanel" : "region"}
-            aria-labelledby="caregiver-view-title"
-            hidden={narrow && ui.device !== "caregiver"}
-          >
-            <h2 id="caregiver-view-title" tabIndex={-1}>
-              {t("demoCaregiverLabel", { name: caregiver })}
-            </h2>
-            <div className="device-presentation phone-presentation">
-              <CaregiverPhone />
-            </div>
-          </section>
         </div>
+        <section className="demo-stage-dock" aria-label={t("demoMoreScenarios")}>
+          <DemoStage />
+        </section>
         <footer className="demo-shell-footer">
           <span>{t("demoSimulation")}</span>
           <small>{buildLabel}</small>

@@ -171,7 +171,6 @@ test("clear primary controls complete check-in, guidance and explicit SOS resolu
   await expect(
     page.getByRole("button", { name: "Reset demo", exact: true }),
   ).toBeDisabled();
-  await page.locator(".demo-more > summary").click();
   await watch
     .getByRole("button", { name: "Help received — resolve SOS", exact: true })
     .click();

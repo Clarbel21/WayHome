@@ -71,6 +71,48 @@
     background: var(--wh-quiet);
     color: var(--wh-action);
   }
+  /* Classic side-by-side switcher (TEAM_PLAN phase 0): desktop only. */
+  .demo-view-switcher {
+    display: none;
+  }
+  .demo-stage-dock {
+    max-width: 900px;
+    margin: 28px auto 0;
+  }
+  @media (min-width: 880px) {
+    .demo-view-switcher {
+      display: flex;
+      width: fit-content;
+      margin: 0 auto 20px;
+      border: 1px solid var(--wh-border);
+      border-radius: var(--wh-radius);
+      padding: 3px;
+      background: white;
+    }
+    .demo-view-switcher button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--wh-secondary);
+      font-size: 16px;
+    }
+    .demo-view-switcher button[aria-pressed="true"] {
+      background: var(--wh-quiet);
+      color: var(--wh-action);
+      font-weight: 600;
+    }
+    .demo-shell .shared-devices.demo-devices.view-watch,
+    .demo-shell .shared-devices.demo-devices.view-caregiver {
+      grid-template-columns: minmax(0, 1fr);
+      max-width: 460px;
+    }
+  }
   .demo-instruction {
     position: relative;
     margin-bottom: 24px;

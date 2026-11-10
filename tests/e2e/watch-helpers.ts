@@ -18,13 +18,10 @@ export async function showCaregiver(page: Page) {
   const tab = page.getByRole("tab", { name: /^Caregiver/ });
   if (await tab.isVisible()) await tab.click();
 }
+// TEAM_PLAN phase 0: the presenter moments dock sits below the devices and is
+// always visible; nothing to open. Kept so existing scenario flows stay readable.
 export async function openPresenter(page: Page) {
-  const more = page.locator(".demo-more");
-  if ((await more.getAttribute("open")) === null)
-    await more.locator(":scope > summary").click();
-  const scenarios = page.locator(".demo-presenter");
-  if ((await scenarios.getAttribute("open")) === null)
-    await scenarios.locator(":scope > summary").click();
+  await page.locator(".demo-stage-dock").scrollIntoViewIfNeeded();
 }
 export async function openWatchHelp(page: Page) {
   await showWatch(page);
