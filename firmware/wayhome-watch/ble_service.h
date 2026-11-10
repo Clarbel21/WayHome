@@ -14,6 +14,7 @@ extern const char *CHAR_GPS_UUID;
 extern const char *CHAR_WEAR_MOTION_UUID;
 extern const char *CHAR_ATTACHMENT_UUID;
 extern const char *CHAR_COMPANION_UUID;
+extern const char *CHAR_WATCH_STATE_UUID;
 
 // Initialize NimBLE, build the service and start advertising as "Sprout Watch".
 bool begin();

@@ -30,6 +30,13 @@ struct WatchState {
   // Web sent a check-in request (companion characteristic, 0x01). The UI
   // consumes this flag in sync() and shows the "How are you feeling?" screen.
   volatile bool checkInPending = false;
+  // Screen mirror from the web app (watch_state characteristic): the web
+  // watch's current screen, so the AMOLED shows the same thing.
+  // 0 home, 1 check-in question, 2 help options, 3 guided route,
+  // 4 emergency, 5 acknowledged, 6 other (check the app), 255 none yet.
+  volatile uint8_t remoteScreen = 255;
+  volatile uint8_t remotePosition = 0;
+  volatile bool watchStatePending = false;
 
   Attachment attachment() const { return (Attachment)attachmentRaw; }
   void setAttachment(Attachment a) { attachmentRaw = (uint8_t)a; }

@@ -7,6 +7,7 @@ import {
   batteryEvent,
   companionEvent,
   gpsEvent,
+  watchScreenCode,
   wearEvent,
 } from "../src/services/ble";
 
@@ -177,6 +178,52 @@ test("a walked step outside guidance just moves the route marker", () => {
   expect(state().mode).toBe("NORMAL");
 });
 
+test("watchScreenCode maps every mirrored watch state", () => {
+  const code = () => watchScreenCode(state());
+  expect(code()).toBe(0); // NORMAL → home
+
+  state().event("CHECK");
+  expect(code()).toBe(1); // question
+
+  state().answerCheckIn("help");
+  expect(code()).toBe(2); // help options
+
+  state().event("CHECK");
+  state().answerCheckIn("okay");
+  expect(code()).toBe(5); // answered/acknowledged
+
+  useStore.setState({
+    connected: true,
+    wearStatus: "likely_worn",
+    signals: { ...state().signals, gpsConfidence: 0.9 },
+  });
+  state().event("GUIDE");
+  expect(code()).toBe(3); // guided route
+
+  applyDeviceEvent({ type: "sos" });
+  expect(code()).toBe(4); // emergency
+
+  useStore.setState(useStore.getInitialState());
+  state().event("LOST");
+  expect(code()).toBe(6); // screens the watch has no buttons for
+});
+
+test("the paired watch receives mirror broadcasts on state changes", async () => {
+  const { chars } = installFakeBluetooth();
+  const ble = new BleDevice();
+  await ble.connect();
+  chars.watchState.writeValue.mockClear();
+
+  applyDeviceEvent({ type: "sos" });
+  await new Promise((r) => setTimeout(r, 0));
+  expect(chars.watchState.writeValue).toHaveBeenCalled();
+  const lastCall =
+    chars.watchState.writeValue.mock.calls[
+      chars.watchState.writeValue.mock.calls.length - 1
+    ];
+  expect(Array.from(lastCall[0])).toEqual([4, expect.any(Number)]);
+});
+
 // --- BleDevice against a fake Web Bluetooth stack ---
 
 class FakeCharacteristic extends EventTarget {
@@ -194,6 +241,7 @@ function installFakeBluetooth() {
     wear: new FakeCharacteristic(),
     attachment: new FakeCharacteristic(),
     companion: new FakeCharacteristic(),
+    watchState: new FakeCharacteristic(),
   };
   const server = {
     connect: vi.fn(async () => server),
@@ -207,6 +255,7 @@ function installFakeBluetooth() {
           "5a9c1f2e-4a05-4c31-9a48-d1b7f30e6c21": chars.wear,
           "5a9c1f2e-4a06-4c31-9a48-d1b7f30e6c21": chars.attachment,
           "5a9c1f2e-4a07-4c31-9a48-d1b7f30e6c21": chars.companion,
+          "5a9c1f2e-4a08-4c31-9a48-d1b7f30e6c21": chars.watchState,
         };
         const found = map[uuid];
         if (!found) throw new Error("unknown characteristic " + uuid);

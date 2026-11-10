@@ -21,6 +21,7 @@ const GPS_UUID = "5a9c1f2e-4a04-4c31-9a48-d1b7f30e6c21";
 const WEAR_MOTION_UUID = "5a9c1f2e-4a05-4c31-9a48-d1b7f30e6c21";
 const ATTACHMENT_UUID = "5a9c1f2e-4a06-4c31-9a48-d1b7f30e6c21";
 const COMPANION_UUID = "5a9c1f2e-4a07-4c31-9a48-d1b7f30e6c21";
+const WATCH_STATE_UUID = "5a9c1f2e-4a08-4c31-9a48-d1b7f30e6c21";
 
 const ATTACHMENTS: readonly Attachment[] = ["wristwatch", "pendant", "clip"];
 
@@ -33,6 +34,32 @@ const CMD_BACK_TO_QUESTION = 0x05; // watch → web
 const CMD_GO_HOME = 0x06; // watch → web: "Help me home" pressed
 const CMD_LANDMARK_STEP = 0x07; // watch → web, byte1: new step index 0–6
 const ASSISTANCE_CHOICES = ["home", "family", "confused"] as const;
+
+/**
+ * Map the web watch's current state to the physical watch's mirror screen
+ * (byte0 of the watch_state characteristic; firmware watch_ui.cpp applies it):
+ * 0 home, 1 check-in question, 2 help options, 3 guided route, 4 emergency,
+ * 5 acknowledged, 6 anything else (generic "check the app" screen).
+ */
+export function watchScreenCode(s: {
+  mode: string;
+  checkIn?: { stage?: string } | null;
+  incident?: { stage: string } | null;
+}): number {
+  if (
+    s.mode === "EMERGENCY_SIMULATED" ||
+    (s.incident && s.incident.stage !== "resolved")
+  )
+    return 4;
+  if (s.mode === "CHECK_IN") {
+    if (s.checkIn?.stage === "help_options") return 2;
+    if (s.checkIn?.stage === "question") return 1;
+    return 5;
+  }
+  if (s.mode === "GUIDED_RETURN") return 3;
+  if (s.mode === "NORMAL") return 0;
+  return 6;
+}
 
 // --- Pure payload → event mappers (exported for tests) ---
 
@@ -108,6 +135,11 @@ export class BleDevice implements DeviceService {
   private device: BluetoothDevice | null = null;
   private server: BluetoothRemoteGATTServer | null = null;
   private notifyTargets: BluetoothRemoteGATTCharacteristic[] = [];
+  // Screen-mirror bookkeeping (see queueWatchState).
+  private unsubscribeStore: (() => void) | null = null;
+  private stateWriteQueued = false;
+  private lastSentCode = -1;
+  private lastSentPosition = -1;
 
   async connect() {
     if (!navigator.bluetooth) {
@@ -153,6 +185,12 @@ export class BleDevice implements DeviceService {
       await this.sendCheckInRequest().catch(() => {});
     }
 
+    // Keep the AMOLED mirroring the web watch: broadcast screen changes.
+    this.lastSentCode = -1;
+    this.lastSentPosition = -1;
+    this.unsubscribeStore = useStore.subscribe(() => this.queueWatchState());
+    await this.sendWatchState().catch(() => {});
+
     this.emit({ type: "connection", connected: true });
   }
 
@@ -184,6 +222,33 @@ export class BleDevice implements DeviceService {
     await companion.writeValue(new Uint8Array([CMD_CHECKIN_REQUEST]));
   }
 
+  /**
+   * Push the web watch's current screen + route position to the paired
+   * watch, so the AMOLED mirrors the on-screen watch. Collapsed writes:
+   * store bursts produce at most one in-flight write.
+   */
+  private queueWatchState() {
+    if (this.stateWriteQueued) return;
+    this.stateWriteQueued = true;
+    void this.sendWatchState().finally(() => {
+      this.stateWriteQueued = false;
+    });
+  }
+
+  private async sendWatchState() {
+    const server = this.server;
+    if (!server) return;
+    const s = useStore.getState();
+    const code = watchScreenCode(s);
+    const position = Math.max(0, Math.min(6, Math.round(s.position)));
+    if (code === this.lastSentCode && position === this.lastSentPosition) return;
+    this.lastSentCode = code;
+    this.lastSentPosition = position;
+    const service = await server.getPrimaryService(WAYHOME_SERVICE_UUID);
+    const watchState = await service.getCharacteristic(WATCH_STATE_UUID);
+    await watchState.writeValue(new Uint8Array([code, position]));
+  }
+
   subscribe(listener: (e: DeviceEvent) => void) {
     this.listeners.add(listener);
     return () => {
@@ -212,6 +277,10 @@ export class BleDevice implements DeviceService {
   private handleDisconnect() {
     if (!this.server) return;
     this.server = null;
+    if (this.unsubscribeStore) {
+      this.unsubscribeStore();
+      this.unsubscribeStore = null;
+    }
     this.notifyTargets.forEach((c) => void c.stopNotifications().catch(() => {}));
     this.notifyTargets = [];
     this.emit({ type: "connection", connected: false });
