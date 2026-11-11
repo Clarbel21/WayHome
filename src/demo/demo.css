@@ -722,7 +722,7 @@
     flex: 1 1 0%;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 8px 15px 18px;
+    padding: 6px 15px 10px;
     scrollbar-width: thin;
     scrollbar-color: #c6d0bd transparent;
     font-size: 13px;
@@ -865,7 +865,7 @@
     min-height: 0;
   }
   .demo-redesign .phone-location-primary .zone-map svg {
-    height: 142px;
+    height: 118px;
     width: 100%;
     display: block;
   }
