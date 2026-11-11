@@ -5,6 +5,7 @@
     overflow-x: clip;
   }
   .demo-shell-header {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 24px;
@@ -89,6 +90,15 @@
       border-radius: var(--wh-radius);
       padding: 3px;
       background: white;
+    }
+    @media (min-width: 1100px) {
+      .demo-view-switcher {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        margin: 0;
+      }
     }
     .demo-view-switcher button {
       display: flex;
@@ -608,20 +618,21 @@
       grid-row: 2;
       height: 100%;
       min-height: 0;
-      align-items: center;
+      align-items: start;
       gap: clamp(40px, 6vw, 72px);
       overflow: visible;
     }
     .demo-shell:not(.large-text) .demo-device-panel {
       height: 100%;
       min-height: 0;
-      justify-content: center;
+      justify-content: flex-start;
     }
     .demo-shell:not(.large-text) .demo-device-panel > h2 {
       flex: 0 0 24px;
       height: 24px;
       margin: 0 0 4px;
       line-height: 24px;
+      text-align: center;
     }
     .demo-shell:not(.large-text) .device-presentation {
       flex: 0 1 auto;
@@ -656,7 +667,7 @@
       grid-column: 1 / -1;
       grid-row: 3;
       max-width: none;
-      margin: 0 -16px;
+      margin: 0;
       min-height: 0;
     }
     .demo-shell:not(.large-text) .demo-stage-dock .demo-stage {
