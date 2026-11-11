@@ -665,4 +665,40 @@
       gap: 0;
     }
   }
+  /* TEAM_PLAN phase 0: the classic presentation scrolls again on desktop so
+     the always-visible moments dock fits below the devices. This supersedes
+     the fixed single-stage clamp above; milestone 2 may re-tighten the fit
+     once the dock's compact variant is agreed. */
+  @media (min-width: 880px) and (min-height: 700px) {
+    .demo-shell:not(.large-text) {
+      height: auto;
+      min-height: 100dvh;
+      overflow: visible;
+    }
+    .demo-shell:not(.large-text) main {
+      height: auto;
+      display: block;
+      overflow: visible;
+      padding: 20px 32px 24px;
+    }
+    .demo-shell:not(.large-text) .shared-devices.demo-devices {
+      height: auto;
+      align-items: start;
+    }
+    .demo-shell:not(.large-text) .demo-device-panel {
+      height: auto;
+      justify-content: flex-start;
+    }
+    .demo-shell:not(.large-text) .demo-device-panel > h2 {
+      flex: 0 0 auto;
+      height: auto;
+      margin: 0 0 12px;
+      line-height: 1.4;
+    }
+    .demo-shell:not(.large-text) .demo-shell-footer {
+      height: auto;
+      margin: 24px 0 0;
+      padding-top: 12px;
+    }
+  }
 }
