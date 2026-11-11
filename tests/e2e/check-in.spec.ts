@@ -27,7 +27,7 @@ test("help, recognition and failed recognition stop guidance", async ({
   page,
 }) => {
   await start(page);
-  await page.getByRole("button", { name: "I need help", exact: true }).click();
+  await page.getByRole("button", { name: "I'd like some help", exact: true }).click();
   for (const label of [
     "Please guide me home",
     "Call someone I trust",
@@ -62,7 +62,7 @@ test("family handover acknowledgment and simulated response synchronize tabs", a
   context,
 }) => {
   await start(page);
-  await page.getByRole("button", { name: "I need help", exact: true }).click();
+  await page.getByRole("button", { name: "I'd like some help", exact: true }).click();
   await page
     .getByRole("button", { name: "Call someone I trust", exact: true })
     .click();
@@ -87,7 +87,7 @@ test("family handover acknowledgment and simulated response synchronize tabs", a
     ),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Continue after response", exact: true })
+    .getByRole("button", { name: "I'm ready to continue", exact: true })
     .click();
   await expect(
     page.getByText("Hi! I'm Sprout. I'm here with you.", { exact: true }),
@@ -97,7 +97,7 @@ test("confusion offers support without a recognition test", async ({
   page,
 }) => {
   await start(page);
-  await page.getByRole("button", { name: "I need help", exact: true }).click();
+  await page.getByRole("button", { name: "I'd like some help", exact: true }).click();
   await page
     .getByRole("button", { name: "I'm not sure where I am", exact: true })
     .click();
@@ -143,12 +143,12 @@ test("SOS interrupts help choices and okay cannot bypass the incident", async ({
   page,
 }) => {
   await start(page);
-  await page.getByRole("button", { name: "I need help", exact: true }).click();
+  await page.getByRole("button", { name: "I'd like some help", exact: true }).click();
   await page
-    .getByRole("button", { name: "SOS Hold for 2 seconds", exact: true })
+    .getByRole("button", { name: "SOS Hold for 3 seconds", exact: true })
     .focus();
   await page.keyboard.down("Space");
-  await page.waitForTimeout(2150);
+  await page.waitForTimeout(3300);
   await page.keyboard.up("Space");
   await expect(
     page.getByText("Help request sent — simulation", { exact: true }),

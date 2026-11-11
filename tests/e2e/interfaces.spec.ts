@@ -57,7 +57,7 @@ test("same-screen caregiver response works and SOS stays separate from acknowled
     .getByRole("button", { name: "Send a check-in", exact: true })
     .click();
   await wearer
-    .getByRole("button", { name: "I need help", exact: true })
+    .getByRole("button", { name: "I'd like some help", exact: true })
     .click();
   await wearer
     .getByRole("button", { name: "Call someone I trust", exact: true })
@@ -78,10 +78,10 @@ test("same-screen caregiver response works and SOS stays separate from acknowled
     wearer.getByText("Hi! I'm Sprout. I'm here with you.", { exact: true }),
   ).toBeVisible();
   await wearer
-    .getByRole("button", { name: "SOS Hold for 2 seconds", exact: true })
+    .getByRole("button", { name: "SOS Hold for 3 seconds", exact: true })
     .focus();
   await page.keyboard.down("Space");
-  await page.waitForTimeout(2100);
+  await page.waitForTimeout(3300);
   await page.keyboard.up("Space");
   await caregiver
     .getByRole("button", { name: "Acknowledge SOS alert", exact: true })
@@ -169,7 +169,7 @@ test("phone hardware keeps portrait proportions and navigation stays fixed while
     ).toBeVisible();
     // Decorative hardware must never intercept the emergency control.
     const sos = page.getByRole("button", {
-      name: "SOS Hold for 2 seconds",
+      name: "SOS Hold for 3 seconds",
       exact: true,
     });
     expect(
@@ -189,10 +189,10 @@ test("SOS remains discoverable while caregiver browses tools", async ({
   await page.goto("/#/together");
   await page.getByRole("button", { name: "Care tools", exact: true }).click();
   await page
-    .getByRole("button", { name: "SOS Hold for 2 seconds", exact: true })
+    .getByRole("button", { name: "SOS Hold for 3 seconds", exact: true })
     .focus();
   await page.keyboard.down("Space");
-  await page.waitForTimeout(2100);
+  await page.waitForTimeout(3300);
   await page.keyboard.up("Space");
   await page
     .getByRole("button", { name: "SOS needs review", exact: true })

@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
 async function sos(page: import("@playwright/test").Page) {
-  await page.getByRole("button", { name: "SOS Hold for 2 seconds" }).focus();
+  await page.getByRole("button", { name: "SOS Hold for 3 seconds" }).focus();
   await page.keyboard.down("Space");
-  await page.waitForTimeout(2100);
+  await page.waitForTimeout(3300);
   await page.keyboard.up("Space");
   await expect(page.getByText("Help request sent — simulation")).toBeVisible();
 }

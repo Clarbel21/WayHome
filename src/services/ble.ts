@@ -246,7 +246,14 @@ export class BleDevice implements DeviceService {
     this.lastSentPosition = position;
     const service = await server.getPrimaryService(WAYHOME_SERVICE_UUID);
     const watchState = await service.getCharacteristic(WATCH_STATE_UUID);
-    await watchState.writeValue(new Uint8Array([code, position]));
+    // Bytes 2+ carry the wearer's first name so the physical home greets
+    // them exactly like the web watch ("Hello, Alex.").
+    const name = s.settings.wearer.split(" ")[0].slice(0, 15);
+    const payload = new Uint8Array(2 + name.length);
+    payload[0] = code;
+    payload[1] = position;
+    payload.set(new TextEncoder().encode(name), 2);
+    await watchState.writeValue(payload);
   }
 
   subscribe(listener: (e: DeviceEvent) => void) {

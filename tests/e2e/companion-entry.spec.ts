@@ -92,9 +92,9 @@ test("opening paused memories during SOS gives a review route without bypassing 
   page,
 }) => {
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "SOS Hold for 2 seconds" }).focus();
+  await page.getByRole("button", { name: "SOS Hold for 3 seconds" }).focus();
   await page.keyboard.down("Space");
-  await page.waitForTimeout(2100);
+  await page.waitForTimeout(3300);
   await page.keyboard.up("Space");
   await page
     .getByRole("button", { name: "Explore Memories", exact: true })

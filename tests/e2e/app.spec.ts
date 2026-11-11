@@ -54,10 +54,10 @@ test("SOS hold synchronizes companion and caregiver browser tabs", async ({
   await page.goto("/#/companion");
   const caregiver = await context.newPage();
   await caregiver.goto("/#/caregiver/alerts");
-  const sos = page.getByRole("button", { name: "SOS Hold for 2 seconds" });
+  const sos = page.getByRole("button", { name: "SOS Hold for 3 seconds" });
   await sos.focus();
   await page.keyboard.down("Space");
-  await page.waitForTimeout(2100);
+  await page.waitForTimeout(3300);
   await page.keyboard.up("Space");
   await expect(page.getByText("Help request sent — simulation")).toBeVisible();
   await expect(
@@ -117,7 +117,7 @@ test("wearer recognition returns home, empty approval offers help, and a short S
   page,
 }) => {
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "Go home" }).click();
+  await page.getByRole("button", { name: "Help me home" }).click();
   await expect(
     page.getByText("Community garden", { exact: true }),
   ).toBeVisible();
@@ -127,7 +127,7 @@ test("wearer recognition returns home, empty approval offers help, and a short S
   await expect(
     page.getByText("Hi! I'm Sprout. I'm here with you."),
   ).toBeVisible();
-  const sos = page.getByRole("button", { name: "SOS Hold for 2 seconds" });
+  const sos = page.getByRole("button", { name: "SOS Hold for 3 seconds" });
   await sos.focus();
   await page.keyboard.down("Space");
   await page.waitForTimeout(150);
@@ -139,9 +139,9 @@ test("wearer recognition returns home, empty approval offers help, and a short S
   for (const checkbox of await page.getByRole("checkbox").all())
     await checkbox.uncheck();
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "Go home" }).click();
+  await page.getByRole("button", { name: "Help me home" }).click();
   await expect(page.getByText("No approved landmarks yet.")).toBeVisible();
-  await page.getByRole("button", { name: "Contact my caregiver" }).click();
+  await page.getByRole("button", { name: "Call someone I trust" }).click();
   await expect(
     page.getByText("Caregiver notification sent — simulation"),
   ).toBeVisible();

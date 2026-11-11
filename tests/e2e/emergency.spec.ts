@@ -29,10 +29,10 @@ test("Buddy persists across modes; police confirmation, acknowledgment and reset
     companion.getByText("Hi! I'm Buddy. I'm here with you."),
   ).toBeVisible();
   await companion
-    .getByRole("button", { name: "SOS Hold for 2 seconds" })
+    .getByRole("button", { name: "SOS Hold for 3 seconds" })
     .focus();
   await companion.keyboard.down("Space");
-  await companion.waitForTimeout(2100);
+  await companion.waitForTimeout(3300);
   await companion.keyboard.up("Space");
   await page.getByRole("link", { name: "Overview", exact: true }).click();
   await expect(

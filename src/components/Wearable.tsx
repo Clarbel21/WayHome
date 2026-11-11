@@ -803,55 +803,56 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     screenKey = "home";
     screen = (
       <div className="wos-home">
-        <div className="wos-orientation" aria-label={t("nearHome")}>
-          <span>
-            <MapPin size={15} /> {t("nearHome")}
-          </span>
-          <span>
-            {new Intl.DateTimeFormat(lang === "id" ? "id-ID" : "en-US", {
-              weekday: "long",
-            }).format(now)}
-          </span>
-        </div>
         <div className="wos-hello">
           <Sprout small />
           {speech(modeMessage(lang, "NORMAL", name))}
         </div>
-        {note}
+        {/* Simplified emoji home (TEAM_PLAN v2): Home / Call / Talk / Game.
+            Accessible names keep the established task wording. */}
         <div
-          className="wos-home-actions"
+          className="wos-emoji-grid"
           role="group"
           aria-label="Wearer actions"
         >
           <button
-            className="wos-home-primary"
+            className="wos-emoji-tile"
+            aria-label={t("goHome")}
             onClick={() => s.chooseAssistance("home")}
           >
-            <span className="wos-home-primary-icon">
-              <House size={27} />
+            <span className="wos-emoji-symbol" aria-hidden="true">
+              🏠
             </span>
-            <span>
-              <strong>{t("goHome")}</strong>
-              <small>{t("homeHint")}</small>
-            </span>
+            <span>{lang === "id" ? "Pulang" : "Home"}</span>
           </button>
-          <div className="wos-home-secondary">
-            <button
-              className="family"
-              onClick={() => s.chooseAssistance("family")}
-            >
-              <Phone size={22} />
-              <span>{t("callFamily")}</span>
-            </button>
-            <button className="talk" onClick={() => setTalk("intro")}>
-              <MessageCircle size={22} />
-              <span>{t("talk")}</span>
-            </button>
-          </div>
-          <button className="wos-home-memory" onClick={watchUi.openMemories}>
-            <Leaf size={20} />
-            <span>{t("memories")}</span>
-            <ChevronRight size={18} />
+          <button
+            className="wos-emoji-tile"
+            aria-label={t("callFamily")}
+            onClick={() => s.chooseAssistance("family")}
+          >
+            <span className="wos-emoji-symbol" aria-hidden="true">
+              📞
+            </span>
+            <span>{lang === "id" ? "Telepon" : "Call"}</span>
+          </button>
+          <button
+            className="wos-emoji-tile"
+            aria-label={t("talk")}
+            onClick={() => setTalk("intro")}
+          >
+            <span className="wos-emoji-symbol" aria-hidden="true">
+              💬
+            </span>
+            <span>{lang === "id" ? "Obrolan" : "Talk"}</span>
+          </button>
+          <button
+            className="wos-emoji-tile"
+            aria-label={t("memories")}
+            onClick={watchUi.openMemories}
+          >
+            <span className="wos-emoji-symbol" aria-hidden="true">
+              🎮
+            </span>
+            <span>{lang === "id" ? "Permainan" : "Game"}</span>
           </button>
         </div>
       </div>

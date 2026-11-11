@@ -41,13 +41,13 @@ export function SOSButton() {
           .notify("SOS sent from the watch", "Urgent help requested", true);
       }
       cancel();
-    }, 2000);
+    }, 3000);
   };
   const release = () => {
     if (
       started.current !== null &&
       !sent.current &&
-      performance.now() - started.current >= 2000
+      performance.now() - started.current >= 3000
     ) {
       sent.current = true;
       event("SOS");
@@ -60,6 +60,7 @@ export function SOSButton() {
   return (
     <button
       className={`sos-hold ${holding ? "holding" : ""}`}
+      aria-label={`SOS ${holding ? t("sosKeep") : t("sosHold")}`}
       data-caregiver-skip-notification="true"
       onPointerDown={(e) => {
         if (e.button !== 0 || !e.isPrimary) return;

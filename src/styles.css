@@ -3312,3 +3312,33 @@ input[type="checkbox"] {
 .resolve-sos-blockers > .button {
   margin: 15px 0 0;
 }
+
+/* Simplified emoji watch home (TEAM_PLAN v2): 2x2 tiles under the status bar. */
+.wos-emoji-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+}
+.wos-emoji-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 74px;
+  padding: 8px 4px;
+  border: 1px solid var(--wh-border);
+  border-radius: 14px;
+  background: var(--wh-surface);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--wh-ink);
+}
+.wos-emoji-tile:hover {
+  filter: brightness(0.96);
+}
+.wos-emoji-symbol {
+  font-size: 26px;
+  line-height: 1;
+}

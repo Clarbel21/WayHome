@@ -8,7 +8,7 @@ test("help has a working way back and a blocked check-in offers recovery", async
     .getByRole("button", { name: "Start feeling check-in", exact: true })
     .click();
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "I need help", exact: true }).click();
+  await page.getByRole("button", { name: "I'd like some help", exact: true }).click();
   const contrasts = await page
     .locator(".watch-controls button")
     .evaluateAll((buttons) => {
@@ -138,7 +138,7 @@ test("withdrawing a landmark stops recognition across tabs instead of silently s
   context,
 }) => {
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "Go home", exact: true }).click();
+  await page.getByRole("button", { name: "Help me home", exact: true }).click();
   await page.getByRole("button", { name: "I see it", exact: true }).click();
   await expect(
     page.getByText("Neighborhood bakery", { exact: true }),
@@ -173,11 +173,11 @@ test("SOS ignores right-click and canceled holds; active SOS disables conflictin
 }) => {
   await page.goto("/#/companion");
   const sos = page.getByRole("button", {
-    name: "SOS Hold for 2 seconds",
+    name: "SOS Hold for 3 seconds",
     exact: true,
   });
   await sos.click({ button: "right" });
-  await page.waitForTimeout(2100);
+  await page.waitForTimeout(3300);
   await expect(
     page.getByText("Help request sent — simulation", { exact: true }),
   ).toHaveCount(0);
@@ -185,15 +185,15 @@ test("SOS ignores right-click and canceled holds; active SOS disables conflictin
   await sos.focus();
   await page.keyboard.down("Space");
   await page.waitForTimeout(100);
-  await page.getByRole("button", { name: "Go home", exact: true }).focus();
+  await page.getByRole("button", { name: "Help me home", exact: true }).focus();
   await page.keyboard.up("Space");
-  await page.waitForTimeout(2100);
+  await page.waitForTimeout(3300);
   await expect(
     page.getByText("Help request sent — simulation", { exact: true }),
   ).toHaveCount(0);
   await sos.focus();
   await page.keyboard.down("Space");
-  await page.waitForTimeout(2100);
+  await page.waitForTimeout(3300);
   await page.keyboard.up("Space");
   await expect(
     page.getByText("Help request sent — simulation", { exact: true }),

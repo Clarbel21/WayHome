@@ -189,7 +189,7 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
     .getByRole("button", { name: "Back to my watch", exact: true })
     .click();
   // Memories open on the watch itself and close back to the watch home.
-  await page.getByRole("button", { name: "Memories", exact: true }).click();
+  await page.getByRole("button", { name: "My memories", exact: true }).click();
   await expect(page.locator(".wos-memories")).toBeVisible();
   await page
     .locator(".wos-memories")
@@ -206,7 +206,7 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
     .getByRole("button", { name: "Close", exact: true })
     .click();
   await expect(page).toHaveURL(/#\/together$/);
-  await page.getByRole("button", { name: "Go home", exact: true }).click();
+  await page.getByRole("button", { name: "Help me home", exact: true }).click();
   const care = await context.newPage();
   await care.goto("/#/demo");
   await care
@@ -335,7 +335,7 @@ for (const [width, height] of [
     await page
       .getByRole("button", { name: "Maybe later", exact: true })
       .click();
-    await page.getByRole("button", { name: "Go home", exact: true }).click();
+    await page.getByRole("button", { name: "Help me home", exact: true }).click();
     await fits();
     await page
       .getByRole("button", { name: "I know my way", exact: true })
@@ -344,7 +344,7 @@ for (const [width, height] of [
       .getByRole("button", { name: "Send a check-in", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "I need help", exact: true })
+      .getByRole("button", { name: "I'd like some help", exact: true })
       .click();
     await fits();
   });

@@ -268,9 +268,9 @@ test("library approval, image/audio persistence, previews, edit/delete, metadata
     (window as unknown as { lastAudio: HTMLAudioElement | null }).lastAudio =
       document.querySelector("audio");
   });
-  await page.getByRole("button", { name: "SOS Hold for 2 seconds" }).focus();
+  await page.getByRole("button", { name: "SOS Hold for 3 seconds" }).focus();
   await page.keyboard.down("Space");
-  await page.waitForTimeout(2100);
+  await page.waitForTimeout(3300);
   await page.keyboard.up("Space");
   await expect(page.getByText("Help request sent — simulation")).toBeVisible();
   expect(
@@ -412,10 +412,10 @@ test("sample presentation, mobile keyboard play, and immediate in-game SOS", asy
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  const sos = page.getByRole("button", { name: "SOS Hold for 2 seconds" });
+  const sos = page.getByRole("button", { name: "SOS Hold for 3 seconds" });
   await sos.focus();
   await page.keyboard.down("Space");
-  await page.waitForTimeout(2100);
+  await page.waitForTimeout(3300);
   await page.keyboard.up("Space");
   await expect(page.getByText("Help request sent — simulation")).toBeVisible();
 });

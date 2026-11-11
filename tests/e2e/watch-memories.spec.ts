@@ -6,7 +6,7 @@ test("Memory Garden runs on the watch screen and steps aside for safety", async 
 }) => {
   await page.goto("/#/companion");
   const watch = page.locator(".watch-area .watch").first();
-  await watch.getByRole("button", { name: "Memories", exact: true }).click();
+  await watch.getByRole("button", { name: "My memories", exact: true }).click();
   // Same page, inside the watch screen — no separate Memory Garden page.
   await expect(page).toHaveURL(/#\/companion$/);
   const screen = watch.locator(".wos-memories");
@@ -26,7 +26,7 @@ test("Memory Garden runs on the watch screen and steps aside for safety", async 
   );
   // SOS stays on the watch while memories are open.
   await expect(
-    watch.getByRole("button", { name: "SOS Hold for 2 seconds" }),
+    watch.getByRole("button", { name: "SOS Hold for 3 seconds" }),
   ).toBeVisible();
   // The open activity survives a reload.
   await page.reload();
@@ -54,10 +54,11 @@ test("Familiar Faces shows a realistic person first and can return to the watch 
   await expect(screen.locator('img[src*="memory-jamie"]')).toBeVisible();
   await screen.getByRole("button", { name: "Tell me more" }).click();
   await expect(screen.getByText(/This is your son, Jamie/)).toBeVisible();
-  await screen.getByRole("button", { name: "Back", exact: true }).click();
+  // On the watch the activity ends with "I'm done" (no separate Back step).
+  await screen.getByRole("button", { name: "I'm done" }).click();
   await screen.getByRole("button", { name: "Close", exact: true }).click();
   await expect(screen).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "Go home", exact: true }),
+    page.getByRole("button", { name: "Help me home", exact: true }),
   ).toBeVisible();
 });

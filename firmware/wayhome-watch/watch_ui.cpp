@@ -67,7 +67,7 @@ lv_obj_t *lblArrived = nullptr;
 lv_obj_t *btnAttachment[3] = {nullptr, nullptr, nullptr};
 
 // SOS hold tracking (matches the web's 2-second hold)
-constexpr uint32_t SOS_HOLD_MS = 2000;
+constexpr uint32_t SOS_HOLD_MS = 3000;
 uint32_t sosPressStart = 0;
 bool sosHolding = false;
 
@@ -302,111 +302,60 @@ void clock_timer_cb(lv_timer_t *timer) {
 // ---- Screen construction ----
 
 void build_home_screen() {
-  scrHome = new_screen(CREAM);
+  scrHome = new_screen(INK);
 
   // Status bar (.watch-status): time | companion name | dot + battery
-  lblClock = add_label(scrHome, "--:--", &lv_font_montserrat_16, INK);
+  lblClock = add_label(scrHome, "--:--", &lv_font_montserrat_16, SURFACE);
   lv_obj_align(lblClock, LV_ALIGN_TOP_LEFT, 16, 10);
 
-  lblName = add_label(scrHome, "Sprout", &lv_font_montserrat_16, SAGE_TEXT);
+  lblName = add_label(scrHome, "Sprout", &lv_font_montserrat_16, PALE);
   lv_obj_align(lblName, LV_ALIGN_TOP_MID, 0, 10);
 
-  lblBattery = add_label(scrHome, "--%", &lv_font_montserrat_14, MUTED);
+  lblBattery = add_label(scrHome, "--%", &lv_font_montserrat_14, PALE);
   lv_obj_align(lblBattery, LV_ALIGN_TOP_RIGHT, -14, 12);
 
-  lblBatteryIcon = add_label(scrHome, LV_SYMBOL_BATTERY_EMPTY, &lv_font_montserrat_16, MUTED);
+  lblBatteryIcon = add_label(scrHome, LV_SYMBOL_BATTERY_EMPTY, &lv_font_montserrat_16, PALE);
   lv_obj_align(lblBatteryIcon, LV_ALIGN_TOP_RIGHT, -58, 10);
 
   dotBle = lv_obj_create(scrHome);
   lv_obj_set_size(dotBle, 11, 11);
   lv_obj_align(dotBle, LV_ALIGN_TOP_RIGHT, -90, 14);
   lv_obj_set_style_radius(dotBle, LV_RADIUS_CIRCLE, 0);
-  lv_obj_set_style_bg_color(dotBle, lv_color_hex(0x9aa89b), 0);
+  lv_obj_set_style_bg_color(dotBle, lv_color_hex(0x4a5568), 0);
   lv_obj_set_style_border_width(dotBle, 0, 0);
 
-  // Orientation row (.wos-orientation): "Near home" | weekday
-  lv_obj_t *near = add_label(scrHome, LV_SYMBOL_GPS " Near home", &lv_font_montserrat_16, SAGE_TEXT);
-  lv_obj_align(near, LV_ALIGN_TOP_LEFT, 16, 40);
-  lblWeekday = add_label(scrHome, "", &lv_font_montserrat_16, SAGE_TEXT);
-  lv_obj_align(lblWeekday, LV_ALIGN_TOP_RIGHT, -16, 40);
+  // Simplified emoji home (TEAM_PLAN v2): 2x2 tiles - Home / Call / Talk /
+  // Game - matching the web watch and the sketch in issue #4.
+  const char *tileLabels[4] = {"Home", "Call", "Talk", "Game"};
+  const char *tileIcons[4] = {LV_SYMBOL_HOME, LV_SYMBOL_CALL, LV_SYMBOL_ENVELOPE,
+                              LV_SYMBOL_IMAGE};
+  for (int i = 0; i < 4; i++) {
+    int col = i % 2;
+    int row = i / 2;
+    lv_obj_t *tile =
+        add_button(scrHome, 16 + col * 194, 52 + row * 166, 178, 150, SURFACE, 16);
+    lv_obj_t *icon = add_label(tile, tileIcons[i], &lv_font_montserrat_28, PALE);
+    lv_obj_align(icon, LV_ALIGN_TOP_MID, 0, 34);
+    lv_obj_t *text = add_label(tile, tileLabels[i], &lv_font_montserrat_18, SURFACE);
+    lv_obj_align(text, LV_ALIGN_TOP_MID, 0, 92);
+    lv_obj_add_event_cb(tile, tile_cb, LV_EVENT_CLICKED, (void *)(intptr_t)i);
+  }
 
-  // Hello row (.wos-hello): mascot + speech
-  make_sprout_avatar(scrHome, 16, 68);
-  lv_obj_t *hello = add_label(scrHome, "Hi! I'm Sprout.\nI'm here with you.",
-                              &lv_font_montserrat_18, INK);
-  lv_obj_align(hello, LV_ALIGN_TOP_LEFT, 72, 76);
-  lv_obj_set_style_text_line_space(hello, 4, 0);
-
-  // Primary tile (.wos-home-primary): forest gradient, house icon
-  lv_obj_t *primary = add_button(scrHome, 16, 130, 378, 88, FOREST_LIGHT, 19);
-  lv_obj_set_style_bg_grad_color(primary, lv_color_hex(FOREST), 0);
-  lv_obj_set_style_bg_grad_dir(primary, LV_GRAD_DIR_VER, 0);
-
-  lv_obj_t *iconBox = lv_obj_create(primary);
-  lv_obj_set_pos(iconBox, 14, 21);
-  lv_obj_set_size(iconBox, 46, 46);
-  lv_obj_set_style_radius(iconBox, 14, 0);
-  lv_obj_set_style_bg_color(iconBox, lv_color_white(), 0);
-  lv_obj_set_style_bg_opa(iconBox, 40, 0);
-  lv_obj_set_style_border_width(iconBox, 0, 0);
-  lv_obj_t *homeIcon = add_label(iconBox, LV_SYMBOL_HOME, &lv_font_montserrat_24, SURFACE);
-  lv_obj_center(homeIcon);
-
-  lv_obj_t *primaryTitle = add_label(primary, "Help me home", &lv_font_montserrat_20, SURFACE);
-  lv_obj_set_pos(primaryTitle, 72, 16);
-  lv_obj_t *primarySub = add_label(primary, "Follow familiar places", &lv_font_montserrat_14, SUBTLE);
-  lv_obj_set_pos(primarySub, 72, 48);
-
-  // Secondary row (.wos-home-secondary): Call | Talk
-  lv_obj_t *family = add_button(scrHome, 16, 226, 185, 84, PEACH, 17);
-  lv_obj_t *famIcon = add_label(family, LV_SYMBOL_CALL, &lv_font_montserrat_24, PEACH_TEXT);
-  lv_obj_align(famIcon, LV_ALIGN_TOP_MID, 0, 10);
-  lv_obj_t *famText = add_label(family, "Call someone\nI trust", &lv_font_montserrat_14, PEACH_TEXT);
-  lv_obj_align(famText, LV_ALIGN_TOP_MID, 0, 40);
-
-  lv_obj_t *talk = add_button(scrHome, 209, 226, 185, 84, LAVENDER, 17);
-  lv_obj_t *talkIcon = add_label(talk, LV_SYMBOL_ENVELOPE, &lv_font_montserrat_24, LAVENDER_TEXT);
-  lv_obj_align(talkIcon, LV_ALIGN_TOP_MID, 0, 10);
-  lv_obj_t *talkText = add_label(talk, "Let's talk", &lv_font_montserrat_16, LAVENDER_TEXT);
-  lv_obj_align(talkText, LV_ALIGN_TOP_MID, 0, 46);
-
-  // Memory tile (.wos-home-memory): mint with chevron
-  lv_obj_t *memory = add_button(scrHome, 16, 318, 378, 52, MINT, 15);
-  lv_obj_t *memIcon = add_label(memory, LV_SYMBOL_IMAGE, &lv_font_montserrat_20, MINT_TEXT);
-  lv_obj_align(memIcon, LV_ALIGN_LEFT_MID, 14, 0);
-  lv_obj_t *memText = add_label(memory, "My memories", &lv_font_montserrat_16, MINT_TEXT);
-  lv_obj_align(memText, LV_ALIGN_LEFT_MID, 44, 0);
-  lv_obj_t *memChevron = add_label(memory, LV_SYMBOL_RIGHT, &lv_font_montserrat_16, MINT_TEXT);
-  lv_obj_align(memChevron, LV_ALIGN_RIGHT_MID, -14, 0);
-
-  lv_obj_add_event_cb(primary, tile_cb, LV_EVENT_CLICKED, (void *)(intptr_t)0);
-  lv_obj_add_event_cb(family, tile_cb, LV_EVENT_CLICKED, (void *)(intptr_t)1);
-  lv_obj_add_event_cb(talk, tile_cb, LV_EVENT_CLICKED, (void *)(intptr_t)2);
-  lv_obj_add_event_cb(memory, tile_cb, LV_EVENT_CLICKED, (void *)(intptr_t)3);
-
-  // Footer (.wos-footer): Mode button | SOS hold button
-  lv_obj_t *modeBtn = add_button(scrHome, 16, 414, 176, 74, PALE, 13);
-  lv_obj_t *modeIcon = add_label(modeBtn, LV_SYMBOL_SETTINGS, &lv_font_montserrat_16, FOREST);
-  lv_obj_align(modeIcon, LV_ALIGN_TOP_MID, -44, 16);
-  lv_obj_t *modeText = add_label(modeBtn, "Mode\nNormal", &lv_font_montserrat_14, FOREST);
-  lv_obj_align(modeText, LV_ALIGN_TOP_MID, 8, 15);
-  lv_obj_set_style_text_line_space(modeText, 2, 0);
-  lv_obj_add_event_cb(modeBtn, settings_cb, LV_EVENT_CLICKED, nullptr);
-
-  sosBtn = add_button(scrHome, 200, 414, 194, 74, SOS_BG, 13);
+  // Wide SOS bar (.sos-hold): hold 3 seconds to send, like the web watch.
+  sosBtn = add_button(scrHome, 16, 392, 378, 96, SOS_BG, 16);
   lv_obj_set_style_border_color(sosBtn, lv_color_hex(SOS_BORDER), 0);
   lv_obj_set_style_border_width(sosBtn, 1, 0);
   lblSosTitle = add_label(sosBtn, "SOS", &lv_font_montserrat_22, SOS_TEXT);
-  lv_obj_align(lblSosTitle, LV_ALIGN_TOP_MID, 0, 8);
-  lblSosHint = add_label(sosBtn, "Hold for 2 seconds", &lv_font_montserrat_12, SOS_TEXT);
-  lv_obj_align(lblSosHint, LV_ALIGN_TOP_MID, 0, 40);
+  lv_obj_align(lblSosTitle, LV_ALIGN_TOP_MID, 0, 12);
+  lblSosHint = add_label(sosBtn, "Hold for 3 seconds", &lv_font_montserrat_14, SOS_TEXT);
+  lv_obj_align(lblSosHint, LV_ALIGN_TOP_MID, 0, 42);
   lv_obj_add_event_cb(sosBtn, sos_btn_event_cb, LV_EVENT_PRESSED, nullptr);
   lv_obj_add_event_cb(sosBtn, sos_btn_event_cb, LV_EVENT_RELEASED, nullptr);
   lv_obj_add_event_cb(sosBtn, sos_btn_event_cb, LV_EVENT_PRESS_LOST, nullptr);
 
   sosHoldBar = lv_bar_create(sosBtn);
   lv_obj_set_size(sosHoldBar, 160, 8);
-  lv_obj_align(sosHoldBar, LV_ALIGN_BOTTOM_MID, 0, -8);
+  lv_obj_align(sosHoldBar, LV_ALIGN_BOTTOM_MID, 0, -10);
   lv_bar_set_range(sosHoldBar, 0, 100);
   lv_obj_set_style_bg_color(sosHoldBar, lv_color_hex(SOS_BORDER), 0);       // track
   lv_obj_set_style_bg_opa(sosHoldBar, LV_OPA_COVER, 0);

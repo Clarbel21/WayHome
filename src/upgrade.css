@@ -1226,7 +1226,7 @@
 }
 .sos-hold.holding .sos-fill {
   transform: scaleX(1);
-  transition: transform 2s linear;
+  transition: transform 3s linear;
 }
 .watch-area .watch .watch-screen.wos .sos-hold.holding {
   background: #f4e1dd;

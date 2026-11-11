@@ -40,9 +40,9 @@ test("incident acknowledgment and reset preserve faults; fresh SOS cancels verif
   expect(data.worn).toBe(false);
   const wearer = await context.newPage();
   await wearer.goto("/#/companion");
-  await wearer.getByRole("button", { name: "SOS Hold for 2 seconds" }).focus();
+  await wearer.getByRole("button", { name: "SOS Hold for 3 seconds" }).focus();
   await wearer.keyboard.down("Space");
-  await wearer.waitForTimeout(2100);
+  await wearer.waitForTimeout(3300);
   await wearer.keyboard.up("Space");
   await expect(page.getByText(/Incident lifecycle: active/)).toBeVisible();
   await expect(
@@ -211,7 +211,7 @@ test("approved memory photo remains separate from navigation until explicit appr
   for (const checkbox of await page.getByRole("checkbox").all())
     if (await checkbox.isChecked()) await checkbox.uncheck();
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "Go home" }).click();
+  await page.getByRole("button", { name: "Help me home" }).click();
   await expect(page.getByText("No approved landmarks yet.")).toBeVisible();
   await page.goto("/#/caregiver/landmarks");
   await pending

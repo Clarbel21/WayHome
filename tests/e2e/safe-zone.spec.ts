@@ -42,7 +42,7 @@ test("leaving the safe zone buzzes the watch, escalates, then guides home landma
 
   // The wearer can still choose to go home from the home screen.
   await watch(page)
-    .getByRole("button", { name: "Go home", exact: true })
+    .getByRole("button", { name: "Help me home", exact: true })
     .click();
   await expect(watch(page).getByText("Go straight ahead")).toBeVisible();
   await expect(
@@ -151,7 +151,7 @@ test("after 'I don't see it' the wearer can still say 'I see it now' and carry o
   page,
 }) => {
   await watch(page)
-    .getByRole("button", { name: "Go home", exact: true })
+    .getByRole("button", { name: "Help me home", exact: true })
     .click();
   await expect(
     watch(page).getByText("Do you see the Community garden?"),
