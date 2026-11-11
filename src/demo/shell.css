@@ -71,7 +71,8 @@
     background: var(--wh-quiet);
     color: var(--wh-action);
   }
-  /* Classic side-by-side switcher (TEAM_PLAN phase 0): desktop only. */
+  /* Classic side-by-side switcher (TEAM_PLAN phase 0): lives in the page
+     header on desktop so it costs the fixed stage no vertical space. */
   .demo-view-switcher {
     display: none;
   }
@@ -82,8 +83,8 @@
   @media (min-width: 880px) {
     .demo-view-switcher {
       display: flex;
-      width: fit-content;
-      margin: 0 auto 20px;
+      align-items: center;
+      margin: 0 auto;
       border: 1px solid var(--wh-border);
       border-radius: var(--wh-radius);
       padding: 3px;
@@ -94,13 +95,13 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      min-height: 44px;
-      padding: 0 18px;
+      min-height: 40px;
+      padding: 0 16px;
       border: 0;
       border-radius: 9px;
       background: transparent;
       color: var(--wh-secondary);
-      font-size: 16px;
+      font-size: 15px;
     }
     .demo-view-switcher button[aria-pressed="true"] {
       background: var(--wh-quiet);
@@ -563,7 +564,9 @@
       padding: 8px 32px;
       display: grid;
       grid-template-columns: minmax(360px, 0.8fr) minmax(0, 1.2fr);
-      grid-template-rows: auto minmax(0, 1fr) 34px;
+      /* TEAM_PLAN phase 0: row 3 is the always-visible presenter moments
+         dock (compact variant below); the footer moves to row 4. */
+      grid-template-rows: auto minmax(0, 1fr) auto 34px;
       column-gap: 24px;
       row-gap: 8px;
       overflow: hidden;
@@ -627,7 +630,7 @@
       padding-top: 0;
     }
     .demo-shell:not(.large-text) .care-phone {
-      --phone-height: min(620px, calc(100dvh - 250px));
+      --phone-height: min(620px, calc(100dvh - 430px));
     }
     .demo-shell:not(.large-text) .demo-device-note {
       min-height: 20px;
@@ -637,10 +640,77 @@
     }
     .demo-shell:not(.large-text) .demo-shell-footer {
       grid-column: 1 / -1;
-      grid-row: 3;
+      grid-row: 4;
       height: 34px;
       margin: 0;
       padding-top: 6px;
+    }
+    /* Compact presenter dock (TEAM_PLAN phase 0): fits the fixed stage.
+       Caption + reset share the first line; moment groups go inline. */
+    .demo-shell:not(.large-text) .demo-stage-dock {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      max-width: none;
+      margin: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .demo-shell:not(.large-text) .demo-stage-dock .demo-stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      row-gap: 8px;
+      align-items: center;
+      padding: 10px 16px 12px;
+      border-radius: 16px;
+      box-shadow: none;
+    }
+    .demo-shell:not(.large-text) .demo-stage-dock .demo-stage-top {
+      display: contents;
+    }
+    .demo-shell:not(.large-text) .demo-stage-dock .demo-stage-copy {
+      display: none;
+    }
+    .demo-shell:not(.large-text) .demo-stage-dock .demo-stage .reset {
+      grid-column: 2;
+      grid-row: 1;
+      justify-self: end;
+    }
+    .demo-shell:not(.large-text) .demo-stage-dock .demo-stage-caption {
+      grid-column: 1;
+      grid-row: 1;
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .demo-shell:not(.large-text) .demo-stage-dock .demo-stage-chips {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin: 0;
+    }
+    .demo-shell:not(.large-text) .demo-stage-dock .demo-moment-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .demo-shell:not(.large-text) .demo-stage-dock .demo-moment-group > p {
+      margin: 0;
+      white-space: nowrap;
+    }
+    .demo-shell:not(.large-text) .demo-stage-dock .demo-moment-group > div {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .demo-shell:not(.large-text) .demo-stage-dock .demo-stage .demo-chip {
+      min-height: 34px;
+      padding: 5px 9px;
+      font-size: 11px;
+      gap: 5px;
     }
   }
   @media (max-width: 359px) {
@@ -663,42 +733,6 @@
     }
     .demo-shell-header-actions .lang-switch {
       gap: 0;
-    }
-  }
-  /* TEAM_PLAN phase 0: the classic presentation scrolls again on desktop so
-     the always-visible moments dock fits below the devices. This supersedes
-     the fixed single-stage clamp above; milestone 2 may re-tighten the fit
-     once the dock's compact variant is agreed. */
-  @media (min-width: 880px) and (min-height: 700px) {
-    .demo-shell:not(.large-text) {
-      height: auto;
-      min-height: 100dvh;
-      overflow: visible;
-    }
-    .demo-shell:not(.large-text) main {
-      height: auto;
-      display: block;
-      overflow: visible;
-      padding: 20px 32px 24px;
-    }
-    .demo-shell:not(.large-text) .shared-devices.demo-devices {
-      height: auto;
-      align-items: start;
-    }
-    .demo-shell:not(.large-text) .demo-device-panel {
-      height: auto;
-      justify-content: flex-start;
-    }
-    .demo-shell:not(.large-text) .demo-device-panel > h2 {
-      flex: 0 0 auto;
-      height: auto;
-      margin: 0 0 12px;
-      line-height: 1.4;
-    }
-    .demo-shell:not(.large-text) .demo-shell-footer {
-      height: auto;
-      margin: 24px 0 0;
-      padding-top: 12px;
     }
   }
 }

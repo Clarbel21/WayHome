@@ -202,6 +202,31 @@ export function DemoShell() {
           <span>WayHome</span>
         </Link>
         <span className="demo-shell-label">{t("demoLabel")}</span>
+        <nav className="demo-view-switcher" aria-label={t("demoDeviceView")}>
+          {(["together", "watch", "caregiver"] as const).map((name) => (
+            <button
+              key={name}
+              type="button"
+              aria-pressed={view === name}
+              onClick={() => setView(name)}
+            >
+              {name === "together" ? (
+                <Monitor size={16} aria-hidden="true" />
+              ) : name === "watch" ? (
+                <Watch size={16} aria-hidden="true" />
+              ) : (
+                <Smartphone size={16} aria-hidden="true" />
+              )}
+              {t(
+                name === "together"
+                  ? "viewTogether"
+                  : name === "watch"
+                    ? "viewWatch"
+                    : "viewCaregiver",
+              )}
+            </button>
+          ))}
+        </nav>
         <div className="demo-shell-header-actions">
           <LangSwitch />
           {paired && (
@@ -400,34 +425,6 @@ export function DemoShell() {
             </button>
           )}
         </div>
-        <nav
-          className="demo-view-switcher"
-          aria-label={t("demoDeviceView")}
-        >
-          {(["together", "watch", "caregiver"] as const).map((name) => (
-            <button
-              key={name}
-              type="button"
-              aria-pressed={view === name}
-              onClick={() => setView(name)}
-            >
-              {name === "together" ? (
-                <Monitor size={16} aria-hidden="true" />
-              ) : name === "watch" ? (
-                <Watch size={16} aria-hidden="true" />
-              ) : (
-                <Smartphone size={16} aria-hidden="true" />
-              )}
-              {t(
-                name === "together"
-                  ? "viewTogether"
-                  : name === "watch"
-                    ? "viewWatch"
-                    : "viewCaregiver",
-              )}
-            </button>
-          ))}
-        </nav>
         <div
           className={`shared-devices demo-devices view-${view}`}
         >
