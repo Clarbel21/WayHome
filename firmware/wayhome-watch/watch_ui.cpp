@@ -39,6 +39,7 @@ lv_obj_t *scrRoute = nullptr;
 lv_obj_t *scrCall = nullptr;
 lv_obj_t *scrTalk = nullptr;
 lv_obj_t *scrMemories = nullptr;
+lv_obj_t *scrMore = nullptr;
 lv_obj_t *scrSettings = nullptr;
 lv_obj_t *scrSos = nullptr;
 lv_obj_t *scrCheckQ = nullptr;  // "How are you feeling?"
@@ -49,10 +50,10 @@ lv_obj_t *scrMirror = nullptr;  // generic: web shows a screen the watch lacks
 // Home widgets
 lv_obj_t *lblClock = nullptr;
 lv_obj_t *lblName = nullptr;
-lv_obj_t *lblWeekday = nullptr;
 lv_obj_t *lblBattery = nullptr;
 lv_obj_t *lblBatteryIcon = nullptr;
 lv_obj_t *dotBle = nullptr;
+lv_obj_t *lblHello = nullptr;
 lv_obj_t *sosBtn = nullptr;
 lv_obj_t *sosHoldBar = nullptr;
 lv_obj_t *lblSosTitle = nullptr;
@@ -66,8 +67,8 @@ lv_obj_t *lblArrived = nullptr;
 // Settings widgets
 lv_obj_t *btnAttachment[3] = {nullptr, nullptr, nullptr};
 
-// SOS hold tracking (matches the web's 2-second hold)
-constexpr uint32_t SOS_HOLD_MS = 2000;
+// SOS hold tracking (matches the wearer's request: hold 3 seconds to send)
+constexpr uint32_t SOS_HOLD_MS = 3000;
 uint32_t sosPressStart = 0;
 bool sosHolding = false;
 
@@ -148,35 +149,45 @@ void sos_set_holding_visual(bool holding) {
 }
 
 // Sprout mascot avatar: sage disc with a two-leaf sprout.
-lv_obj_t *make_sprout_avatar(lv_obj_t *parent, int32_t x, int32_t y) {
+lv_obj_t *make_sprout_avatar(lv_obj_t *parent, int32_t x, int32_t y,
+                             int32_t size) {
   lv_obj_t *avatar = lv_obj_create(parent);
   lv_obj_set_pos(avatar, x, y);
-  lv_obj_set_size(avatar, 46, 46);
+  lv_obj_set_size(avatar, size, size);
   lv_obj_set_style_radius(avatar, LV_RADIUS_CIRCLE, 0);
   lv_obj_set_style_bg_color(avatar, lv_color_hex(PALE), 0);
   lv_obj_set_style_border_width(avatar, 0, 0);
   lv_obj_set_style_pad_all(avatar, 0, 0);
   lv_obj_clear_flag(avatar, LV_OBJ_FLAG_SCROLLABLE);
 
+  // Internals scale with the disc (the 46px original: stem 4x16 at 21,20;
+  // leaves 14x9 at 6/26,12).
+  int32_t stemW = size * 4 / 46, stemH = size * 16 / 46;
+  int32_t stemX = size * 21 / 46, stemY = size * 20 / 46;
+  int32_t leafW = size * 14 / 46, leafH = size * 9 / 46;
+  int32_t leafY = size * 12 / 46;
+  int32_t leafLX = size * 6 / 46, leafRX = size * 26 / 46;
+  int32_t leafRadius = size * 5 / 46;
+
   lv_obj_t *stem = lv_obj_create(avatar);
-  lv_obj_set_pos(stem, 21, 20);
-  lv_obj_set_size(stem, 4, 16);
-  lv_obj_set_style_radius(stem, 2, 0);
+  lv_obj_set_pos(stem, stemX, stemY);
+  lv_obj_set_size(stem, stemW, stemH);
+  lv_obj_set_style_radius(stem, stemW / 2, 0);
   lv_obj_set_style_bg_color(stem, lv_color_hex(FOREST), 0);
   lv_obj_set_style_border_width(stem, 0, 0);
 
   lv_obj_t *leafL = lv_obj_create(avatar);
-  lv_obj_set_pos(leafL, 6, 12);
-  lv_obj_set_size(leafL, 14, 9);
-  lv_obj_set_style_radius(leafL, 5, 0);
+  lv_obj_set_pos(leafL, leafLX, leafY);
+  lv_obj_set_size(leafL, leafW, leafH);
+  lv_obj_set_style_radius(leafL, leafRadius, 0);
   lv_obj_set_style_bg_color(leafL, lv_color_hex(FOREST_LIGHT), 0);
   lv_obj_set_style_border_width(leafL, 0, 0);
   lv_obj_set_style_transform_rotation(leafL, 3200, 0);
 
   lv_obj_t *leafR = lv_obj_create(avatar);
-  lv_obj_set_pos(leafR, 26, 12);
-  lv_obj_set_size(leafR, 14, 9);
-  lv_obj_set_style_radius(leafR, 5, 0);
+  lv_obj_set_pos(leafR, leafRX, leafY);
+  lv_obj_set_size(leafR, leafW, leafH);
+  lv_obj_set_style_radius(leafR, leafRadius, 0);
   lv_obj_set_style_bg_color(leafR, lv_color_hex(FOREST_LIGHT), 0);
   lv_obj_set_style_border_width(leafR, 0, 0);
   lv_obj_set_style_transform_rotation(leafR, 3800, 0);
@@ -185,7 +196,7 @@ lv_obj_t *make_sprout_avatar(lv_obj_t *parent, int32_t x, int32_t y) {
 
 // ---- Event callbacks ----
 
-// Home tiles: 0 = Help me home (route), 1 = Call, 2 = Talk, 3 = Memories.
+// Home buttons: 0 = Help me home (route), 1 = My memories, 2 = More choices.
 void tile_cb(lv_event_t *e) {
   if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
   int which = (int)(intptr_t)lv_event_get_user_data(e);
@@ -197,9 +208,22 @@ void tile_cb(lv_event_t *e) {
       refresh_route_widgets();
       load_screen(scrRoute);
       break;
-    case 1: load_screen(scrCall); break;
-    case 2: load_screen(scrTalk); break;
-    default: load_screen(scrMemories); break;
+    case 1: load_screen(scrMemories); break;
+    default: load_screen(scrMore); break;
+  }
+}
+
+// More screen: 0 = Call someone I trust, 1 = Let's talk, 2 = Settings.
+void more_cb(lv_event_t *e) {
+  if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+  int which = (int)(intptr_t)lv_event_get_user_data(e);
+  switch (which) {
+    case 0: load_screen(scrCall); break;
+    case 1: load_screen(scrTalk); break;
+    default:
+      refresh_attachment_buttons();
+      load_screen(scrSettings);
+      break;
   }
 }
 
@@ -226,12 +250,6 @@ void attachment_cb(lv_event_t *e) {
   watch.setAttachment((Attachment)which);
   ble::publishAttachment();
   refresh_attachment_buttons();
-}
-
-void settings_cb(lv_event_t *e) {
-  LV_UNUSED(e);
-  refresh_attachment_buttons();
-  load_screen(scrSettings);
 }
 
 // Check-in answers, mirroring the web store's answerCheckIn/chooseAssistance
@@ -296,7 +314,6 @@ void sos_hold_timer_cb(lv_timer_t *timer) {
 void clock_timer_cb(lv_timer_t *timer) {
   LV_UNUSED(timer);
   lv_label_set_text(lblClock, hal_clock_text());
-  lv_label_set_text(lblWeekday, hal_weekday_text());
 }
 
 // ---- Screen construction ----
@@ -324,94 +341,82 @@ void build_home_screen() {
   lv_obj_set_style_bg_color(dotBle, lv_color_hex(0x9aa89b), 0);
   lv_obj_set_style_border_width(dotBle, 0, 0);
 
-  // Orientation row (.wos-orientation): "Near home" | weekday
-  lv_obj_t *near = add_label(scrHome, LV_SYMBOL_GPS " Near home", &lv_font_montserrat_16, SAGE_TEXT);
-  lv_obj_align(near, LV_ALIGN_TOP_LEFT, 16, 40);
-  lblWeekday = add_label(scrHome, "", &lv_font_montserrat_16, SAGE_TEXT);
-  lv_obj_align(lblWeekday, LV_ALIGN_TOP_RIGHT, -16, 40);
+  // Mascot + greeting, mirroring the web watch home (mascot, "Hello, <name>.")
+  make_sprout_avatar(scrHome, 165, 52, 80);
+  lblHello = add_label(scrHome, "Hello.", &lv_font_montserrat_28, INK);
+  lv_obj_align(lblHello, LV_ALIGN_TOP_MID, 0, 146);
 
-  // Hello row (.wos-hello): mascot + speech
-  make_sprout_avatar(scrHome, 16, 68);
-  lv_obj_t *hello = add_label(scrHome, "Hi! I'm Sprout.\nI'm here with you.",
-                              &lv_font_montserrat_18, INK);
-  lv_obj_align(hello, LV_ALIGN_TOP_LEFT, 72, 76);
-  lv_obj_set_style_text_line_space(hello, 4, 0);
+  // Primary action: Help me home (forest, full width like the web)
+  lv_obj_t *goHome = add_button(scrHome, 35, 200, 340, 64, FOREST, 15);
+  lv_obj_set_style_bg_grad_color(goHome, lv_color_hex(FOREST_LIGHT), 0);
+  lv_obj_set_style_bg_grad_dir(goHome, LV_GRAD_DIR_VER, 0);
+  lv_obj_t *goHomeText = add_label(goHome, LV_SYMBOL_HOME "  Help me home",
+                                   &lv_font_montserrat_18, SURFACE);
+  lv_obj_center(goHomeText);
+  lv_obj_add_event_cb(goHome, tile_cb, LV_EVENT_CLICKED, (void *)(intptr_t)0);
 
-  // Primary tile (.wos-home-primary): forest gradient, house icon
-  lv_obj_t *primary = add_button(scrHome, 16, 130, 378, 88, FOREST_LIGHT, 19);
-  lv_obj_set_style_bg_grad_color(primary, lv_color_hex(FOREST), 0);
-  lv_obj_set_style_bg_grad_dir(primary, LV_GRAD_DIR_VER, 0);
+  // Secondary outline actions, mirroring the web home order
+  lv_obj_t *memories = add_button(scrHome, 35, 280, 340, 56, CREAM, 15);
+  lv_obj_set_style_border_color(memories, lv_color_hex(0xcfdcc7), 0);
+  lv_obj_set_style_border_width(memories, 1, 0);
+  lv_obj_t *memText = add_label(memories, LV_SYMBOL_IMAGE "  My memories",
+                                &lv_font_montserrat_16, FOREST);
+  lv_obj_center(memText);
+  lv_obj_add_event_cb(memories, tile_cb, LV_EVENT_CLICKED, (void *)(intptr_t)1);
 
-  lv_obj_t *iconBox = lv_obj_create(primary);
-  lv_obj_set_pos(iconBox, 14, 21);
-  lv_obj_set_size(iconBox, 46, 46);
-  lv_obj_set_style_radius(iconBox, 14, 0);
-  lv_obj_set_style_bg_color(iconBox, lv_color_white(), 0);
-  lv_obj_set_style_bg_opa(iconBox, 40, 0);
-  lv_obj_set_style_border_width(iconBox, 0, 0);
-  lv_obj_t *homeIcon = add_label(iconBox, LV_SYMBOL_HOME, &lv_font_montserrat_24, SURFACE);
-  lv_obj_center(homeIcon);
+  lv_obj_t *more = add_button(scrHome, 35, 348, 340, 56, CREAM, 15);
+  lv_obj_set_style_border_color(more, lv_color_hex(0xcfdcc7), 0);
+  lv_obj_set_style_border_width(more, 1, 0);
+  lv_obj_t *moreText = add_label(more, LV_SYMBOL_LIST "  More choices",
+                                 &lv_font_montserrat_16, FOREST);
+  lv_obj_center(moreText);
+  lv_obj_add_event_cb(more, tile_cb, LV_EVENT_CLICKED, (void *)(intptr_t)2);
 
-  lv_obj_t *primaryTitle = add_label(primary, "Help me home", &lv_font_montserrat_20, SURFACE);
-  lv_obj_set_pos(primaryTitle, 72, 16);
-  lv_obj_t *primarySub = add_label(primary, "Follow familiar places", &lv_font_montserrat_14, SUBTLE);
-  lv_obj_set_pos(primarySub, 72, 48);
-
-  // Secondary row (.wos-home-secondary): Call | Talk
-  lv_obj_t *family = add_button(scrHome, 16, 226, 185, 84, PEACH, 17);
-  lv_obj_t *famIcon = add_label(family, LV_SYMBOL_CALL, &lv_font_montserrat_24, PEACH_TEXT);
-  lv_obj_align(famIcon, LV_ALIGN_TOP_MID, 0, 10);
-  lv_obj_t *famText = add_label(family, "Call someone\nI trust", &lv_font_montserrat_14, PEACH_TEXT);
-  lv_obj_align(famText, LV_ALIGN_TOP_MID, 0, 40);
-
-  lv_obj_t *talk = add_button(scrHome, 209, 226, 185, 84, LAVENDER, 17);
-  lv_obj_t *talkIcon = add_label(talk, LV_SYMBOL_ENVELOPE, &lv_font_montserrat_24, LAVENDER_TEXT);
-  lv_obj_align(talkIcon, LV_ALIGN_TOP_MID, 0, 10);
-  lv_obj_t *talkText = add_label(talk, "Let's talk", &lv_font_montserrat_16, LAVENDER_TEXT);
-  lv_obj_align(talkText, LV_ALIGN_TOP_MID, 0, 46);
-
-  // Memory tile (.wos-home-memory): mint with chevron
-  lv_obj_t *memory = add_button(scrHome, 16, 318, 378, 52, MINT, 15);
-  lv_obj_t *memIcon = add_label(memory, LV_SYMBOL_IMAGE, &lv_font_montserrat_20, MINT_TEXT);
-  lv_obj_align(memIcon, LV_ALIGN_LEFT_MID, 14, 0);
-  lv_obj_t *memText = add_label(memory, "My memories", &lv_font_montserrat_16, MINT_TEXT);
-  lv_obj_align(memText, LV_ALIGN_LEFT_MID, 44, 0);
-  lv_obj_t *memChevron = add_label(memory, LV_SYMBOL_RIGHT, &lv_font_montserrat_16, MINT_TEXT);
-  lv_obj_align(memChevron, LV_ALIGN_RIGHT_MID, -14, 0);
-
-  lv_obj_add_event_cb(primary, tile_cb, LV_EVENT_CLICKED, (void *)(intptr_t)0);
-  lv_obj_add_event_cb(family, tile_cb, LV_EVENT_CLICKED, (void *)(intptr_t)1);
-  lv_obj_add_event_cb(talk, tile_cb, LV_EVENT_CLICKED, (void *)(intptr_t)2);
-  lv_obj_add_event_cb(memory, tile_cb, LV_EVENT_CLICKED, (void *)(intptr_t)3);
-
-  // Footer (.wos-footer): Mode button | SOS hold button
-  lv_obj_t *modeBtn = add_button(scrHome, 16, 414, 176, 74, PALE, 13);
-  lv_obj_t *modeIcon = add_label(modeBtn, LV_SYMBOL_SETTINGS, &lv_font_montserrat_16, FOREST);
-  lv_obj_align(modeIcon, LV_ALIGN_TOP_MID, -44, 16);
-  lv_obj_t *modeText = add_label(modeBtn, "Mode\nNormal", &lv_font_montserrat_14, FOREST);
-  lv_obj_align(modeText, LV_ALIGN_TOP_MID, 8, 15);
-  lv_obj_set_style_text_line_space(modeText, 2, 0);
-  lv_obj_add_event_cb(modeBtn, settings_cb, LV_EVENT_CLICKED, nullptr);
-
-  sosBtn = add_button(scrHome, 200, 414, 194, 74, SOS_BG, 13);
+  // Long SOS bar across the bottom: hold 3 seconds to send.
+  sosBtn = add_button(scrHome, 16, 430, 378, 58, SOS_BG, 14);
   lv_obj_set_style_border_color(sosBtn, lv_color_hex(SOS_BORDER), 0);
   lv_obj_set_style_border_width(sosBtn, 1, 0);
-  lblSosTitle = add_label(sosBtn, "SOS", &lv_font_montserrat_22, SOS_TEXT);
-  lv_obj_align(lblSosTitle, LV_ALIGN_TOP_MID, 0, 8);
-  lblSosHint = add_label(sosBtn, "Hold for 2 seconds", &lv_font_montserrat_12, SOS_TEXT);
-  lv_obj_align(lblSosHint, LV_ALIGN_TOP_MID, 0, 40);
+  lblSosTitle = add_label(sosBtn, "SOS", &lv_font_montserrat_20, SOS_TEXT);
+  lv_obj_align(lblSosTitle, LV_ALIGN_LEFT_MID, 14, 0);
+  lblSosHint = add_label(sosBtn, "Hold for 3 seconds", &lv_font_montserrat_14, SOS_TEXT);
+  lv_obj_align(lblSosHint, LV_ALIGN_RIGHT_MID, -14, 0);
   lv_obj_add_event_cb(sosBtn, sos_btn_event_cb, LV_EVENT_PRESSED, nullptr);
   lv_obj_add_event_cb(sosBtn, sos_btn_event_cb, LV_EVENT_RELEASED, nullptr);
   lv_obj_add_event_cb(sosBtn, sos_btn_event_cb, LV_EVENT_PRESS_LOST, nullptr);
 
   sosHoldBar = lv_bar_create(sosBtn);
-  lv_obj_set_size(sosHoldBar, 160, 8);
-  lv_obj_align(sosHoldBar, LV_ALIGN_BOTTOM_MID, 0, -8);
+  lv_obj_set_size(sosHoldBar, 358, 6);
+  lv_obj_align(sosHoldBar, LV_ALIGN_BOTTOM_MID, 0, -4);
   lv_bar_set_range(sosHoldBar, 0, 100);
   lv_obj_set_style_bg_color(sosHoldBar, lv_color_hex(SOS_BORDER), 0);       // track
   lv_obj_set_style_bg_opa(sosHoldBar, LV_OPA_COVER, 0);
   lv_obj_set_style_bg_color(sosHoldBar, lv_color_hex(SOS_LIVE), LV_PART_INDICATOR);
-  lv_obj_set_style_radius(sosHoldBar, 4, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+  lv_obj_set_style_radius(sosHoldBar, 3, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+}
+
+// More choices screen: the options that moved off the web home.
+void build_more_screen() {
+  scrMore = new_screen(CREAM);
+
+  lv_obj_t *title = add_label(scrMore, "More choices", &lv_font_montserrat_24, INK);
+  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 40);
+
+  const char *labels[3] = {"Call someone I trust", "Let's talk", "Settings"};
+  const char *icons[3] = {LV_SYMBOL_CALL, LV_SYMBOL_ENVELOPE, LV_SYMBOL_SETTINGS};
+  for (int i = 0; i < 3; i++) {
+    lv_obj_t *btn = add_button(scrMore, 35, 100 + i * 84, 340, 72, PALE, 15);
+    lv_obj_t *icon = add_label(btn, icons[i], &lv_font_montserrat_18, FOREST);
+    lv_obj_align(icon, LV_ALIGN_LEFT_MID, 18, 0);
+    lv_obj_t *text = add_label(btn, labels[i], &lv_font_montserrat_16, FOREST);
+    lv_obj_align(text, LV_ALIGN_LEFT_MID, 52, 0);
+    lv_obj_add_event_cb(btn, more_cb, LV_EVENT_CLICKED, (void *)(intptr_t)i);
+  }
+
+  lv_obj_t *back = add_button(scrMore, 35, 372, 340, 56, PALE, 13);
+  lv_obj_t *backText = add_label(back, LV_SYMBOL_LEFT " Back",
+                                 &lv_font_montserrat_16, FOREST);
+  lv_obj_center(backText);
+  lv_obj_add_event_cb(back, back_cb, LV_EVENT_CLICKED, nullptr);
 }
 
 void build_route_screen() {
@@ -526,7 +531,7 @@ void build_sos_screen() {
 void build_checkin_screens() {
   // Stage 1: "How are you feeling?" with the two large answers (.wos-answer).
   scrCheckQ = new_screen(CREAM);
-  make_sprout_avatar(scrCheckQ, 182, 44);
+  make_sprout_avatar(scrCheckQ, 182, 44, 46);
 
   lv_obj_t *title = add_label(scrCheckQ, "How are you feeling?",
                               &lv_font_montserrat_24, INK);
@@ -579,7 +584,7 @@ void build_checkin_screens() {
 void build_mirror_screens() {
   // Acknowledged: wearer answered "I'm okay" but safety checks block NORMAL.
   scrThanks = new_screen(CREAM);
-  make_sprout_avatar(scrThanks, 182, 60);
+  make_sprout_avatar(scrThanks, 182, 60, 46);
   lv_obj_t *tTitle = add_label(scrThanks, "Thank you for telling me.",
                                &lv_font_montserrat_22, INK);
   lv_obj_align(tTitle, LV_ALIGN_TOP_MID, 0, 124);
@@ -612,6 +617,7 @@ bool init() {
 
   build_route_screen();
   build_placeholder_screens();
+  build_more_screen();
   build_settings_screen();
   build_sos_screen();
   build_checkin_screens();
@@ -702,6 +708,17 @@ void sync() {
     lv_obj_set_style_bg_color(dotBle,
                               lv_color_hex(watch.bleConnected ? OK_GREEN : 0x9aa89b),
                               0);
+  }
+
+  if (watch.wearerNameDirty) {
+    watch.wearerNameDirty = false;
+    static char hello[32];
+    if (watch.wearerName[0] != ' ') {
+      snprintf(hello, sizeof(hello), "Hello, %s.", watch.wearerName);
+    } else {
+      snprintf(hello, sizeof(hello), "Hello.");
+    }
+    lv_label_set_text(lblHello, hello);
   }
 }
 

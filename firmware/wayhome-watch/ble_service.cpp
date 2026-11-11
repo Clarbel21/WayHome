@@ -81,13 +81,21 @@ class CompanionCallbacks : public NimBLECharacteristicCallbacks {
 };
 
 class WatchStateCallbacks : public NimBLECharacteristicCallbacks {
-  // Web → device screen mirror: byte0 = screen code, byte1 = route position.
+  // Web → device screen mirror: byte0 = screen code, byte1 = route position,
+  // bytes 2+ = optional wearer first name (ASCII) for the home greeting.
   void onWrite(NimBLECharacteristic *chr, NimBLEConnInfo &connInfo) override {
     NimBLEAttValue value = chr->getValue();
     if (value.size() >= 1) {
       watch.remoteScreen = value[0];
       if (value.size() >= 2 && value[1] <= 6) {
         watch.remotePosition = value[1];
+      }
+      if (value.size() > 2) {
+        size_t n = value.size() - 2;
+        if (n > sizeof(watch.wearerName) - 1) n = sizeof(watch.wearerName) - 1;
+        memcpy(watch.wearerName, value.data() + 2, n);
+        watch.wearerName[n] = '\0';
+        watch.wearerNameDirty = true;
       }
       watch.watchStatePending = true;
     }

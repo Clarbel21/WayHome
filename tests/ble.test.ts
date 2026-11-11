@@ -221,7 +221,9 @@ test("the paired watch receives mirror broadcasts on state changes", async () =>
     chars.watchState.writeValue.mock.calls[
       chars.watchState.writeValue.mock.calls.length - 1
     ];
-  expect(Array.from(lastCall[0])).toEqual([4, expect.any(Number)]);
+  // [code, position, ...wearer first name]
+  expect(Array.from(lastCall[0]).slice(0, 2)).toEqual([4, expect.any(Number)]);
+  expect(lastCall[0].length).toBeGreaterThan(2);
 });
 
 // --- BleDevice against a fake Web Bluetooth stack ---

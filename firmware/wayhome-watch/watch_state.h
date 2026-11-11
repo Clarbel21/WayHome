@@ -37,6 +37,10 @@ struct WatchState {
   volatile uint8_t remoteScreen = 255;
   volatile uint8_t remotePosition = 0;
   volatile bool watchStatePending = false;
+  // Wearer first name from the web (watch_state payload, bytes 2+). The UI
+  // greets "Hello, <name>." like the web watch home.
+  char wearerName[16] = "";
+  volatile bool wearerNameDirty = false;
 
   Attachment attachment() const { return (Attachment)attachmentRaw; }
   void setAttachment(Attachment a) { attachmentRaw = (uint8_t)a; }
