@@ -49,7 +49,10 @@ export function DeviceConnect() {
           <p role="status" className="device-status ok">
             Sprout watch connected · live telemetry
           </p>
-          <button className="button light" onClick={() => bleDevice.disconnect()}>
+          <button
+            className="button light"
+            onClick={() => bleDevice.disconnect()}
+          >
             Disconnect watch
           </button>
         </>

@@ -2,7 +2,7 @@ import { useId, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "../store";
 import { verificationBlockers } from "../services/safety";
-export function ResolveSOSButton() {
+export function ResolveSOSButton({ short = false }: { short?: boolean } = {}) {
   const s = useStore();
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -35,7 +35,7 @@ export function ResolveSOSButton() {
           cancel.current?.focus();
         }}
       >
-        Help received — resolve SOS
+        {short ? "Help is here" : "Help received — resolve SOS"}
       </button>
       <dialog
         ref={dialog}

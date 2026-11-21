@@ -1145,3 +1145,238 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-bubble {
     font-size: 13px;
   }
 }
+
+/* Flexible photos: on short watches the landmark photo gives up height
+   first, so the buttons never fall off the screen. */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-photo2 {
+  min-height: 40px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen:has(.see-it-now) {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  height: 100%;
+  min-height: 0;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen:has(.see-it-now)
+  .wos-breathe {
+  display: none;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen:has(.see-it-now)
+  .wos-photo {
+  flex: 1 1 auto;
+  min-height: 40px;
+  overflow: hidden;
+  border-radius: 14px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen:has(.see-it-now)
+  .wos-photo
+  img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen:has(.see-it-now)
+  > * {
+  margin-block: 0;
+}
+/* The photo's own pixel height must not set the row height. */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-photo2,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen:has(.see-it-now)
+  .wos-photo {
+  flex: 1 1 0;
+  position: relative;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-photo2 img,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen:has(.see-it-now)
+  .wos-photo
+  img {
+  position: absolute;
+  inset: 0;
+}
+
+/* Shorter presenter screens (≤ 800 px tall) give the watch less height:
+   the guide keeps every action but tightens its rows. */
+@media (min-width: 860px) and (max-height: 800px) {
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 {
+    gap: 4px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-guide2.is-walking
+    .wos-dots {
+    display: none;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-dir2 {
+    padding: 3px 8px;
+    min-height: 32px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-photo2 {
+    min-height: 32px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-place {
+    font-size: 15px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-primary {
+    min-height: 42px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-row2 .wos-secondary {
+    min-height: 38px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-guide2
+    > .cancel-guidance {
+    min-height: 26px;
+  }
+}
+@media (min-width: 860px) and (max-width: 1023px) and (min-height: 640px) {
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-primary {
+    min-height: 40px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-photo2 {
+    min-height: 28px;
+  }
+}
+
+/* ---------------------------------------------- big-print pass (rule 6)
+   Every word the wearer reads on the watch is at least 15 px; buttons are
+   at least 44 px tall. The clock and the SOS sub-label are the only
+   exceptions (status, not reading). */
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .speech,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-bubble {
+  font-size: 16px;
+  line-height: 1.25;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-chip,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-list
+  .watch-action,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-row2
+  .wos-secondary,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .cancel-guidance,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-back,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-mode-button,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-handover p,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-sos-who,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-calm,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .resolve-sos-button {
+  font-size: 15px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-chip,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-back,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-mode-button,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-list
+  .watch-action {
+  min-height: 44px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-steps li {
+  font-size: 14px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-handover
+  > strong {
+  font-size: 17px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-honest,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-handover
+  small {
+  font-size: 12px;
+}
+/* Taller watches have room for full-size guide buttons. */
+@media (min-height: 801px) {
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos.wos.wos
+    .wos-row2
+    .wos-secondary,
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos.wos.wos
+    .wos-guide2
+    > .cancel-guidance {
+    min-height: 44px;
+  }
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-list
+  .wos-back {
+  min-height: 44px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-steps {
+  flex-wrap: wrap;
+  justify-content: center;
+  row-gap: 3px;
+  max-width: 100%;
+}
+/* "How can I help?": one full-width answer per row, so no answer wraps. */
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-body[data-screen="help-options"]
+  .wos-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 5px;
+}

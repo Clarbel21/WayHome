@@ -415,8 +415,7 @@ export const useStore = create<State>()(
           !!s.familyRequest && s.familyRequest.status !== "responded";
         const mode =
           scenarioMode(s.signals) ||
-          (verificationBlockers(s).length ||
-          s.checkIn?.stage === "unresolved"
+          (verificationBlockers(s).length || s.checkIn?.stage === "unresolved"
             ? "CHECK_IN"
             : "NORMAL");
         set({

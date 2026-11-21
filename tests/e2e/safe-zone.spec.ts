@@ -123,7 +123,7 @@ test("leftover readings from earlier moments never block the walk home (no loop)
     .click();
   await bar.getByRole("button", { name: "Lost far from home" }).click();
   await watch(page)
-    .getByRole("button", { name: "Yes, help me home" })
+    .getByRole("button", { name: "Yes, go home" })
     .click({ timeout: 5_000 });
   await expect(
     watch(page).getByRole("img", { name: "Stop 1 of 4" }),

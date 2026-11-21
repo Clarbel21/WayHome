@@ -15,7 +15,7 @@ const VIEWPORTS = [
 
 const TILES = [
   "Help me home",
-  "Call someone I trust",
+  "Call family",
   "Let's talk",
   "My memories",
 ] as const;
@@ -129,12 +129,10 @@ for (const viewport of VIEWPORTS) {
       .getByRole("button", { name: "Let's talk", exact: true })
       .click();
     await expect(
-      watch.getByRole("button", { name: "Who is my family?", exact: true }),
+      watch.getByRole("button", { name: "Who's my family?", exact: true }),
     ).toBeVisible();
     await expectWatchFits(page);
-    await watch
-      .getByRole("button", { name: "Back to my watch", exact: true })
-      .click();
+    await watch.getByRole("button", { name: "Back", exact: true }).click();
     await expect(
       watch.getByRole("button", { name: "Help me home", exact: true }),
     ).toBeVisible();
@@ -155,15 +153,13 @@ for (const viewport of VIEWPORTS) {
 
     // Call (family handover): fits, and the exit restores home.
     await watch
-      .getByRole("button", { name: "Call someone I trust", exact: true })
+      .getByRole("button", { name: "Call family", exact: true })
       .click();
     await expect(
-      page.getByRole("button", { name: "Back to my watch", exact: true }),
+      page.getByRole("button", { name: "Back", exact: true }),
     ).toBeVisible();
     await expectWatchFits(page);
-    await page
-      .getByRole("button", { name: "Back to my watch", exact: true })
-      .click();
+    await page.getByRole("button", { name: "Back", exact: true }).click();
     await expect(
       watch.getByRole("button", { name: "Help me home", exact: true }),
     ).toBeVisible();
@@ -202,7 +198,7 @@ for (const viewport of [
       .getByRole("button", { name: "Walk out of safe zone" })
       .click();
     await page.waitForTimeout(400);
-    await watch.getByRole("button", { name: "Yes, help me home" }).click();
+    await watch.getByRole("button", { name: "Yes, go home" }).click();
     await expect(
       watch.getByText(/Go straight|Turn left|Turn right|Do you see/).first(),
     ).toBeVisible();

@@ -53,9 +53,7 @@ test("caregiver acknowledgment is receipt only; SOS needs explicit resolution", 
   // The watch is still in the emergency flow — acknowledgment did not end it.
   await expect(page.getByText("Help request sent — simulation")).toBeVisible();
   await expect(
-    page
-      .getByRole("button", { name: /Help received — resolve SOS|resolve SOS/i })
-      .first(),
+    page.getByRole("button", { name: /Help is here|resolve SOS/i }).first(),
   ).toBeVisible();
 });
 

@@ -12,18 +12,14 @@ test("resolved SOS can return to the companion with confirmation while preservin
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/#/companion");
   await sos(page);
-  await page
-    .getByRole("button", { name: "Help received — resolve SOS", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Help is here", exact: true }).click();
   const modal = page.getByRole("dialog");
   await expect(
     modal.getByRole("button", { name: "Keep SOS active" }),
   ).toBeFocused();
   await modal.getByRole("button", { name: "Keep SOS active" }).click();
   await expect(page.getByText("Help request sent — simulation")).toBeVisible();
-  await page
-    .getByRole("button", { name: "Help received — resolve SOS", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Help is here", exact: true }).click();
   await modal
     .getByRole("button", {
       name: "Caregiver confirms — resolve SOS",
@@ -33,7 +29,7 @@ test("resolved SOS can return to the companion with confirmation while preservin
   await expect(page.getByText("Hi Alex! I'm Sprout.")).toBeVisible();
   await expect(
     page.getByRole("button", {
-      name: "Help received — resolve SOS",
+      name: "Help is here",
       exact: true,
     }),
   ).not.toBeVisible();
@@ -59,9 +55,7 @@ test("caregiver confirmation ends SOS and allows memories despite preserved devi
     .click();
   await page.getByRole("button", { name: /Trigger Simulated SOS/ }).click();
   await page.goto("/#/companion");
-  await page
-    .getByRole("button", { name: "Help received — resolve SOS", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Help is here", exact: true }).click();
   await expect(
     page
       .getByRole("dialog")
@@ -106,9 +100,7 @@ test("a fresh SOS invalidates an open resolution confirmation", async ({
 }) => {
   await page.goto("/#/companion");
   await sos(page);
-  await page
-    .getByRole("button", { name: "Help received — resolve SOS", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Help is here", exact: true }).click();
   const other = await context.newPage();
   await other.goto("/#/companion");
   await sos(other);

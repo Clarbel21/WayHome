@@ -8,9 +8,7 @@ test("help has a working way back and a blocked check-in offers recovery", async
     .getByRole("button", { name: "Start feeling check-in", exact: true })
     .click();
   await page.goto("/#/companion");
-  await page
-    .getByRole("button", { name: "I'd like some help", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Help me", exact: true }).click();
   const contrasts = await page
     .locator(".watch-controls button")
     .evaluateAll((buttons) => {
@@ -87,9 +85,7 @@ test("removal handover provides a request, response and device recovery path", a
   await page.goto("/#/demo");
   await page.getByRole("button", { name: /Simulate Wearable Removal/ }).click();
   await page.goto("/#/companion");
-  await page
-    .getByRole("button", { name: "Call someone I trust", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Call family", exact: true }).click();
   await expect(page.getByText("Waiting…", { exact: true })).toBeVisible();
   await page.goto("/#/caregiver/emergency");
   await page
@@ -164,7 +160,7 @@ test("withdrawing a landmark stops recognition across tabs instead of silently s
     page.getByRole("button", { name: "I see it", exact: true }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("button", { name: "Call someone I trust", exact: true }),
+    page.getByRole("button", { name: "Call family", exact: true }),
   ).toBeVisible();
 });
 

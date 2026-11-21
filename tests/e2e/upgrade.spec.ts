@@ -13,7 +13,7 @@ const caregiver = (page: import("@playwright/test").Page) =>
 
 test("home screen offers four large actions plus SOS", async ({ page }) => {
   const w = wearer(page);
-  for (const name of ["Help me home", "Call someone I trust", "Let's talk"])
+  for (const name of ["Help me home", "Call family", "Let's talk"])
     await expect(w.getByRole("button", { name, exact: true })).toBeVisible();
   await expect(
     w.getByRole("button", { name: "My memories", exact: true }),
@@ -23,7 +23,7 @@ test("home screen offers four large actions plus SOS", async ({ page }) => {
   ).toBeVisible();
   await w.getByRole("button", { name: "Let's talk", exact: true }).click();
   await w
-    .getByRole("button", { name: "Who is my family?", exact: true })
+    .getByRole("button", { name: "Who's my family?", exact: true })
     .click();
   await expect(w.getByText("Jamie Chen is one tap away.")).toBeVisible();
 });
@@ -72,9 +72,7 @@ test("guided walk shows stop progress and ends on a welcome-home screen", async 
   for (let i = 0; i < 4; i++)
     await w.getByRole("button", { name: "I see it", exact: true }).click();
   await expect(w.getByText("Welcome home.", { exact: true })).toBeVisible();
-  await w
-    .getByRole("button", { name: "Back to my watch", exact: true })
-    .click();
+  await w.getByRole("button", { name: "Back", exact: true }).click();
   await expect(
     w.getByRole("button", { name: "Help me home", exact: true }),
   ).toBeVisible();

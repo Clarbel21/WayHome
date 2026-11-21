@@ -17,7 +17,7 @@ import {
   useCaregiverPopups,
   type CaregiverPopup,
 } from "../services/caregiverPopup";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -101,6 +101,23 @@ export function CaregiverPhone() {
   useCare((s) => s.receipts.length);
   const [view, setView] = useState<PhoneView>("today");
   const scrollArea = useRef<HTMLDivElement>(null);
+  // The phone app is laid out once at its design size (a 274 px-wide
+  // screen) and scaled like a screenshot to whatever size the stage gives
+  // the phone. Every screen size shows the same layout: nothing reflows,
+  // wraps differently or gets cut off; it only gets bigger or smaller.
+  const phoneRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = phoneRef.current;
+    if (!el) return;
+    const fit = () => {
+      const screen = Math.max(1, el.getBoundingClientRect().width - 16);
+      el.style.setProperty("--phone-zoom", (screen / 274).toFixed(4));
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   // Bring the caregiver to Today when the wearer leaves the zone or guidance starts,
   // so the escalation ladder and live route map are actually on screen.
   const zoneActive = useZone((z) => z.active);
@@ -160,7 +177,11 @@ export function CaregiverPhone() {
   const activeSection = sections.find((section) => section.id === view);
   const unread = s.alerts.some((a) => !a.read);
   return (
-    <div className="care-phone cpui" aria-label="Caregiver phone interface">
+    <div
+      className="care-phone cpui"
+      ref={phoneRef}
+      aria-label="Caregiver phone interface"
+    >
       <div className="phone-island" aria-hidden="true" />
       <div className="care-phone-screen" data-view={view}>
         <div className="phone-system" aria-hidden="true">
@@ -689,7 +710,10 @@ function PhoneToday() {
       {/* 6 — one row carries connection, battery and the single last-known
           location reading. Live maps and the radius slider live in Care tools. */}
       {!isEmergency && (
-        <section className="cph-summary" aria-label="Device and location summary">
+        <section
+          className="cph-summary"
+          aria-label="Device and location summary"
+        >
           <span className="cph-summary-item">
             <Wifi size={14} aria-hidden="true" />
             <strong>{s.connected ? t("connected") : t("disconnected")}</strong>

@@ -139,6 +139,6 @@ test("wearer recognition returns home, empty approval offers help, and a short S
   await page.goto("/#/companion");
   await page.getByRole("button", { name: "Help me home" }).click();
   await expect(page.getByText("No approved landmarks yet.")).toBeVisible();
-  await page.getByRole("button", { name: "Call someone I trust" }).click();
+  await page.getByRole("button", { name: "Call family" }).click();
   await expect(page.getByText("Demo — no real call.")).toBeVisible();
 });

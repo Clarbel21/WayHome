@@ -1,4 +1,8 @@
-import { type DeviceEvent, type DeviceService, applyDeviceEvent } from "./device";
+import {
+  type DeviceEvent,
+  type DeviceService,
+  applyDeviceEvent,
+} from "./device";
 import { type Attachment, type Observation, type WearInputs } from "./safety";
 import { useStore } from "../store";
 
@@ -151,7 +155,9 @@ export class BleDevice implements DeviceService {
     const device = await navigator.bluetooth.requestDevice({
       filters: [{ services: [WAYHOME_SERVICE_UUID] }],
     });
-    device.addEventListener("gattserverdisconnected", () => this.handleDisconnect());
+    device.addEventListener("gattserverdisconnected", () =>
+      this.handleDisconnect(),
+    );
     this.device = device;
 
     const server = await device.gatt!.connect();
@@ -241,7 +247,8 @@ export class BleDevice implements DeviceService {
     const s = useStore.getState();
     const code = watchScreenCode(s);
     const position = Math.max(0, Math.min(6, Math.round(s.position)));
-    if (code === this.lastSentCode && position === this.lastSentPosition) return;
+    if (code === this.lastSentCode && position === this.lastSentPosition)
+      return;
     this.lastSentCode = code;
     this.lastSentPosition = position;
     const service = await server.getPrimaryService(WAYHOME_SERVICE_UUID);
@@ -288,7 +295,9 @@ export class BleDevice implements DeviceService {
       this.unsubscribeStore();
       this.unsubscribeStore = null;
     }
-    this.notifyTargets.forEach((c) => void c.stopNotifications().catch(() => {}));
+    this.notifyTargets.forEach(
+      (c) => void c.stopNotifications().catch(() => {}),
+    );
     this.notifyTargets = [];
     this.emit({ type: "connection", connected: false });
   }

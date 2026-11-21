@@ -181,17 +181,13 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
   ).toBeVisible();
   await page.getByRole("button", { name: "Maybe later", exact: true }).click();
   await page.getByRole("button", { name: "Let's talk", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Something comforting", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Comfort me", exact: true }).click();
   await expect(
     page.getByText("Take your time. I'm here.", {
       exact: true,
     }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Back to my watch", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Back", exact: true }).click();
   // Memories open on the watch itself and close back to the watch home.
   await page.getByRole("button", { name: "My memories", exact: true }).click();
   await expect(page.locator(".wos-memories")).toBeVisible();
@@ -350,9 +346,7 @@ for (const [width, height] of [
     await page
       .getByRole("button", { name: "Send a check-in", exact: true })
       .click();
-    await page
-      .getByRole("button", { name: "I'd like some help", exact: true })
-      .click();
+    await page.getByRole("button", { name: "Help me", exact: true }).click();
     await fits();
   });
 

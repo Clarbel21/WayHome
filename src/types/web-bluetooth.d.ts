@@ -11,7 +11,9 @@ interface BluetoothRemoteGATTCharacteristic extends EventTarget {
 }
 
 interface BluetoothRemoteGATTService {
-  getCharacteristic(name: string | number): Promise<BluetoothRemoteGATTCharacteristic>;
+  getCharacteristic(
+    name: string | number,
+  ): Promise<BluetoothRemoteGATTCharacteristic>;
 }
 
 interface BluetoothRemoteGATTServer {
