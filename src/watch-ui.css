@@ -1,0 +1,846 @@
+/* ============================================================
+   watch-ui.css — simplified watch home for elderly wearers.
+
+   Scope: only the inside of the web watch screen (.watch-screen.wos).
+   The device frame, straps and the caregiver phone are styled by the
+   shared stylesheets and are deliberately untouched here.
+
+   Anchoring: this file is imported by Wearable.tsx, which the bundler
+   emits BEFORE main.tsx's stylesheet imports — so upgrade.css (the
+   last shared layer) would win every specificity tie. Every rule
+   therefore starts with
+
+     html .watch-area .watch .watch-screen.wh-screen.wos …
+
+   where `wh-screen` is an extra class Wearable.tsx puts on the screen
+   element. That prefix carries one more class + the `html` element
+   than either upgrade.css tier (base `.watch-area .watch
+   .watch-screen.wos …` and its `.shared-experience` variant), so these
+   rules win on specificity alone, independent of bundle order.
+
+   Design rules (TEAM_PLAN v2 + watch-elderly-ui brief):
+   - home = 2×2 emoji tiles (🏠 Home / 📞 Call / 💬 Talk / 🎮 Game)
+     plus one separate full-width SOS bar pinned to the bottom;
+   - nothing on the watch scrolls: dense screens are compacted to fit
+     the smallest supported stage (880x700-class tier at the end);
+   - cream / sage / dark-green identity; SOS stays the red exception;
+   - accessible names, onClick actions and test hooks are unchanged —
+     this file restyles; redundant decoration and simulation metadata
+     are the only content removed (minimal-text rule, TEAM_PLAN v2).
+   ============================================================ */
+
+/* ---------------------------------------------- watch status row */
+/* Minimal metadata: time left, connection + low-battery signal right.
+   (Wearable.tsx no longer renders the companion name or the percent
+   while the battery is healthy; the greeting speaks the name.) */
+html .watch-area .watch .watch-screen.wh-screen.wos .watch-status {
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.2px;
+  color: #43594d;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .watch-status
+  .watch-signal {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 650;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-live {
+  width: 8px;
+  height: 8px;
+}
+
+/* ---------------------------------------------- shared watch pieces */
+/* One calm mascot size everywhere; talk and home override it locally. */
+html .watch-area .watch .watch-screen.wh-screen.wos .sprout {
+  height: 44px;
+  width: 48px;
+}
+
+/* ---------------------------------------------- home: greeting row */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-home {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 8px;
+  min-height: 0;
+  margin-block: 0;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-hello {
+  flex-shrink: 0;
+  justify-content: center;
+  gap: 7px;
+  padding-top: 2px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-hello .sprout {
+  width: 40px;
+  height: 38px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-hello .speech {
+  font-size: 13.5px;
+  font-weight: 650;
+  line-height: 1.25;
+  margin: 0;
+  max-width: none;
+  text-align: left;
+  color: #43594d;
+}
+
+/* ---------------------------------------------- home: 2×2 emoji grid */
+/* The grid owns all leftover height, so the four tiles stay equal and
+   the screen reads as one balanced face — no dead strip above SOS. */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-emoji-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+  margin-top: 2px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-emoji-tile {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 6px;
+  border: 2px solid #d8e2d0;
+  border-radius: 18px;
+  background: var(--wh-surface);
+  font-size: 15.5px;
+  font-weight: 750;
+  line-height: 1.15;
+  color: var(--wh-ink);
+  box-shadow: 0 2px 6px rgba(40, 72, 59, 0.07);
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-emoji-tile:hover {
+  filter: none;
+  background: #f1f5ec;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-emoji-tile:active {
+  background: var(--wh-pale);
+  transform: scale(0.97);
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-emoji-symbol {
+  font-size: 34px;
+  line-height: 1;
+}
+
+/* ---------------------------------------------- footer: one column */
+/* Every footer control is a full-width row, so the SOS bar is one
+   separate full-width bar at the very bottom of the watch. On the
+   safety and activity screens Wearable.tsx renders the SOS bar alone. */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+/* The mode chip stays available on home (same action, same name) but
+   reads as a quiet settings control above the SOS bar. */
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-footer
+  .wos-mode-button {
+  width: 100%;
+  min-height: 40px;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  letter-spacing: 0.1px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-footer
+  .wos-footer-cancel {
+  width: 100%;
+  min-height: 44px;
+  font-size: 12.5px;
+}
+
+/* ---------------------------------------------- SOS hold bar */
+/* One unmistakable bar in the palette's emergency red. The 3-second
+   hold and its fill sweep are the existing safety behavior; only the
+   styling changes. White-on-red measures ≈7:1 contrast. */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-footer .sos-hold,
+html .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 10px;
+  border-radius: 16px;
+  border: 0;
+  background: var(--wh-emergency);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  gap: 9px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-footer
+  button.sos-hold
+  > span,
+html .watch-area .watch .watch-screen.wh-screen.wos .sos-hold > span {
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: 0.2px;
+  opacity: 0.95;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .sos-hold .sos-fill {
+  background: rgba(255, 255, 255, 0.3);
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .sos-hold.holding {
+  background: #b0434e;
+  color: #fff;
+  box-shadow: none;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .sos-hold:active {
+  transform: none;
+}
+
+/* ---------------------------------------------- talk screens */
+/* Four conversation choices stay one tap away; the mascot, bubble and
+   rows lose their spare padding so nothing clips on the small stages
+   (this screen was already clipped before this file existed). */
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="talk-"]
+  .wos-talk-head {
+  margin-bottom: 4px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="talk-"]
+  .wos-talk-head
+  .sprout {
+  width: 36px;
+  height: 34px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="talk-"]
+  .wos-bubble {
+  padding: 6px 9px;
+  font-size: 12.5px;
+  line-height: 1.25;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="talk-"]
+  .watch-controls {
+  gap: 5px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="talk-"]
+  .wos-chip {
+  min-height: 40px;
+  font-size: 12.5px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="talk-"]
+  .wos-back {
+  min-height: 38px;
+}
+
+/* ---------------------------------------------- caregiver handover */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-handover .avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 17px;
+  margin: 0 auto;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-handover > p {
+  font-size: 12px;
+  line-height: 1.3;
+  margin: 2px 0;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-handover .speech {
+  font-size: 14px;
+  line-height: 1.2;
+  margin: 2px auto 2px;
+}
+/* The simulation disclosure stays (a shared test and the "facts stay
+   factual" rule both read it); it is simply set smaller. */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-handover > small {
+  font-size: 9.5px;
+  line-height: 1.25;
+  display: block;
+  margin: 2px 0;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-handover
+  .wos-steps
+  li {
+  font-size: 10px;
+  padding: 2px 6px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-handover .wos-steps {
+  margin: 3px 0;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-handover .wos-back {
+  min-height: 38px;
+  margin-top: 2px;
+}
+
+/* ---------------------------------------------- emergency (SOS) screen */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-sos-icon {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 2px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-sos-icon svg {
+  width: 22px;
+  height: 22px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-sos .speech {
+  font-size: 15px;
+  line-height: 1.2;
+  margin: 2px auto 4px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-steps {
+  margin: 4px 0;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-steps li {
+  font-size: 10.5px;
+  padding: 3px 7px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-sos-who {
+  font-size: 12px;
+  margin: 0 0 2px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .sos-message {
+  padding: 5px 7px;
+  margin: 2px 0;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .sos-message p {
+  font-size: 11px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .sos-message small {
+  font-size: 9px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-calm {
+  font-size: 12px;
+  margin: 2px 0;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .resolve-sos-button {
+  min-height: 44px;
+  font-size: 12.5px;
+  margin-top: 2px;
+}
+
+/* ---------------------------------------------- guided return */
+/* The photo, the place name and the "I see it" question are the
+   guidance; the long explanation paragraph repeats what the companion
+   already says aloud (focus mode drops it for the same reason). The
+   recognition question itself is never touched. */
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-guide
+  .wos-photo
+  img {
+  height: 48px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-guide
+  > p:not(.wos-question) {
+  display: none;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-guide
+  .recognition-cue {
+  display: none;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-guide
+  > strong {
+  font-size: 16px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide .wos-question {
+  font-size: 16px;
+  line-height: 1.2;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide-top {
+  margin: 0 0 2px;
+  font-size: 10px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-direction {
+  min-height: 36px;
+  margin-bottom: 2px;
+  padding: 4px 7px;
+  gap: 7px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-direction b {
+  font-size: 13.5px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-direction small {
+  font-size: 10.5px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-direction svg {
+  width: 18px;
+  height: 18px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide .wos-primary {
+  margin-top: 2px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide .wos-secondary {
+  margin-top: 2px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide .wos-row {
+  margin-top: 2px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-guide
+  .wos-row
+  .wos-ghost {
+  min-height: 34px;
+}
+
+/* ---------------------------------------------- reorientation (calm) */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-breathe {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-breathe span {
+  width: 20px;
+  height: 20px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-calm-screen .speech {
+  font-size: 14px;
+  line-height: 1.2;
+  margin: 2px auto 4px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen
+  .wos-photo
+  img {
+  height: 44px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-missed-name {
+  font-size: 15px;
+  margin: 2px 0;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-calm-screen > p {
+  font-size: 12px;
+  margin: 2px 0;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen
+  .wos-primary {
+  min-height: 46px;
+  margin-top: 4px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen
+  .wos-secondary {
+  min-height: 42px;
+  margin-top: 4px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen
+  .wos-ghost {
+  min-height: 38px;
+}
+
+/* ---------------------------------------------- check-in help options */
+/* Four stacked rows never fit the small stages; a 2×2 choice grid with
+   a full-width row back keeps every option a large, equal target. */
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="help-options"]
+  .watch-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="help-options"]
+  .watch-controls
+  .wos-back {
+  grid-column: 1 / -1;
+  min-height: 36px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="help-options"]
+  .watch-action {
+  min-height: 48px;
+  padding: 6px;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: normal;
+  text-align: center;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="help-options"]
+  .watch-action
+  svg {
+  width: 15px;
+  height: 15px;
+}
+/* The mascot and the note are dropped on this dense screen; the four
+   answers and the way back are what matters here. */
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="help-options"]
+  .sprout {
+  display: none;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="help-options"]
+  .speech {
+  font-size: 14px;
+  margin: 0 auto 2px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="help-options"]
+  .wos-note {
+  font-size: 11px;
+  padding: 4px 6px;
+  margin: 2px 0;
+}
+
+/* ---------------------------------------------- experience-mode picker */
+/* Icon + mode name is enough on the watch (minimal-text rule): the
+   hint sentences go; the mode name is what tests and screen readers
+   key on, and it stays. */
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="choose-experience-mode"]
+  .wos-mode-picker
+  > svg {
+  width: 26px;
+  height: 26px;
+  padding: 4px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="choose-experience-mode"]
+  .wos-mode-picker
+  > strong {
+  font-size: 16px;
+  margin: 0 0 4px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="choose-experience-mode"]
+  .wos-mode-notice {
+  display: none;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="choose-experience-mode"]
+  .wos-mode-choice {
+  min-height: 44px;
+  font-size: 13px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="choose-experience-mode"]
+  .wos-mode-choice
+  small {
+  display: none;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="choose-experience-mode"]
+  .wos-back {
+  min-height: 34px;
+}
+
+/* ---------------------------------------------- large-text restores */
+/* Large-text is an accessibility mode: give back the bigger type the
+   compact home layout trimmed. */
+html
+  .large-text
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-hello
+  .speech {
+  font-size: 17px;
+}
+html
+  .large-text
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-emoji-tile {
+  font-size: 17px;
+}
+html
+  .large-text
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-emoji-symbol {
+  font-size: 40px;
+}
+html
+  .large-text
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-footer
+  .sos-hold,
+html .large-text .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
+  min-height: 52px;
+}
+
+/* ---------------------------------------------- 880x700-class tier */
+/* The fit lock shrinks the watch frame to ~380px on the narrow-desktop
+   stage (upgrade.css, "880x700 class"). Compact the home by the same
+   amount so the four tiles and the SOS bar still fit without scroll. */
+@media (min-width: 860px) and (max-width: 1023px) and (min-height: 640px) {
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-home {
+    gap: 6px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-hello .sprout {
+    width: 30px;
+    height: 28px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-hello .speech {
+    font-size: 12.5px;
+    line-height: 1.2;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-emoji-grid {
+    gap: 8px;
+    margin-top: 0;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-emoji-tile {
+    padding: 8px 6px;
+    gap: 4px;
+    border-radius: 16px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-emoji-symbol {
+    font-size: 28px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-footer {
+    gap: 5px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-footer
+    .wos-mode-button {
+    min-height: 34px;
+  }
+  /* Dense screens give up a little more on the smallest stage. */
+  html .watch-area .watch .watch-screen.wh-screen.wos .sprout {
+    height: 36px;
+    width: 40px;
+  }
+  /* A hairline bezel buys the dense screens ten pixels of screen. */
+  html .watch-area .watch {
+    padding: 6px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos {
+    border-width: 3px;
+    padding: 8px 10px 9px;
+    gap: 4px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen^="guide-"]
+    .wos-guide
+    .wos-photo
+    img {
+    height: 26px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen^="guide-"]
+    .wos-guide
+    > strong {
+    font-size: 15px;
+    line-height: 1.15;
+  }
+  /* Progress is carried by the dots row on this stage; the written
+     stop counter and the distance line step aside. */
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen^="guide-"]
+    .wos-guide-top {
+    display: none;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-direction small {
+    display: none;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen^="guide-"]
+    .wos-direction {
+    min-height: 30px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-calm-screen
+    .wos-photo
+    img {
+    height: 30px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-breathe {
+    width: 30px;
+    height: 30px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-breathe span {
+    width: 14px;
+    height: 14px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen^="talk-"]
+    .wos-chip {
+    min-height: 38px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen="help-options"]
+    .watch-action {
+    min-height: 44px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen="choose-experience-mode"]
+    .wos-mode-choice {
+    min-height: 38px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen="choose-experience-mode"]
+    .wos-mode-picker
+    > svg {
+    width: 22px;
+    height: 22px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen="choose-experience-mode"]
+    .wos-back {
+    min-height: 30px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-footer .sos-hold,
+  html .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
+    min-height: 44px;
+  }
+}
