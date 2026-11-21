@@ -937,3 +937,32 @@
 .large-text .care-phone.cpui .cph-mode .phone-mode-dock-options button {
   font-size: 13px;
 }
+
+/* ==========================================================================
+   Presenter framing (phone-only). The shared fit lock sizes every phone from
+   viewport height at a 0.4845 ratio, which makes this phone look unnaturally
+   narrow beside the watch on wide/short presenter windows. Give the caregiver
+   phone a fuller silhouette while leaving the watch, device order and all
+   shared stage rules untouched.
+   ========================================================================== */
+@media (min-width: 1400px) and (min-height: 700px) and (min-aspect-ratio: 1.9 / 1) {
+  .shared-experience:not(.large-text) .care-phone.cpui {
+    --phone-height: min(650px, calc(100dvh - 250px));
+    width: calc(var(--phone-height) * 0.57);
+    max-width: none;
+  }
+}
+
+/* Keep the demo entry point easy to find: when the caregiver phone is on
+   stage, place "Explore demo controls" on the left of the header instead of
+   leaving it in the crowded right-hand action group. */
+.companion-page:has(.care-phone.cpui) .stage-header-actions {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.companion-page:has(.care-phone.cpui)
+  .stage-header-actions
+  > a.text-button:first-of-type {
+  order: -1;
+  margin-right: auto;
+}
