@@ -53,10 +53,14 @@ For each watch action, walk the full loop and fix gaps:
 - **Game**: watch tile → Memory Garden; safety interrupts pause it on both ends.
 - **Check-in / SOS / attachment / battery / wear**: already two-way; re-verify each.
 
-## Phase A1 — merge `classic-return` into main (itsme-lahlou reviews, then merge)
+## Phase A1 — merge `classic-return` into main (DONE 21 Nov)
 
 - `classic-return` IS the classic design (branched from `63c2a46`) with the BLE
   stack and the emoji watch carried forward — the shell revert is already done.
+- Merged and deployed: main now serves the classic design with the emoji watch
+  (build dca3de4). This also fixed a live regression where the redesign had
+  turned the SOS button into an instant tap-to-send — it is hold-3-seconds again,
+  verified on the deployed site (tap sends nothing, hold 3 s sends once).
 - Review the diff against `63c2a46` (only the watch home, SOS timing, mirror name
   bytes and test updates changed) and fast-forward `main`.
 - The redesign work stays archived on `esp32-watch-ble` for reference.
