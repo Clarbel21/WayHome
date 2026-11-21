@@ -51,7 +51,7 @@ export function DemoStage() {
       id: "zone-out",
       label: { en: "Walk out of safe zone", id: "Keluar zona aman" },
       watch: {
-        en: "The dot crosses the radius. The watch vibrates and asks “Heading home?”. The phone shows the escalation ladder.",
+        en: "The dot crosses the radius. The watch vibrates and asks “Go home?”. The phone shows the escalation ladder.",
         id: "Titik melewati radius. Jam bergetar dan bertanya “Mau pulang?”. Ponsel menampilkan tahap eskalasi.",
       },
       icon: Route,
@@ -62,8 +62,8 @@ export function DemoStage() {
       id: "zone-lost",
       label: { en: "Lost far from home", id: "Tersesat jauh" },
       watch: {
-        en: "Jumps well outside the zone. Tap “Yes, take me home” to start landmark-by-landmark guidance.",
-        id: "Langsung jauh di luar zona. Ketuk “Ya, antar aku pulang” untuk panduan tempat demi tempat.",
+        en: "Jumps well outside the zone. Tap “Yes, go home” to start landmark-by-landmark guidance.",
+        id: "Langsung jauh di luar zona. Ketuk “Ya, pulang” untuk panduan tempat demi tempat.",
       },
       icon: MapPinned,
       run: fresh(() => useZone.getState().lostFar()),
@@ -114,8 +114,8 @@ export function DemoStage() {
       id: "gps",
       label: { en: "Weak GPS", id: "GPS lemah" },
       watch: {
-        en: "Directions pause instead of guessing. Phone shows low confidence.",
-        id: "Arahan dijeda, bukan menebak. Ponsel menunjukkan keyakinan rendah.",
+        en: "The watch checks in instead of guessing a route. Phone shows low GPS confidence.",
+        id: "Jam menanyakan kabar alih-alih menebak rute. Ponsel menunjukkan GPS lemah.",
       },
       icon: SatelliteDish,
       run: () => s.simulateScenario("gps"),

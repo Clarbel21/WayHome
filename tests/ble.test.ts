@@ -1,5 +1,5 @@
 import { beforeEach, expect, test, vi } from "vitest";
-import { useStore } from "../src/store";
+import { initialLandmarks, useStore } from "../src/store";
 import { applyDeviceEvent, SimulatedDevice } from "../src/services/device";
 import {
   BleDevice,
@@ -7,7 +7,9 @@ import {
   batteryEvent,
   companionEvent,
   gpsEvent,
+  watchNames,
   watchScreenCode,
+  watchStatePayload,
   wearEvent,
 } from "../src/services/ble";
 
@@ -325,4 +327,33 @@ test("the simulated adapter still emits through the shared mapping", async () =>
   expect(state().battery).toBe(12);
   sim.disconnect();
   expect(state().connected).toBe(false);
+});
+
+test("watch 'Not yet' and 'I see it now' drive the same walk as the web watch", () => {
+  expect(companionEvent(view([0x08]))).toEqual({ type: "landmark_missed" });
+  expect(companionEvent(view([0x09]))).toEqual({ type: "landmark_seen_now" });
+  useStore.setState({ landmarks: initialLandmarks, connected: true });
+  state().chooseAssistance("home");
+  expect(state().mode).toBe("GUIDED_RETURN");
+  state().nextLandmark();
+  const index = state().guideIndex;
+  applyDeviceEvent({ type: "landmark_missed" });
+  expect(state().mode).toBe("REORIENTATION");
+  expect(watchScreenCode(state())).toBe(7);
+  applyDeviceEvent({ type: "landmark_seen_now" });
+  expect(state().mode).toBe("GUIDED_RETURN");
+  expect(state().guideIndex).toBe(index + 1);
+  expect(watchScreenCode(state())).toBe(3);
+});
+
+test("watch greeting names fit one 20-byte write", () => {
+  expect(watchNames("Amy Tan", "Momo")).toBe("Amy|Momo");
+  expect(watchNames("Alex", "")).toBe("Alex");
+  const long = watchNames("Maximiliano Rodriguez", "Sproutington the Great");
+  expect(long.length).toBeLessThanOrEqual(18);
+  expect(long.startsWith("Maximilia|")).toBe(true);
+  const payload = watchStatePayload(3, 2, long);
+  expect(payload.length).toBeLessThanOrEqual(20);
+  expect([payload[0], payload[1]]).toEqual([3, 2]);
+  expect(watchNames("Zoë", "Momo|x")).toBe("Zo|Momox");
 });

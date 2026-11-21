@@ -322,8 +322,10 @@ for (const [width, height] of [
       });
       expect(boxes.page).toBeLessThanOrEqual(height + 1);
       expect(boxes.phone.bottom).toBeLessThanOrEqual(height);
-      expect(boxes.watch.bottom).toBeLessThanOrEqual(boxes.toolbar.top + 1);
-      expect(boxes.sos.bottom).toBeLessThanOrEqual(boxes.toolbar.top + 1);
+      // Wide screens: the demo moments are a left column beside the devices.
+      expect(boxes.toolbar.right).toBeLessThanOrEqual(boxes.phone.left);
+      expect(boxes.watch.bottom).toBeLessThanOrEqual(height);
+      expect(boxes.sos.bottom).toBeLessThanOrEqual(height);
       // Classic presentation: caregiver phone left, watch right (TEAM_PLAN).
       expect(boxes.phone.right).toBeLessThan(boxes.watch.left);
     }

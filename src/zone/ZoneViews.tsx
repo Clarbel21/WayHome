@@ -16,7 +16,14 @@ const CY = 82;
 const SPAN = 66; // px from home to the edge of the drawn area
 
 /** Top-down safe-zone map: home, radius, wearer and (while guiding) landmarks. */
-export function ZoneMap({ withSlider = true }: { withSlider?: boolean }) {
+export function ZoneMap({
+  withSlider = true,
+  compact = false,
+}: {
+  withSlider?: boolean;
+  /** A short, wide crop centred on home (caregiver phone Today card). */
+  compact?: boolean;
+}) {
   const z = useZone();
   const s = useStore();
   const t = useT();
@@ -43,9 +50,10 @@ export function ZoneMap({ withSlider = true }: { withSlider?: boolean }) {
       : [];
   const outside = z.distanceM > z.radiusM;
   return (
-    <div className="zone-map">
+    <div className={`zone-map ${compact ? "compact" : ""}`}>
       <svg
         viewBox="0 0 300 164"
+        preserveAspectRatio={compact ? "xMidYMid slice" : undefined}
         role="img"
         aria-label={`Safe zone map: radius ${z.radiusM} m, wearer ${Math.round(z.distanceM)} m from home (simulated)`}
       >
