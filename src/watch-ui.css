@@ -368,7 +368,11 @@ html .watch-area .watch .watch-screen.wh-screen.wos .resolve-sos-button {
 /* The photo, the place name and the "I see it" question are the
    guidance; the long explanation paragraph repeats what the companion
    already says aloud (focus mode drops it for the same reason). The
-   recognition question itself is never touched. */
+   recognition question itself is never touched.
+   While walking — with the direction block, and sometimes a status
+   note or the paused-guidance warning, on the same screen — every row
+   is compact so the words can never clip. When a note or warning does
+   join, the photo strip yields its row to it. */
 html
   .watch-area
   .watch
@@ -377,7 +381,23 @@ html
   .wos-guide
   .wos-photo
   img {
-  height: 48px;
+  height: 44px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-guide:has(.wos-note)
+  .wos-photo,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-guide:has(.wos-warn)
+  .wos-photo {
+  display: none;
 }
 html
   .watch-area
@@ -405,8 +425,25 @@ html
   font-size: 16px;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide .wos-question {
-  font-size: 16px;
+  font-size: 15.5px;
   line-height: 1.2;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-note,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-warn {
+  font-size: 10.5px;
+  line-height: 1.25;
+  padding: 3px 6px;
+  margin: 2px 0 0;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide-top {
   margin: 0 0 2px;
@@ -418,18 +455,36 @@ html
   .watch-screen.wh-screen.wos
   .wos-body[data-screen^="guide-"]
   .wos-direction {
-  min-height: 36px;
+  min-height: 32px;
   margin-bottom: 2px;
   padding: 4px 7px;
   gap: 7px;
 }
-html .watch-area .watch .watch-screen.wh-screen.wos .wos-direction b {
-  font-size: 13.5px;
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-direction
+  b {
+  font-size: 14px;
 }
-html .watch-area .watch .watch-screen.wh-screen.wos .wos-direction small {
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-direction
+  small {
   font-size: 10.5px;
 }
-html .watch-area .watch .watch-screen.wh-screen.wos .wos-direction svg {
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-direction
+  svg {
   width: 18px;
   height: 18px;
 }
@@ -584,6 +639,50 @@ html
   .wos-note {
   font-size: 11px;
   padding: 4px 6px;
+  margin: 2px 0;
+}
+
+/* ---------------------------------------------- check-in question */
+/* The feeling check-in can run while a status note is on screen
+   (e.g. after the weak-GPS moment): the mascot, greeting and note rows
+   are compact so the two answers always fit below them. */
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="CHECK_IN"]
+  .sprout {
+  width: 30px;
+  height: 28px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="CHECK_IN"]
+  .speech {
+  font-size: 15px;
+  line-height: 1.2;
+  margin: 2px auto 3px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="CHECK_IN"]
+  .wos-kicker {
+  font-size: 11px;
+  margin: 0 0 3px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="CHECK_IN"]
+  .wos-note {
+  font-size: 11px;
+  line-height: 1.25;
+  padding: 3px 6px;
   margin: 2px 0;
 }
 
@@ -812,6 +911,54 @@ html .large-text .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
     .wos-body[data-screen="help-options"]
     .watch-action {
     min-height: 44px;
+  }
+  /* The feeling check-in with a note on the smallest stage. */
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen="CHECK_IN"]
+    .sprout {
+    width: 24px;
+    height: 22px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen="CHECK_IN"]
+    .speech {
+    font-size: 13px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen="CHECK_IN"]
+    .wos-note {
+    font-size: 10px;
+    padding: 2px 5px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen="CHECK_IN"]
+    .wos-answer
+    button
+    svg {
+    width: 16px;
+    height: 16px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen="CHECK_IN"]
+    .wos-answer
+    .watch-action {
+    font-size: 12.5px;
+    line-height: 1.15;
   }
   html
     .watch-area

@@ -185,6 +185,42 @@ for (const viewport of VIEWPORTS) {
   });
 }
 
+for (const viewport of [
+  { width: 1280, height: 720 },
+  { width: 880, height: 700 },
+]) {
+  test(`safe-zone walk fits ${viewport.width}x${viewport.height} while walking, with notes and during a paused check-in`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await openFresh(page);
+    const watch = watchOf(page);
+    const moments = page.getByRole("toolbar", { name: "Demo moments" });
+
+    // The walk: direction block and status notes share the screen.
+    await moments
+      .getByRole("button", { name: "Walk out of safe zone" })
+      .click();
+    await page.waitForTimeout(400);
+    await watch.getByRole("button", { name: "Yes, help me home" }).click();
+    await expect(
+      watch.getByText(/Go straight|Turn left|Turn right|Do you see/).first(),
+    ).toBeVisible();
+    await expectWatchFits(page);
+
+    // Weak GPS pauses guidance and opens a feeling check-in while the
+    // note is still on screen: the two answers must still fit.
+    await moments.getByRole("button", { name: "Weak GPS" }).click();
+    await expect(
+      watch.getByText("How are you feeling?", { exact: true }),
+    ).toBeVisible();
+    await expectWatchFits(page);
+    await expect(
+      watch.getByRole("button", { name: "I'm okay", exact: true }),
+    ).toBeVisible();
+  });
+}
+
 test("a quick SOS tap sends nothing; the 3-second hold still does", async ({
   page,
 }) => {
