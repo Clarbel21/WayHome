@@ -59,7 +59,9 @@ std::shared_ptr<Arduino_IIC_DriveBus> IIC_Bus =
 void Arduino_IIC_Touch_Interrupt(void);
 
 std::unique_ptr<Arduino_IIC> FT3168(new Arduino_FT3x68(IIC_Bus, FT3168_DEVICE_ADDRESS,
-                                                       DRIVEBUS_DEFAULT_VALUE, TP_INT, Arduino_IIC_Touch_Interrupt));
+                                                       TP_RESET, TP_INT, Arduino_IIC_Touch_Interrupt));
+// TP_RESET (GPIO9) lets the driver hard-reset the touch chip at start-up, so
+// a slow or stuck FT3168 comes up cleanly instead of ignoring taps.
 
 void Arduino_IIC_Touch_Interrupt(void) {
   FT3168->IIC_Interrupt_Flag = true;
@@ -193,11 +195,15 @@ void my_disp_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map) {
 }
 
 void my_touchpad_read(lv_indev_t *indev, lv_indev_data_t *data) {
-  int32_t touchX = FT3168->IIC_Read_Device_Value(FT3168->Arduino_IIC_Touch::Value_Information::TOUCH_COORDINATE_X);
-  int32_t touchY = FT3168->IIC_Read_Device_Value(FT3168->Arduino_IIC_Touch::Value_Information::TOUCH_COORDINATE_Y);
+  // Ask the chip how many fingers are down (polling), instead of relying only
+  // on the interrupt pulse: a missed pulse no longer means a missed tap.
+  int32_t fingers = FT3168->IIC_Read_Device_Value(FT3168->Arduino_IIC_Touch::Value_Information::TOUCH_FINGER_NUMBER);
+  bool pressed = fingers > 0 || FT3168->IIC_Interrupt_Flag;
+  FT3168->IIC_Interrupt_Flag = false;
 
-  if (FT3168->IIC_Interrupt_Flag == true) {
-    FT3168->IIC_Interrupt_Flag = false;
+  if (pressed) {
+    int32_t touchX = FT3168->IIC_Read_Device_Value(FT3168->Arduino_IIC_Touch::Value_Information::TOUCH_COORDINATE_X);
+    int32_t touchY = FT3168->IIC_Read_Device_Value(FT3168->Arduino_IIC_Touch::Value_Information::TOUCH_COORDINATE_Y);
     data->state = LV_INDEV_STATE_PR;
     data->point.x = touchX;
     data->point.y = touchY;
@@ -235,12 +241,13 @@ void setup() {
   Wire.begin(IIC_SDA, IIC_SCL);
 
   // Touch
+  int touchTries = 1;
   while (FT3168->begin() == false) {
-    USBSerial.println("FT3168 initialization fail");
+    USBSerial.printf("FT3168 initialization fail (try %d), retrying\n", touchTries++);
     delay(2000);
   }
   FT3168->IIC_Write_Device_State(FT3168->Arduino_IIC_Touch::Device::TOUCH_POWER_MODE,
-                                 FT3168->Arduino_IIC_Touch::Device_Mode::TOUCH_POWER_MONITOR);
+                                 FT3168->Arduino_IIC_Touch::Device_Mode::TOUCH_POWER_ACTIVE);  // never dozes past a tap
 
   // PMIC (explicit begin: the shipped example relies on the default ctor)
   if (!power.begin(Wire, AXP2101_SLAVE_ADDRESS, IIC_SDA, IIC_SCL)) {
@@ -315,7 +322,7 @@ void setup() {
 
   bootMs = millis();
   lastActiveMs = millis();
-  USBSerial.println("Setup done");
+  USBSerial.println("Setup done - touch the screen to see [TOUCH] lines");
 }
 
 void loop() {
