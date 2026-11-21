@@ -141,7 +141,7 @@ test("withdrawing a landmark stops recognition across tabs instead of silently s
   await page.getByRole("button", { name: "Help me home", exact: true }).click();
   await page.getByRole("button", { name: "I see it", exact: true }).click();
   await expect(
-    page.getByText("Neighborhood bakery", { exact: true }),
+    page.locator(".watch-area").getByText(/Neighborhood bakery/),
   ).toBeVisible();
   const caregiver = await context.newPage();
   await caregiver.goto("/#/caregiver/landmarks");
@@ -149,7 +149,7 @@ test("withdrawing a landmark stops recognition across tabs instead of silently s
     .getByRole("button", { name: "Delete Community garden", exact: true })
     .click();
   await expect(
-    page.getByText("Neighborhood bakery", { exact: true }),
+    page.locator(".watch-area").getByText(/Neighborhood bakery/),
   ).toBeVisible();
   await caregiver
     .getByRole("button", { name: "Delete Neighborhood bakery", exact: true })
