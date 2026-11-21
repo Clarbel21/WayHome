@@ -1145,3 +1145,129 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-bubble {
     font-size: 13px;
   }
 }
+
+/* Flexible photos: on short watches the landmark photo gives up height
+   first, so the buttons never fall off the screen. */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-photo2 {
+  min-height: 40px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen:has(.see-it-now) {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  height: 100%;
+  min-height: 0;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen:has(.see-it-now)
+  .wos-breathe {
+  display: none;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen:has(.see-it-now)
+  .wos-photo {
+  flex: 1 1 auto;
+  min-height: 40px;
+  overflow: hidden;
+  border-radius: 14px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen:has(.see-it-now)
+  .wos-photo
+  img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen:has(.see-it-now)
+  > * {
+  margin-block: 0;
+}
+/* The photo's own pixel height must not set the row height. */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-photo2,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen:has(.see-it-now)
+  .wos-photo {
+  flex: 1 1 0;
+  position: relative;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-photo2 img,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-calm-screen:has(.see-it-now)
+  .wos-photo
+  img {
+  position: absolute;
+  inset: 0;
+}
+
+/* Shorter presenter screens (≤ 800 px tall) give the watch less height:
+   the guide keeps every action but tightens its rows. */
+@media (min-width: 860px) and (max-height: 800px) {
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 {
+    gap: 4px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-guide2.is-walking
+    .wos-dots {
+    display: none;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-dir2 {
+    padding: 3px 8px;
+    min-height: 32px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-photo2 {
+    min-height: 32px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-place {
+    font-size: 15px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-primary {
+    min-height: 42px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-row2 .wos-secondary {
+    min-height: 38px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-guide2
+    > .cancel-guidance {
+    min-height: 26px;
+  }
+}
+@media (min-width: 860px) and (max-width: 1023px) and (min-height: 640px) {
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-primary {
+    min-height: 40px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-photo2 {
+    min-height: 28px;
+  }
+}

@@ -4599,8 +4599,13 @@
     width: min(100%, 1080px);
     margin: 0 auto;
   }
+  /* Device sizes make physical sense: the phone uses the full height
+     available, keeps a real phone's shape, and the watch never outgrows it. */
+  .shared-experience:not(.large-text) .shared-devices {
+    --phone-h: min(720px, calc(100dvh - 274px));
+  }
   .shared-experience:not(.large-text) .care-phone {
-    --phone-height: min(600px, calc(100dvh - 300px));
+    --phone-height: var(--phone-h);
     height: var(--phone-height);
     width: calc(var(--phone-height) * 0.4845);
     max-width: none;
@@ -4611,7 +4616,7 @@
     overflow: hidden;
   }
   .shared-experience:not(.large-text) .watch-area {
-    width: min(100%, 300px);
+    width: min(100%, 300px, calc(var(--phone-h) * 0.62));
     margin: auto;
   }
   /* Must out-rank the :not(.pendant):not(.clip) padding rule below. */
@@ -4622,7 +4627,7 @@
     display: none;
   }
   .shared-experience:not(.large-text) .watch-area .watch {
-    height: min(440px, calc(100dvh - 320px));
+    height: min(440px, calc(100dvh - 320px), calc(var(--phone-h) * 0.85));
   }
   .shared-experience:not(.large-text) .watch-area .watch .watch-screen.wos {
     height: 100%;
@@ -4695,11 +4700,16 @@
   .shared-experience:not(.large-text) .device-connect .device-status {
     display: none;
   }
-  .shared-experience:not(.large-text) .care-phone {
-    --phone-height: min(560px, calc(100dvh - 350px));
+  .shared-experience:not(.large-text) .shared-devices {
+    --phone-h: min(560px, calc(100dvh - 350px));
+  }
+  /* Narrow desktop: the watch keeps its full width so its large-print
+     screens still fit; the phone is still the taller device. */
+  .shared-experience:not(.large-text) .watch-area {
+    width: min(100%, 300px);
   }
   .shared-experience:not(.large-text) .watch-area .watch {
-    height: min(370px, calc(100dvh - 370px));
+    height: min(370px, calc(100dvh - 370px), calc(var(--phone-h) * 0.9));
   }
   /* Every heading element compact: the 880x700 budget has ~110px for it. */
   .shared-experience:not(.large-text) .stage-heading h1 {

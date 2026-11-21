@@ -38,7 +38,7 @@
   padding: 10px 20px 6px;
   background: var(--cph-cream);
   color: var(--cph-ink);
-  font-size: 11.5px;
+  font-size: max(11px, calc(var(--pu) * 11.5));
   font-weight: 800;
   letter-spacing: 0;
 }
@@ -81,7 +81,7 @@
   align-items: center;
   gap: 6px;
   color: var(--cph-forest);
-  font-size: 12.5px;
+  font-size: max(11px, calc(var(--pu) * 12.5));
   font-weight: 800;
   letter-spacing: -0.1px;
   white-space: nowrap;
@@ -103,7 +103,7 @@
   color: var(--cph-muted);
 }
 .care-phone.cpui .cph-radius small {
-  font-size: 9.5px;
+  font-size: max(11px, calc(var(--pu) * 9.5));
   font-weight: 750;
   white-space: nowrap;
 }
@@ -181,7 +181,7 @@
   margin: 0;
   padding: 0;
   color: inherit;
-  font-size: 11.5px;
+  font-size: max(11px, calc(var(--pu) * 11.5));
   font-weight: 800;
   letter-spacing: 0.08em;
   line-height: 1.2;
@@ -195,7 +195,7 @@
   border-radius: 999px;
   background: #ffffffcc;
   color: var(--cph-forest-deep);
-  font-size: 11px;
+  font-size: max(11px, calc(var(--pu) * 11));
   font-weight: 800;
   letter-spacing: 0;
   line-height: 1.2;
@@ -212,7 +212,7 @@
   max-width: none;
   margin: 0 0 4px;
   color: inherit;
-  font-size: 20px;
+  font-size: max(11px, calc(var(--pu) * 20));
   font-weight: 800;
   letter-spacing: -0.5px;
   line-height: 1.15;
@@ -220,7 +220,7 @@
 .care-phone.cpui .phone-status.cph-hero .cph-hero-sub {
   margin: 0;
   color: inherit;
-  font-size: 12px;
+  font-size: max(11px, calc(var(--pu) * 12));
   line-height: 1.4;
   opacity: 0.88;
 }
@@ -243,7 +243,7 @@
   border-radius: 12px;
   background: #fff7e8;
   color: #6b4d0c;
-  font-size: 11.5px;
+  font-size: max(11px, calc(var(--pu) * 11.5));
   line-height: 1.35;
 }
 .care-phone.cpui .cph-banner svg {
@@ -258,7 +258,7 @@
 }
 .care-phone.cpui .cph-alert-label {
   color: #7a5a12;
-  font-size: 11px;
+  font-size: max(11px, calc(var(--pu) * 11));
   font-weight: 800;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -279,7 +279,7 @@
   border: 0;
   background: transparent;
   color: var(--cph-amber-ink);
-  font-size: 12px;
+  font-size: max(11px, calc(var(--pu) * 12));
   line-height: 1.3;
 }
 .care-phone.cpui .cph-findings li svg {
@@ -304,7 +304,7 @@
   margin: 0;
   padding: 6px 7px;
   border-radius: 13px;
-  font-size: 12px;
+  font-size: max(11px, calc(var(--pu) * 12));
   font-weight: 750;
   line-height: 1.2;
   text-align: center;
@@ -342,7 +342,7 @@
   border-radius: 10px;
   background: var(--cph-sage-soft);
   color: var(--cph-muted);
-  font-size: 11px;
+  font-size: max(11px, calc(var(--pu) * 11));
   line-height: 1.35;
 }
 
@@ -369,13 +369,13 @@
 }
 .care-phone.cpui .cph-mode .cph-mode-head strong {
   color: var(--cph-forest-deep);
-  font-size: 12.5px;
+  font-size: max(11px, calc(var(--pu) * 12.5));
   font-weight: 800;
   line-height: 1.2;
 }
 .care-phone.cpui .cph-mode .cph-mode-head small {
   color: var(--cph-muted);
-  font-size: 11px;
+  font-size: max(11px, calc(var(--pu) * 11));
   line-height: 1.25;
 }
 .care-phone.cpui .cph-mode .phone-mode-symbol {
@@ -404,7 +404,7 @@
   border-radius: 10px;
   background: var(--cph-sage-soft);
   color: #40594b;
-  font-size: 11.5px;
+  font-size: max(11px, calc(var(--pu) * 11.5));
   font-weight: 750;
 }
 .care-phone.cpui .cph-mode .phone-mode-dock-options button[aria-pressed="true"] {
@@ -445,14 +445,14 @@
   color: #4d7a58;
 }
 .care-phone.cpui .cph-summary-item strong {
-  font-size: 11.5px;
+  font-size: max(11px, calc(var(--pu) * 11.5));
   font-weight: 750;
   line-height: 1.3;
   white-space: nowrap;
 }
 .care-phone.cpui .cph-summary-location small {
   color: var(--cph-muted);
-  font-size: 10px;
+  font-size: max(11px, calc(var(--pu) * 10));
   font-weight: 700;
   line-height: 1.3;
   white-space: nowrap;
@@ -479,24 +479,24 @@
 .care-phone.cpui .cph-today .zone-ladder h3 {
   margin: 0 0 6px;
   color: var(--cph-forest-deep);
-  font-size: 13px;
+  font-size: max(11px, calc(var(--pu) * 13));
   font-weight: 800;
 }
 .care-phone.cpui .cph-today .phone-action-card p {
   margin: 0;
   color: var(--cph-muted);
-  font-size: 11.5px;
+  font-size: max(11px, calc(var(--pu) * 11.5));
   line-height: 1.4;
 }
 .care-phone.cpui .cph-today .phone-action-card .button {
   width: 100%;
   min-height: 44px;
   border-radius: 13px;
-  font-size: 12.5px;
+  font-size: max(11px, calc(var(--pu) * 12.5));
   font-weight: 750;
 }
 .care-phone.cpui .cph-today .phone-timeline li {
-  font-size: 11.5px;
+  font-size: max(11px, calc(var(--pu) * 11.5));
 }
 .care-phone.cpui .cph-today .zone-ladder-compact {
   margin: 0;
@@ -504,28 +504,28 @@
   border: 1px solid var(--cph-line);
   border-radius: 12px;
   background: var(--cph-sage-soft);
-  font-size: 11.5px;
+  font-size: max(11px, calc(var(--pu) * 11.5));
 }
 
 /* --- Care tools ---------------------------------------------------------- */
 .care-phone.cpui .cph-tools .phone-kicker {
   margin: 0 0 3px;
   color: var(--cph-muted);
-  font-size: 11px;
+  font-size: max(11px, calc(var(--pu) * 11));
   font-weight: 800;
   letter-spacing: 0.09em;
 }
 .care-phone.cpui .cph-tools h3 {
   margin: 0 0 4px;
   color: var(--cph-forest-deep);
-  font-size: 22px;
+  font-size: max(11px, calc(var(--pu) * 22));
   font-weight: 800;
   letter-spacing: -0.6px;
 }
 .care-phone.cpui .cph-tools > p {
   margin: 0 0 12px;
   color: var(--cph-muted);
-  font-size: 12px;
+  font-size: max(11px, calc(var(--pu) * 12));
   line-height: 1.4;
 }
 .care-phone.cpui .phone-tool-list.cph-tool-list {
@@ -562,12 +562,12 @@
   gap: 2px;
 }
 .care-phone.cpui .cph-tool-list strong {
-  font-size: 13px;
+  font-size: max(11px, calc(var(--pu) * 13));
   font-weight: 800;
 }
 .care-phone.cpui .cph-tool-list small {
   color: var(--cph-muted);
-  font-size: 11px;
+  font-size: max(11px, calc(var(--pu) * 11));
   line-height: 1.3;
 }
 .care-phone.cpui .cph-tool-list button > svg {
@@ -586,13 +586,13 @@
   border-radius: 12px;
   background: var(--cph-sage-soft);
   color: var(--cph-forest);
-  font-size: 12.5px;
+  font-size: max(11px, calc(var(--pu) * 12.5));
   font-weight: 750;
 }
 .care-phone.cpui .phone-disclaimer {
   margin: 0;
   color: var(--cph-muted);
-  font-size: 11px;
+  font-size: max(11px, calc(var(--pu) * 11));
   line-height: 1.4;
 }
 
@@ -631,13 +631,13 @@
 }
 .care-phone.cpui .cph-manager-head small {
   color: var(--cph-muted);
-  font-size: 10.5px;
+  font-size: max(11px, calc(var(--pu) * 10.5));
   font-weight: 800;
   letter-spacing: 0.08em;
 }
 .care-phone.cpui .cph-manager-head strong {
   color: var(--cph-forest-deep);
-  font-size: 15px;
+  font-size: max(11px, calc(var(--pu) * 15));
   font-weight: 800;
   line-height: 1.2;
 }
@@ -658,11 +658,11 @@
 }
 .care-phone.cpui .cph-device .phone-readings span {
   color: var(--cph-muted);
-  font-size: 11px;
+  font-size: max(11px, calc(var(--pu) * 11));
 }
 .care-phone.cpui .cph-device .phone-readings strong {
   color: var(--cph-forest-deep);
-  font-size: 12px;
+  font-size: max(11px, calc(var(--pu) * 12));
 }
 .care-phone.cpui .phone-overview-details {
   margin: 0;
@@ -675,13 +675,13 @@
   min-height: 40px;
   padding: 11px 0;
   color: var(--cph-forest-deep);
-  font-size: 12px;
+  font-size: max(11px, calc(var(--pu) * 12));
   font-weight: 750;
 }
 .care-phone.cpui .phone-overview-details p,
 .care-phone.cpui .phone-overview-details time {
   color: var(--cph-muted);
-  font-size: 11.5px;
+  font-size: max(11px, calc(var(--pu) * 11.5));
   line-height: 1.45;
 }
 
@@ -696,14 +696,14 @@
 .care-phone.cpui .cph-updates h3 {
   margin: 0;
   color: var(--cph-forest-deep);
-  font-size: 18px;
+  font-size: max(11px, calc(var(--pu) * 18));
   font-weight: 800;
   letter-spacing: -0.4px;
 }
 .care-phone.cpui .cph-updates > p {
   margin: 0 0 10px;
   color: var(--cph-muted);
-  font-size: 12px;
+  font-size: max(11px, calc(var(--pu) * 12));
   line-height: 1.45;
 }
 .care-phone.cpui .cph-updates li {
@@ -718,15 +718,15 @@
 }
 .care-phone.cpui .cph-updates li strong {
   color: var(--cph-forest-deep);
-  font-size: 12px;
+  font-size: max(11px, calc(var(--pu) * 12));
   line-height: 1.3;
 }
 .care-phone.cpui .cph-updates time {
   color: var(--cph-muted);
-  font-size: 11px;
+  font-size: max(11px, calc(var(--pu) * 11));
 }
 .care-phone.cpui .cph-updates .text-button {
-  font-size: 11.5px;
+  font-size: max(11px, calc(var(--pu) * 11.5));
   font-weight: 750;
 }
 
@@ -750,7 +750,7 @@
   border-radius: 13px;
   color: #647260;
   background: transparent;
-  font-size: 11px;
+  font-size: max(11px, calc(var(--pu) * 11));
   font-weight: 650;
 }
 .care-phone.cpui .phone-bottom-nav.cph-nav button[aria-pressed="true"] {
@@ -771,7 +771,7 @@
   margin: 0 12px 6px;
   padding: 8px 12px;
   border-radius: 12px;
-  font-size: 12.5px;
+  font-size: max(11px, calc(var(--pu) * 12.5));
   font-weight: 750;
 }
 .care-phone.cpui .phone-action-popup {
@@ -780,13 +780,13 @@
   border-radius: 15px;
 }
 .care-phone.cpui .phone-action-popup small {
-  font-size: 9px;
+  font-size: max(11px, calc(var(--pu) * 9));
 }
 .care-phone.cpui .phone-action-popup strong {
-  font-size: 12px;
+  font-size: max(11px, calc(var(--pu) * 12));
 }
 .care-phone.cpui .phone-action-popup p {
-  font-size: 11px;
+  font-size: max(11px, calc(var(--pu) * 11));
 }
 .care-phone.cpui .phone-action-popup.level-routine small,
 .care-phone.cpui .phone-action-popup.level-urgent small {
@@ -803,7 +803,7 @@
   .care-phone.cpui .cph-actions .button {
     gap: 4px;
     padding: 5px 5px;
-    font-size: 10.5px;
+    font-size: max(11px, calc(var(--pu) * 10.5));
   }
   .care-phone.cpui .cph-actions .button svg {
     width: 14px;
@@ -813,7 +813,7 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
   }
   .care-phone.cpui .cph-actions .button.is-ringing {
-    font-size: 9.5px;
+    font-size: max(11px, calc(var(--pu) * 9.5));
   }
 }
 
@@ -835,7 +835,7 @@
     display: none;
   }
   .care-phone.cpui .cph-brand {
-    font-size: 11.5px;
+    font-size: max(11px, calc(var(--pu) * 11.5));
   }
   .care-phone.cpui .cph-brand strong {
     display: none;
@@ -845,7 +845,7 @@
     height: 12px;
   }
   .care-phone.cpui .cph-radius small {
-    font-size: 9px;
+    font-size: max(11px, calc(var(--pu) * 9));
   }
   .care-phone.cpui .phone-bell.cph-bell {
     width: 30px;
@@ -862,14 +862,14 @@
     margin-bottom: 4px;
   }
   .care-phone.cpui .phone-status.cph-hero .cph-hero-title {
-    font-size: 16px;
+    font-size: max(11px, calc(var(--pu) * 16));
   }
   .care-phone.cpui .phone-status.cph-hero .cph-hero-sub {
     display: none;
   }
   .care-phone.cpui .phone-status.cph-hero .cph-wearer,
   .care-phone.cpui .phone-status.cph-hero .phone-tone-chip {
-    font-size: 9px;
+    font-size: max(11px, calc(var(--pu) * 9));
   }
   .care-phone.cpui .phone-status.cph-hero .phone-tone-chip {
     padding: 3px 6px;
@@ -878,7 +878,7 @@
     min-height: 40px;
     gap: 2px;
     padding: 4px 3px;
-    font-size: 9px;
+    font-size: max(11px, calc(var(--pu) * 9));
   }
   .care-phone.cpui .cph-actions .button svg {
     width: 12px;
@@ -897,7 +897,7 @@
     margin-bottom: 3px;
   }
   .care-phone.cpui .cph-mode .cph-mode-head strong {
-    font-size: 11.5px;
+    font-size: max(11px, calc(var(--pu) * 11.5));
   }
   .care-phone.cpui .cph-mode .cph-mode-head small {
     display: none;
@@ -910,7 +910,7 @@
     min-height: 26px;
     gap: 1px;
     padding: 3px 1px;
-    font-size: 8px;
+    font-size: max(11px, calc(var(--pu) * 8));
   }
   .care-phone.cpui .cph-summary {
     flex-wrap: nowrap;
@@ -925,7 +925,7 @@
     height: 12px;
   }
   .care-phone.cpui .cph-summary-item strong {
-    font-size: 9px;
+    font-size: max(11px, calc(var(--pu) * 9));
   }
   .care-phone.cpui .phone-status.cph-hero.tone-attention,
   .care-phone.cpui .phone-status.cph-hero.tone-urgent {
@@ -945,7 +945,7 @@
   }
   .care-phone.cpui .cph-today-alert .cph-mode .phone-mode-dock-options button {
     min-height: 26px;
-    font-size: 8px;
+    font-size: max(11px, calc(var(--pu) * 8));
   }
   .care-phone.cpui .cph-today-alert .cph-emergency {
     padding: 6px 8px;
@@ -961,7 +961,7 @@
     grid-template-columns: 16px minmax(0, 1fr);
     gap: 4px;
     padding: 1px 0;
-    font-size: 10px;
+    font-size: max(11px, calc(var(--pu) * 10));
     line-height: 1.15;
   }
   .care-phone.cpui .cph-today-alert .phone-timeline li span {
@@ -981,7 +981,7 @@
   .care-phone.cpui .cph-today-alert .phone-action-card .button {
     min-height: 28px;
     padding: 4px 8px;
-    font-size: 10.5px;
+    font-size: max(11px, calc(var(--pu) * 10.5));
     white-space: nowrap;
   }
   .care-phone.cpui .cph-tool-list button {
@@ -993,17 +993,29 @@
 /* Large-text preference keeps the same hierarchy, one step larger. */
 .large-text .care-phone.cpui .cph-hero-title,
 .large-text .care-phone.cpui .phone-status.cph-hero .cph-hero-title {
-  font-size: 23px;
+  font-size: max(11px, calc(var(--pu) * 23));
 }
 .large-text .care-phone.cpui .phone-status.cph-hero .cph-hero-sub,
 .large-text .care-phone.cpui .cph-findings li,
 .large-text .care-phone.cpui .cph-summary-item strong {
-  font-size: 13px;
+  font-size: max(11px, calc(var(--pu) * 13));
 }
 .large-text .care-phone.cpui .cph-actions .button,
 .large-text .care-phone.cpui .cph-mode .phone-mode-dock-options button {
-  font-size: 13px;
+  font-size: max(11px, calc(var(--pu) * 13));
 }
 
 /* Device framing and the stage header are shared lanes. Today is sized to
    fit inside the existing shared device frame at 1440x900 and 1280x720. */
+
+/* ==========================================================================
+   Phone type scale. Text is sized like a real phone app: it scales with the
+   phone's width (1 --pu = 1px at the 290px reference phone), so a bigger
+   phone has proportionally bigger text, and nothing drops below 11px.
+   ========================================================================== */
+.care-phone.cpui {
+  container-type: inline-size;
+}
+.care-phone.cpui .care-phone-screen {
+  --pu: calc(100cqw / 290);
+}

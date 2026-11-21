@@ -436,20 +436,24 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             >
               <Check size={18} /> {t("seeItNow")}
             </button>
-            <button
-              className="wos-secondary"
-              onClick={() => s.chooseAssistance("family")}
-            >
-              <Phone size={15} /> {t("helpFamily")}
-            </button>
-            {/* Minimal text (TEAM_PLAN v2): icon-only, name kept for tests */}
-            <button
-              className="wos-ghost cancel-guidance wos-icon-only"
-              aria-label={t("cancelGuidance")}
-              onClick={s.backToHome}
-            >
-              <House size={18} />
-            </button>
+            {/* One labelled row instead of an icon-only house: a house
+                reads as "go home" while the wearer is being guided home. */}
+            <div className="wos-row2">
+              <button
+                className="wos-secondary wos-call-mini"
+                aria-label={t("helpFamily")}
+                onClick={() => s.chooseAssistance("family")}
+              >
+                <Phone size={18} aria-hidden="true" />
+                {lang === "id" ? "Telepon" : "Call"}
+              </button>
+              <button
+                className="wos-secondary cancel-guidance"
+                onClick={s.backToHome}
+              >
+                {t("cancelGuidance")}
+              </button>
+            </div>
           </>
         ) : (
           <>
