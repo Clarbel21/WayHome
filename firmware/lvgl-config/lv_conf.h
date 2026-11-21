@@ -420,7 +420,14 @@
 
 /** Add a custom handler when assert happens e.g. to restart MCU. */
 #define LV_ASSERT_HANDLER_INCLUDE <stdint.h>
-#define LV_ASSERT_HANDLER while(1);     /**< Halt by default */
+/* WayHome: report where LVGL halted on the Serial Monitor, then halt. */
+#if !defined(__ASSEMBLY__)
+#ifdef __cplusplus
+extern "C"
+#endif
+void wayhome_lvgl_halt(const char *file, int line);
+#endif
+#define LV_ASSERT_HANDLER wayhome_lvgl_halt(__FILE__, __LINE__);
 
 /*-------------
  * Debug

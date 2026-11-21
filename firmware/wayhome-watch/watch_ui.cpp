@@ -380,8 +380,10 @@ void sos_hold_timer_cb(lv_timer_t *timer) {
 
 void clock_timer_cb(lv_timer_t *timer) {
   LV_UNUSED(timer);
-  lv_label_set_text(lblClock, hal_clock_text());
-  lv_label_set_text(lblWeekday, hal_weekday_text());
+  // The emoji home (11 Nov) has no weekday label any more: updating a missing
+  // label made LVGL halt one second after start-up (screen frozen, no touch).
+  if (lblClock) lv_label_set_text(lblClock, hal_clock_text());
+  if (lblWeekday) lv_label_set_text(lblWeekday, hal_weekday_text());
 }
 
 // ---- Screen construction ----

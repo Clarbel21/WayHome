@@ -71,6 +71,15 @@ Arduino_GFX *gfx = new Arduino_CO5300(bus, LCD_RESET /* RST */,
                                       0 /* col_offset2 */,
                                       0 /* row_offset2 */);
 
+// LVGL calls this instead of a silent while(1) when an internal check fails
+// (lv_conf.h from firmware/lvgl-config), so a freeze names its cause.
+extern "C" void wayhome_lvgl_halt(const char *file, int line) {
+  while (true) {
+    USBSerial.printf("[LVGL] halted at %s:%d - please report this line\n", file, line);
+    delay(5000);
+  }
+}
+
 // ---- Touch (FT3168 at 0x38), read directly over I2C ----
 // Same method as the touch-test sketch that worked on the board: no touch
 // library, so library versions on the PC cannot break touch.
