@@ -25,9 +25,7 @@ test("Buddy persists across modes; police confirmation, acknowledgment and reset
   await expect(page.getByLabel("Avatar name")).toHaveValue("Buddy");
   const companion = await context.newPage();
   await companion.goto("/#/companion");
-  await expect(
-    companion.getByText("Hi! I'm Buddy. I'm here with you."),
-  ).toBeVisible();
+  await expect(companion.getByText("Hi Alex! I'm Buddy.")).toBeVisible();
   await companion
     .getByRole("button", { name: "SOS Hold for 3 seconds" })
     .focus();
@@ -94,9 +92,7 @@ test("Buddy persists across modes; police confirmation, acknowledgment and reset
     page.getByText(/Caregiver acknowledged by Jamie Chen/),
   ).toBeVisible();
   await resolveIncident(page);
-  await expect(
-    companion.getByText("Hi! I'm Buddy. I'm here with you."),
-  ).toBeVisible();
+  await expect(companion.getByText("Hi Alex! I'm Buddy.")).toBeVisible();
   await page.getByRole("link", { name: "View full alert history" }).click();
   await expect(
     page.getByText("Simulated police notification · no police were contacted"),

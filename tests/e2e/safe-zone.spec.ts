@@ -24,7 +24,7 @@ test("leaving the safe zone buzzes the watch, escalates, then guides home landma
   await moments(page)
     .getByRole("button", { name: "Walk out of safe zone" })
     .click();
-  await expect(watch(page).getByText("Heading home?")).toBeVisible({
+  await expect(watch(page).getByText("Go home?")).toBeVisible({
     timeout: 10_000,
   });
   await expect(watch(page)).toHaveClass(/buzz|zone-alert/);
@@ -37,8 +37,8 @@ test("leaving the safe zone buzzes the watch, escalates, then guides home landma
     phone(page).locator(".zone-ladder li.done", { hasText: "Notify Jamie" }),
   ).toBeVisible();
 
-  await watch(page).getByRole("button", { name: "No, I'm fine" }).click();
-  await expect(watch(page).getByText("Heading home?")).toHaveCount(0);
+  await watch(page).getByRole("button", { name: "I'm okay here" }).click();
+  await expect(watch(page).getByText("Go home?")).toHaveCount(0);
 
   // The wearer can still choose to go home from the home screen.
   await watch(page)
@@ -56,16 +56,14 @@ test("leaving the safe zone buzzes the watch, escalates, then guides home landma
     "Local library",
     "Home",
   ]) {
-    await expect(watch(page).getByText(`Do you see the ${name}?`)).toBeVisible({
+    await expect(watch(page).getByText(`See the ${name}?`)).toBeVisible({
       timeout: 15_000,
     });
     await watch(page)
       .getByRole("button", { name: "I see it", exact: true })
       .click();
     if (name === "Community garden")
-      await expect(
-        watch(page).getByText("Turn right at the Community garden"),
-      ).toBeVisible();
+      await expect(watch(page).getByText("Turn right")).toBeVisible();
   }
   await expect(
     watch(page).getByText("Welcome home.", { exact: true }),
@@ -89,7 +87,7 @@ test("staying outside long enough reaches the simulated emergency step", async (
   await moments(page)
     .getByRole("button", { name: "Lost far from home" })
     .click();
-  await expect(watch(page).getByText("Heading home?")).toBeVisible({
+  await expect(watch(page).getByText("Go home?")).toBeVisible({
     timeout: 5_000,
   });
   for (let i = 0; i < 3; i++)
@@ -125,13 +123,15 @@ test("leftover readings from earlier moments never block the walk home (no loop)
     .click();
   await bar.getByRole("button", { name: "Lost far from home" }).click();
   await watch(page)
-    .getByRole("button", { name: "Yes, take me home" })
+    .getByRole("button", { name: "Yes, help me home" })
     .click({ timeout: 5_000 });
-  await expect(watch(page).getByText(/Stop 1 of 4/)).toBeVisible();
+  await expect(
+    watch(page).getByRole("img", { name: "Stop 1 of 4" }),
+  ).toBeVisible();
   await expect(
     phone(page).getByRole("img", { name: /Route home map/ }),
   ).toBeVisible();
-  await expect(watch(page).getByText("Heading home?")).toHaveCount(0);
+  await expect(watch(page).getByText("Go home?")).toHaveCount(0);
 });
 
 test("zone moments are disabled while an SOS is open, with a reason", async ({
@@ -153,13 +153,13 @@ test("after 'I don't see it' the wearer can still say 'I see it now' and carry o
   await watch(page)
     .getByRole("button", { name: "Help me home", exact: true })
     .click();
-  await expect(
-    watch(page).getByText("Do you see the Community garden?"),
-  ).toBeVisible({ timeout: 15_000 });
-  await watch(page).getByRole("button", { name: "I don't see it" }).click();
+  await expect(watch(page).getByText("See the Community garden?")).toBeVisible({
+    timeout: 15_000,
+  });
+  await watch(page).getByRole("button", { name: "Not yet" }).click();
   await expect(watch(page).getByText("Community garden")).toBeVisible();
   await watch(page).getByRole("button", { name: "I see it now" }).click();
   await expect(
-    watch(page).getByText("Do you see the Neighborhood bakery?"),
+    watch(page).getByText("See the Neighborhood bakery?"),
   ).toBeVisible({ timeout: 15_000 });
 });

@@ -29,30 +29,39 @@ test("SOS overrides an open memory activity on the watch", async ({ page }) => {
   // The safety event takes over the watch screen.
   await expect(page.locator(".wos-memories")).toHaveCount(0);
   await expect(
-    page.getByRole("region", { name: "A familiar friend." }).getByText(
-      /Help request sent|Stay where you are/,
-    ).first(),
+    page
+      .getByRole("region", { name: "A familiar friend." })
+      .getByText(/Help request sent|Stay where you are/)
+      .first(),
   ).toBeVisible();
 });
 
-test("caregiver acknowledgment is receipt only; SOS needs explicit resolution", async ({ page }) => {
+test("caregiver acknowledgment is receipt only; SOS needs explicit resolution", async ({
+  page,
+}) => {
   await holdSos(page);
   await expect(page.getByText("Help request sent — simulation")).toBeVisible();
 
   const phone = page.getByRole("region", { name: "A little closer." });
   await phone.getByRole("button", { name: "Acknowledge SOS alert" }).click();
   await expect(
-    page.getByText(/acknowledgment recorded|Resolution still needs caregiver/i).first(),
+    page
+      .getByText(/acknowledgment recorded|Resolution still needs caregiver/i)
+      .first(),
   ).toBeVisible();
 
   // The watch is still in the emergency flow — acknowledgment did not end it.
   await expect(page.getByText("Help request sent — simulation")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: /Help received — resolve SOS|resolve SOS/i }).first(),
+    page
+      .getByRole("button", { name: /Help received — resolve SOS|resolve SOS/i })
+      .first(),
   ).toBeVisible();
 });
 
-test("open memory activity survives a reload and still steps aside for safety", async ({ page }) => {
+test("open memory activity survives a reload and still steps aside for safety", async ({
+  page,
+}) => {
   const watch = page.locator(".watch-area .watch");
   await watch.getByRole("button", { name: "My memories", exact: true }).click();
   const garden = page.locator(".wos-memories");

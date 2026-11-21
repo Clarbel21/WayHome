@@ -110,9 +110,16 @@ test("finishing a walk grows a flower and shows how familiar each place feels", 
     page.getByRole("heading", { name: "Lovely walk!" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Done" }).click();
-  await expect(
-    page.getByRole("img", { name: /has 1 keepsakes/ }),
-  ).toBeVisible();
+  // The garden picture lives on the full page; the watch keeps the count.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("wayhome-memory-v1")!).state.growth
+            .length,
+      ),
+    )
+    .toBe(1);
 });
 
 test("returning visitors get the new sample memories", async ({ page }) => {

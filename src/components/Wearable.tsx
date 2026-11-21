@@ -242,6 +242,13 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       : turn === "left" && previous
         ? t("turnLeftAt", { name: previous.name })
         : t("goStraight");
+  // The watch says only the turn; the photo shows where.
+  const shortDirection =
+    turn === "right"
+      ? t("turnRight")
+      : turn === "left"
+        ? t("turnLeft")
+        : t("goStraight");
   const legLength =
     zoneGuided && approved.length ? (z.guideStartM ?? 0) / approved.length : 0;
   const legDone = legLength
@@ -296,10 +303,9 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           <MapPin size={28} />
         </div>
         <strong className="wos-zone-title">{t("zoneTitle")}</strong>
-        {speech(t("zoneText", { name: wearerFirst }))}
-        <small className="wos-kicker">
+        <span className="sr-only">
           {t("zoneDistance", { km: (z.distanceM / 1000).toFixed(2) })}
-        </small>
+        </span>
         <button
           className="watch-action wos-primary"
           onClick={() => {
@@ -317,114 +323,80 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     );
   } else if (s.mode === "GUIDED_RETURN") {
     screenKey = `guide-${landmark?.id ?? "none"}`;
+    // Landmark-led and minimal: one big photo of the place, one short line,
+    // big buttons. Progress is the dots; distance and repeats are left out.
     screen = landmark ? (
       <div
-        className={`watch-landmark wos-guide ${experienceMode === "focus" ? "is-focus" : ""}`}
+        className={`watch-landmark wos-guide2 ${walking ? "is-walking" : ""} ${experienceMode === "focus" ? "is-focus" : ""}`}
       >
-        <div className="wos-guide-top">
-          <span>
-            {t("stopOf", { n: s.guideIndex + 1, total: approved.length })}
-          </span>
-          <span className="wos-dots" aria-hidden="true">
-            {approved.map((l, i) => (
-              <i
-                key={l.id}
-                className={
-                  i < s.guideIndex ? "done" : i === s.guideIndex ? "now" : ""
-                }
-              />
-            ))}
-          </span>
-        </div>
-        {(walking || experienceMode === "focus") && (
-          <div className="wos-direction" aria-live="polite">
+        <span
+          className="wos-dots"
+          role="img"
+          aria-label={t("stopOf", {
+            n: s.guideIndex + 1,
+            total: approved.length,
+          })}
+        >
+          {approved.map((l, i) => (
+            <i
+              key={l.id}
+              className={
+                i < s.guideIndex ? "done" : i === s.guideIndex ? "now" : ""
+              }
+            />
+          ))}
+        </span>
+        {walking && (
+          <div className="wos-dir2" aria-live="polite">
             <DirectionIcon />
-            <span>
-              <b>{directionText}</b>
-              <small>
-                {walking
-                  ? t("legToward", {
-                      m: Math.round(legRemaining),
-                      name: landmark.name,
-                    })
-                  : t("towardLandmark", { name: landmark.name })}
-              </small>
-              <i className="wos-leg-bar" aria-hidden="true">
-                <i style={{ width: `${Math.round(legDone * 100)}%` }} />
-              </i>
-            </span>
+            <b>{shortDirection}</b>
+            <i className="wos-leg-bar" aria-hidden="true">
+              <i style={{ width: `${Math.round(legDone * 100)}%` }} />
+            </i>
           </div>
         )}
-        <div className={`wos-photo ${walking ? "small" : ""}`}>
+        <div className="wos-photo2">
           <LandmarkPhoto landmark={landmark} />
         </div>
-        {/* Few, big words: the question names the place, so no repeats. */}
-        {!walking && zoneGuided ? (
-          <p className="wos-question big">
-            {t("doYouSee", { name: landmark.name })}
-          </p>
-        ) : (
-          <>
-            <small className="wos-kicker">
-              {walking ? t("headingTo") : t("lookFor")}
-            </small>
-            <strong>{landmark.name}</strong>
-          </>
-        )}
-        {!zoneGuided && experienceMode !== "focus" && (
-          <p>{landmark.instruction}</p>
-        )}
-        {landmark.recognition && !walking && experienceMode !== "focus" && (
-          <p className="recognition-cue">{landmark.recognition}</p>
-        )}
-        {!zoneGuided && experienceMode !== "focus" && (
-          <small>
-            {t("approx", {
-              m: Math.max(
-                10,
-                ((landmark.gridPosition ?? s.guideIndex) + 1) * 40 -
-                  s.position * 10,
-              ),
-            })}
-          </small>
-        )}
+        <strong className="wos-place">
+          {walking ? landmark.name : t("doYouSee", { name: landmark.name })}
+        </strong>
         {guidanceBlocked && (
           <p role="status" className="wos-warn">
             {t("guidancePaused")}
           </p>
         )}
-        {note}
         <button
           className="watch-action wos-primary"
           disabled={guidanceBlocked}
           onClick={() => s.nextLandmark(landmark.id)}
         >
-          <Check size={18} /> {t("iSeeIt")}
+          <Check size={20} /> {t("iSeeIt")}
         </button>
-        <button
-          className="wos-secondary"
-          onClick={() => s.chooseAssistance("unrecognized")}
-        >
-          {t("iDontSeeIt")}
-        </button>
-        <div
-          className={`wos-row ${experienceMode === "focus" ? "focus-actions" : ""}`}
-        >
+        <div className="wos-row2">
+          <button
+            className="wos-secondary"
+            onClick={() => s.chooseAssistance("unrecognized")}
+          >
+            {t("iDontSeeIt")}
+          </button>
           {experienceMode !== "focus" && (
             <button
-              className="wos-ghost"
+              className="wos-secondary wos-call-mini"
+              aria-label={t("callMyFamily")}
               onClick={() => s.chooseAssistance("family")}
             >
-              <Phone size={14} /> {t("callMyFamily")}
+              <Phone size={18} aria-hidden="true" />
+              {lang === "id" ? "Telepon" : "Call"}
             </button>
           )}
-          <button
-            className="wos-ghost cancel-guidance"
-            onClick={s.cancelGuidance}
-          >
-            {t("cancelGuidance")}
-          </button>
         </div>
+        <button
+          className="wos-ghost cancel-guidance"
+          onClick={s.cancelGuidance}
+        >
+          {t("cancelGuidance")}
+        </button>
       </div>
     ) : (
       <div className="watch-landmark wos-center">
@@ -511,7 +483,6 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     const status = s.familyRequest?.status;
     screen = (
       <div className="watch-landmark wos-center wos-handover">
-        {speech(modeMessage(lang, s.mode, name))}
         <div className={`avatar ${status ?? "none"}`}>
           {caregiver.slice(0, 1)}
         </div>
@@ -562,7 +533,6 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
               ? t("caregiverResponded", { caregiver })
               : t("waitingCaregiver")}
         </p>
-        {status === "acknowledged" && <p>{t("caregiverSeen")}</p>}
         <small>{s.familyRequest ? t("notifSent") : t("notifNone")}</small>
         {note}
         {status !== "responded" && (
@@ -656,7 +626,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     screen = (
       <div className="wos-center">
         <Sprout small />
-        {speech(modeMessage(lang, "NORMAL", name))}
+        {speech(t("hiName", { name: wearerFirst, companion: name }))}
         {note}
         <div className="watch-controls wos-list">
           <button className="watch-action" onClick={watchUi.openMemories}>
@@ -679,7 +649,6 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           {lang === "id" ? "Selamat datang di rumah." : "Welcome home."}
         </strong>
         <Sprout small />
-        {speech(modeMessage(lang, "NORMAL", name))}
         <button
           className="watch-action wos-primary"
           onClick={() => {
@@ -760,7 +729,6 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           <ArrowUp size={34} />
         </div>
         <strong>{t("focusTitle")}</strong>
-        <p>{t("focusBody")}</p>
         <button
           className="watch-action wos-primary wos-focus-primary"
           onClick={() => s.chooseAssistance("home")}
@@ -831,7 +799,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       <div className="wos-home">
         <div className="wos-hello">
           <Sprout small />
-          {speech(modeMessage(lang, "NORMAL", name))}
+          {speech(t("hiName", { name: wearerFirst, companion: name }))}
         </div>
         {/* Simplified emoji home (TEAM_PLAN v2): Home / Call / Talk / Game.
             Accessible names keep the established task wording. */}

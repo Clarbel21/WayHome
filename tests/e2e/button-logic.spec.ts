@@ -8,7 +8,9 @@ test("help has a working way back and a blocked check-in offers recovery", async
     .getByRole("button", { name: "Start feeling check-in", exact: true })
     .click();
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "I'd like some help", exact: true }).click();
+  await page
+    .getByRole("button", { name: "I'd like some help", exact: true })
+    .click();
   const contrasts = await page
     .locator(".watch-controls button")
     .evaluateAll((buttons) => {
@@ -69,7 +71,7 @@ test("log-only unanswered check-in can be reviewed without getting stuck", async
     .click();
   await page.goto("/#/companion");
   await expect(
-    page.getByText("Hi! I'm Sprout. I'm here with you.", { exact: true }),
+    page.getByText("Hi Alex! I'm Sprout.", { exact: true }),
   ).toBeVisible();
   await page.goto("/#/caregiver/alerts");
   await expect(
@@ -88,9 +90,7 @@ test("removal handover provides a request, response and device recovery path", a
   await page
     .getByRole("button", { name: "Call someone I trust", exact: true })
     .click();
-  await expect(
-    page.getByText("Waiting for caregiver response", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("Waiting…", { exact: true })).toBeVisible();
   await page.goto("/#/caregiver/emergency");
   await page
     .getByRole("button", { name: "Acknowledge family request", exact: true })
@@ -123,7 +123,7 @@ test("removal handover provides a request, response and device recovery path", a
     .click();
   await page.goto("/#/companion");
   await expect(
-    page.getByText("Hi! I'm Sprout. I'm here with you.", { exact: true }),
+    page.getByText("Hi Alex! I'm Sprout.", { exact: true }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Explore Memories", exact: true })
@@ -141,7 +141,7 @@ test("withdrawing a landmark stops recognition across tabs instead of silently s
   await page.getByRole("button", { name: "Help me home", exact: true }).click();
   await page.getByRole("button", { name: "I see it", exact: true }).click();
   await expect(
-    page.getByText("Neighborhood bakery", { exact: true }),
+    page.locator(".watch-area").getByText(/Neighborhood bakery/),
   ).toBeVisible();
   const caregiver = await context.newPage();
   await caregiver.goto("/#/caregiver/landmarks");
@@ -149,7 +149,7 @@ test("withdrawing a landmark stops recognition across tabs instead of silently s
     .getByRole("button", { name: "Delete Community garden", exact: true })
     .click();
   await expect(
-    page.getByText("Neighborhood bakery", { exact: true }),
+    page.locator(".watch-area").getByText(/Neighborhood bakery/),
   ).toBeVisible();
   await caregiver
     .getByRole("button", { name: "Delete Neighborhood bakery", exact: true })

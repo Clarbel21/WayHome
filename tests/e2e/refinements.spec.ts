@@ -65,9 +65,7 @@ test("incident acknowledgment and reset preserve faults; fresh SOS cancels verif
   );
   expect(data.incident.stage).toBe("resolved");
   expect(data.wearStatus).toBe("likely_worn");
-  await expect(
-    wearer.getByText("Hi! I'm Sprout. I'm here with you."),
-  ).toBeVisible();
+  await expect(wearer.getByText("Hi Alex! I'm Sprout.")).toBeVisible();
   await page.reload();
   await expect(page.getByText(/Incident lifecycle: resolved/)).toBeVisible();
 });

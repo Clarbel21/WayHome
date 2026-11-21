@@ -30,9 +30,7 @@ test("resolved SOS can return to the companion with confirmation while preservin
       exact: true,
     })
     .click();
-  await expect(
-    page.getByText("Hi! I'm Sprout. I'm here with you."),
-  ).toBeVisible();
+  await expect(page.getByText("Hi Alex! I'm Sprout.")).toBeVisible();
   await expect(
     page.getByRole("button", {
       name: "Help received — resolve SOS",
@@ -40,9 +38,7 @@ test("resolved SOS can return to the companion with confirmation while preservin
     }),
   ).not.toBeVisible();
   await page.reload();
-  await expect(
-    page.getByText("Hi! I'm Sprout. I'm here with you."),
-  ).toBeVisible();
+  await expect(page.getByText("Hi Alex! I'm Sprout.")).toBeVisible();
   await page.goto("/#/caregiver/alerts");
   await expect(
     page.getByText("Simulated SOS · help request received"),

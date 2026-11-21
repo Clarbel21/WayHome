@@ -12,11 +12,15 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/#/companion");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  await expect(page.getByRole("region", { name: "A familiar friend." })).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "A familiar friend." }),
+  ).toBeVisible();
 });
 
 for (const { width, height } of VIEWPORTS) {
-  test(`together fits ${width}x${height} with no page scroll`, async ({ page }) => {
+  test(`together fits ${width}x${height} with no page scroll`, async ({
+    page,
+  }) => {
     await page.setViewportSize({ width, height });
     await expect(page.locator("html")).toBeVisible();
 
@@ -25,7 +29,10 @@ for (const { width, height } of VIEWPORTS) {
         document.documentElement.scrollHeight -
         document.documentElement.clientHeight,
     );
-    expect(overflow, `page must not scroll at ${width}x${height}`).toBeLessThanOrEqual(2);
+    expect(
+      overflow,
+      `page must not scroll at ${width}x${height}`,
+    ).toBeLessThanOrEqual(2);
 
     // ESP32 pairing stays reachable (the whole point of the demo stage).
     await expect(
@@ -33,7 +40,9 @@ for (const { width, height } of VIEWPORTS) {
     ).toBeVisible();
 
     // Presenter moments chips row stays in frame.
-    await expect(page.getByRole("toolbar", { name: "Demo moments" })).toBeVisible();
+    await expect(
+      page.getByRole("toolbar", { name: "Demo moments" }),
+    ).toBeVisible();
     const chips = page.locator(".demo-stage-chips");
     await expect(chips).toBeVisible();
     const chipsBox = await chips.boundingBox();
@@ -43,19 +52,30 @@ for (const { width, height } of VIEWPORTS) {
     await expect(page.locator(".care-phone")).toBeVisible();
     const phone = await page.locator(".care-phone").boundingBox();
     expect(phone?.y ?? NaN).toBeGreaterThan(0);
-    expect((phone?.y ?? 0) + (phone?.height ?? 0)).toBeLessThanOrEqual(height + 2); // sub-pixel
+    expect((phone?.y ?? 0) + (phone?.height ?? 0)).toBeLessThanOrEqual(
+      height + 2,
+    ); // sub-pixel
 
     await expect(page.locator(".watch-area .watch")).toBeVisible();
     const watch = await page.locator(".watch-area .watch").boundingBox();
-    expect((watch?.y ?? 0) + (watch?.height ?? 0)).toBeLessThanOrEqual(height + 2); // sub-pixel
+    expect((watch?.y ?? 0) + (watch?.height ?? 0)).toBeLessThanOrEqual(
+      height + 2,
+    ); // sub-pixel
   });
 }
 
-test("emoji home keeps the four tiles and SOS in the watch frame", async ({ page }) => {
+test("emoji home keeps the four tiles and SOS in the watch frame", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   const watch = page.locator(".watch-area .watch");
   const frame = await watch.boundingBox();
-  for (const name of ["Help me home", "Call someone I trust", "Let's talk", "My memories"]) {
+  for (const name of [
+    "Help me home",
+    "Call someone I trust",
+    "Let's talk",
+    "My memories",
+  ]) {
     const tile = watch.getByRole("button", { name, exact: true });
     await expect(tile).toBeVisible();
     const box = await tile.boundingBox();
