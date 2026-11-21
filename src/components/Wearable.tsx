@@ -1,7 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import {
-  Battery,
   BatteryLow,
   BellOff,
   BellRing,
@@ -39,6 +38,7 @@ import { LandmarkPhoto } from "./LandmarkPhoto";
 import { ResolveSOSButton } from "./ResolveSOSButton";
 import { SOSButton } from "./SOSButton";
 import { Sprout } from "./Sprout";
+import "../watch-ui.css";
 import { useLang, useT, modeMessage, noteText } from "../i18n";
 import {
   useCaregiverPopups,
@@ -894,7 +894,13 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       <div className="watch" ref={watchRef}>
         <div className="watch-crown" aria-hidden="true" />
         <div className="watch-side-button" aria-hidden="true" />
-        <div className="watch-screen wos">
+        {/* wh-screen: ownership hook for watch-ui.css — its rules anchor on
+            this class so they out-rank the shared upgrade.css tiers even
+            though that file is bundled after this component's styles. */}
+        <div className="watch-screen wos wh-screen">
+          {/* Minimal status row (minimal-text rule): the time plus only the
+              signals that matter to the wearer. The companion name is spoken
+              by the greeting below; battery appears only when it is low. */}
           <div className="watch-status">
             <span>
               {now.toLocaleTimeString([], {
@@ -902,13 +908,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
                 minute: "2-digit",
               })}
             </span>
-            <span
-              className="wos-wear"
-              title={`${attachmentNames[s.attachment]} · ${wearLabels[s.wearStatus]} (inferred)`}
-            >
-              {s.settings.companionName}
-            </span>
-            <span>
+            <span className="watch-signal">
               {s.connected ? (
                 <i className="wos-live" aria-label="Connected" />
               ) : (
@@ -917,12 +917,12 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
                   <span>{t("offline")}</span>
                 </>
               )}
-              {s.battery <= 20 ? (
-                <BatteryLow size={16} className="wos-low" />
-              ) : (
-                <Battery size={16} />
+              {s.battery <= 20 && (
+                <>
+                  <BatteryLow size={16} className="wos-low" />
+                  <span>{s.battery}%</span>
+                </>
               )}
-              {s.battery}%
             </span>
           </div>
           <span className="sr-only">
@@ -933,15 +933,20 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             {screen}
           </div>
           <div className="wos-footer">
-            {s.mode === "NORMAL" && !watchUi.memories && !showModePicker && (
-              <button
-                className="wos-mode-button"
-                onClick={() => setShowModePicker(true)}
-              >
-                <SlidersHorizontal size={14} />
-                {t("modeButton", { mode: experienceModeLabel })}
-              </button>
-            )}
+            {/* Settings live on the four-button home only: safety screens and
+                activity screens keep the whole footer row for the SOS bar. */}
+            {s.mode === "NORMAL" &&
+              !watchUi.memories &&
+              !showModePicker &&
+              screenKey === "home" && (
+                <button
+                  className="wos-mode-button"
+                  onClick={() => setShowModePicker(true)}
+                >
+                  <SlidersHorizontal size={14} />
+                  {t("modeButton", { mode: experienceModeLabel })}
+                </button>
+              )}
             {s.guidanceActive &&
               s.mode !== "GUIDED_RETURN" &&
               s.mode !== "EMERGENCY_SIMULATED" && (
