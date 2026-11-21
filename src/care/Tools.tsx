@@ -10,6 +10,7 @@ import {
 } from "../memory/media";
 import { useMemory } from "../memory/store";
 import { useCare, type Contact, type Method, type Journey } from "./store";
+import { EXPERIENCE_MODES } from "../experienceModes";
 
 function Avatar({ contact }: { contact: Contact }) {
   const { url } = useMediaURL(contact.photoId);
@@ -396,23 +397,15 @@ export function PolicyHistory() {
 }
 export function PhoneSettings() {
   const s = useStore();
-  const profiles = [
-    {
-      id: "normal",
-      name: "Normal",
-      detail: "All companion, memory, contact and wayfinding features.",
-    },
-    {
-      id: "focus",
-      name: "Focus",
-      detail: "A simpler screen with one clear wayfinding step at a time.",
-    },
-    {
-      id: "dialogue",
-      name: "Dialogue",
-      detail: `Conversation with ${s.settings.companionName} comes first.`,
-    },
-  ] as const;
+  const profiles = EXPERIENCE_MODES.map((mode) => ({
+    ...mode,
+    detail:
+      mode.id === "normal"
+        ? "All companion, memory, contact and wayfinding features."
+        : mode.id === "focus"
+          ? "A simpler screen with one clear wayfinding step at a time."
+          : `Conversation with ${s.settings.companionName} comes first.`,
+  }));
   return (
     <section className="care-manager">
       <h2>Caregiver settings</h2>
@@ -428,7 +421,10 @@ export function PhoneSettings() {
               aria-pressed={s.settings.experienceMode === profile.id}
               onClick={() => s.setExperienceMode(profile.id, "caregiver")}
             >
-              <strong>{profile.name} mode</strong>
+              <strong>
+                <span aria-hidden="true">{profile.emoji}</span> {profile.name}{" "}
+                mode
+              </strong>
               <small>{profile.detail}</small>
             </button>
           ))}

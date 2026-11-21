@@ -49,6 +49,7 @@ import { Check, BatteryLow, Satellite, AlertTriangle } from "lucide-react";
 import { wearLabels } from "../services/safety";
 import { CheckInHistory, FamilyResponse } from "./CheckInSupport";
 import { bleDevice } from "../services/ble";
+import { EXPERIENCE_MODES } from "../experienceModes";
 
 export function CaregiverPhone() {
   const s = useStore();
@@ -363,25 +364,23 @@ function CaregiverPopupLayer() {
 function CaregiverModeDock() {
   const s = useStore();
   const t = useT();
-  const modes = [
-    {
-      id: "normal" as const,
-      label: t("normalMode"),
-      hint: t("normalModeHint"),
-    },
-    {
-      id: "focus" as const,
-      label: t("focusMode"),
-      hint: t("focusModeHint"),
-    },
-    {
-      id: "dialogue" as const,
-      label: t("dialogueMode"),
-      hint: t("dialogueModeHint", {
-        companion: s.settings.companionName,
-      }),
-    },
-  ];
+  const modes = EXPERIENCE_MODES.map((mode) => ({
+    ...mode,
+    label:
+      mode.id === "normal"
+        ? t("normalMode")
+        : mode.id === "focus"
+          ? t("focusMode")
+          : t("dialogueMode"),
+    hint:
+      mode.id === "normal"
+        ? t("normalModeHint")
+        : mode.id === "focus"
+          ? t("focusModeHint")
+          : t("dialogueModeHint", {
+              companion: s.settings.companionName,
+            }),
+  }));
   const active =
     modes.find((mode) => mode.id === s.settings.experienceMode) ?? modes[0];
 
@@ -394,12 +393,13 @@ function CaregiverModeDock() {
         <span>
           <strong>{t("watchMode")}</strong>
           <small>
-            {active.label} on {s.settings.wearer.split(" ")[0]}'s watch
+            <span aria-hidden="true">{active.emoji}</span> {active.label} on{" "}
+            {s.settings.wearer.split(" ")[0]}'s watch
           </small>
         </span>
       </header>
       <div className="phone-mode-dock-options">
-        {modes.map(({ id, label, hint }) => (
+        {modes.map(({ id, emoji, label, hint }) => (
           <button
             type="button"
             key={id}
@@ -407,6 +407,7 @@ function CaregiverModeDock() {
             aria-pressed={s.settings.experienceMode === id}
             onClick={() => s.setExperienceMode(id, "caregiver")}
           >
+            <span aria-hidden="true">{emoji}</span>
             <span>{label}</span>
           </button>
         ))}
