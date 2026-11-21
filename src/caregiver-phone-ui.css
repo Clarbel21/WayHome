@@ -1019,8 +1019,11 @@
 .care-phone.cpui {
   container-type: inline-size;
 }
+/* Screenshot scaling: design units are fixed (1 --pu = 1 px at the 274 px
+   design screen) and the whole screen is zoomed to the real phone size. */
 .care-phone.cpui .care-phone-screen {
-  --pu: calc(100cqw / 290);
+  --pu: 1px;
+  zoom: var(--phone-zoom, 1);
 }
 
 /* Every Today card is exactly the screen's width: content can never push
@@ -1086,4 +1089,22 @@
     font-size: 15px;
     line-height: 1.15;
   }
+}
+/* Design-size status row: tight enough to stay one line on every system
+   font (the screen is a fixed design width, then scaled). */
+.care-phone.cpui .cph-summary {
+  flex-wrap: nowrap;
+  column-gap: 8px;
+  padding-inline: 9px;
+  white-space: nowrap;
+}
+.care-phone.cpui .cph-summary-item {
+  flex: none;
+  gap: 4px;
+}
+.care-phone.cpui .cph-summary-location {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
