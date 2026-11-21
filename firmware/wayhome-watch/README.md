@@ -42,8 +42,8 @@ Device name **`Sprout Watch`**. Service and characteristic UUIDs must match
 | GPS progress | `5a9c1f2e-4a04-4c31-9a48-d1b7f30e6c21` | `uint8` 0–6 route step | read, write, notify |
 | Wear motion | `5a9c1f2e-4a05-4c31-9a48-d1b7f30e6c21` | `uint8`: 0 unknown, 1 yes, 2 no | read, notify |
 | Attachment | `5a9c1f2e-4a06-4c31-9a48-d1b7f30e6c21` | string `wristwatch\|pendant\|clip` | read, write, notify |
-| Companion command | `5a9c1f2e-4a07-4c31-9a48-d1b7f30e6c21` | byte0: web→watch `0x01` show check-in; watch→web `0x02` "I'm okay", `0x03` "I'd like some help", `0x04` assistance (byte1: 0 home, 1 family, 2 confused), `0x05` back, `0x06` "Help me home", `0x07` walked a step (byte1: new step 0–6) | read, write, notify |
-| Watch state mirror | `5a9c1f2e-4a08-4c31-9a48-d1b7f30e6c21` | byte0: web watch screen (0 home, 1 check-in question, 2 help options, 3 guided route, 4 emergency, 5 acknowledged, 6 other); byte1: route position 0–6; bytes 2+: wearer first name (ASCII) for the "Hello, <name>." home greeting | read, write |
+| Companion command | `5a9c1f2e-4a07-4c31-9a48-d1b7f30e6c21` | byte0: web→watch `0x01` show check-in; watch→web `0x02` "I'm okay", `0x03` "I'd like some help", `0x04` assistance (byte1: 0 home, 1 family, 2 confused), `0x05` back, `0x06` "Help me home", `0x07` "I see it" / walked a step (byte1: new step 0–6), `0x08` "Not yet", `0x09` "I see it now" | read, write, notify |
+| Watch state mirror | `5a9c1f2e-4a08-4c31-9a48-d1b7f30e6c21` | byte0: web watch screen (0 home, 1 check-in question, 2 help options, 3 guided route, 4 emergency, 5 acknowledged, 6 other, 7 "Not yet" during guidance); byte1: route position 0–6; bytes 2+: `Wearer|Companion` first names (ASCII, ≤ 18 bytes) for the "Hi Amy! I'm Momo." greeting | read, write |
 | *(service)* | `5a9c1f2e-4a01-4c31-9a48-d1b7f30e6c21` | — | — |
 
 All payloads fit the default 20-byte ATT payload. On connect the device re-pushes a
@@ -69,6 +69,15 @@ for every wear event.
 
 Wording follows TEAM_PLAN v4: one idea per screen, at most 3 words per button.
 
-Not yet on the physical watch: "Not yet → I see it now" during guided return. It needs
-two new companion commands on the web side (`src/services/ble.ts`), for example `0x08`
-(landmark not seen) and `0x09` (seen it now).
+During guided return the watch offers **I see it**, **Not yet** and **Back**. "Not yet"
+pauses directions on both screens; the watch then shows **I see it now** and **Call family**.
+
+## Connecting (troubleshooting)
+
+- The watch advertises as **Sprout Watch** with the WayHome service UUID; the web app
+  matches either, so it appears in Chrome's Bluetooth picker.
+- The web app connects one GATT step at a time (Chrome on Windows/Android rejects
+  parallel GATT operations with "GATT operation already in progress").
+- If the picker shows nothing: turn Bluetooth on, use Chrome/Edge on desktop or Android,
+  open the site over HTTPS (GitHub Pages) or `localhost`, and reset the board so it
+  starts advertising again.

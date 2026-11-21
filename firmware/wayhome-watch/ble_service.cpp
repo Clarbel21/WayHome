@@ -91,10 +91,21 @@ class WatchStateCallbacks : public NimBLECharacteristicCallbacks {
         watch.remotePosition = value[1];
       }
       if (value.size() > 2) {
-        size_t n = value.size() - 2;
+        // Bytes 2+ = "Wearer|Companion" (or just "Wearer" from older web).
+        const uint8_t *text = value.data() + 2;
+        size_t len = value.size() - 2;
+        size_t bar = len;
+        for (size_t i = 0; i < len; i++) {
+          if (text[i] == '|') { bar = i; break; }
+        }
+        size_t n = bar;
         if (n > sizeof(watch.wearerName) - 1) n = sizeof(watch.wearerName) - 1;
-        memcpy(watch.wearerName, value.data() + 2, n);
+        memcpy(watch.wearerName, text, n);
         watch.wearerName[n] = '\0';
+        size_t c = bar < len ? len - bar - 1 : 0;
+        if (c > sizeof(watch.companionName) - 1) c = sizeof(watch.companionName) - 1;
+        if (c) memcpy(watch.companionName, text + bar + 1, c);
+        watch.companionName[c] = '\0';
         watch.wearerNameDirty = true;
       }
       watch.watchStatePending = true;
@@ -149,7 +160,10 @@ bool begin() {
 
   NimBLEAdvertising *advertising = NimBLEDevice::getAdvertising();
   advertising->addServiceUUID(SERVICE_UUID);
+  // The name travels in the scan response, so Chrome's picker shows
+  // "Sprout Watch" and the web's name filter also matches.
   advertising->enableScanResponse(true);
+  advertising->setName("Sprout Watch");
   NimBLEDevice::startAdvertising();
 
   return true;

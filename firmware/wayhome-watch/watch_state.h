@@ -33,13 +33,17 @@ struct WatchState {
   // Screen mirror from the web app (watch_state characteristic): the web
   // watch's current screen, so the AMOLED shows the same thing.
   // 0 home, 1 check-in question, 2 help options, 3 guided route,
-  // 4 emergency, 5 acknowledged, 6 other (check the app), 255 none yet.
+  // 4 emergency, 5 acknowledged, 6 other (check the app), 7 "Not yet"
+  // during guidance (offer "I see it now"), 255 none yet.
   volatile uint8_t remoteScreen = 255;
   volatile uint8_t remotePosition = 0;
   volatile bool watchStatePending = false;
   // Wearer first name from the web (watch_state payload, bytes 2+). The UI
   // greets "Hello, <name>." like the web watch home.
   char wearerName[16] = "";
+  // Companion name ("Sprout" unless the caregiver renamed it), same payload
+  // as "Wearer|Companion".
+  char companionName[16] = "";
   volatile bool wearerNameDirty = false;
 
   Attachment attachment() const { return (Attachment)attachmentRaw; }

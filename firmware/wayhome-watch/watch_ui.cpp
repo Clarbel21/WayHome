@@ -45,6 +45,7 @@ lv_obj_t *scrCheckQ = nullptr;  // "How are you feeling?"
 lv_obj_t *scrCheckH = nullptr;  // "How can I help?" (after "I'd like some help")
 lv_obj_t *scrThanks = nullptr;  // acknowledged: "Thank you for telling me"
 lv_obj_t *scrMirror = nullptr;  // generic: web shows a screen the watch lacks
+lv_obj_t *scrMissed = nullptr;  // "Not yet" during guidance → "I see it now"
 
 // Home widgets
 lv_obj_t *lblClock = nullptr;
@@ -238,6 +239,20 @@ void walk_step_cb(lv_event_t *e) {
   }
 }
 
+void not_yet_cb(lv_event_t *e) {
+  LV_UNUSED(e);
+  ble::publishCheckIn(0x08, 0);  // web shows the "Not yet" state → code 7
+}
+
+void seen_now_cb(lv_event_t *e) {
+  LV_UNUSED(e);
+  ble::publishCheckIn(0x09, 0);  // web resumes the walk → code 3
+  refresh_route_widgets();
+  load_screen(scrRoute);
+}
+
+void missed_call_cb(lv_event_t *e);
+
 void attachment_cb(lv_event_t *e) {
   if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
   int which = (int)(intptr_t)lv_event_get_user_data(e);
@@ -275,6 +290,13 @@ void checkin_assist_cb(lv_event_t *e) {
   } else {
     load_screen(scrHome);
   }
+}
+
+void missed_call_cb(lv_event_t *e) {
+  LV_UNUSED(e);
+  ble::publishCheckIn(0x04, 1);
+  lv_label_set_text(lblCallStatus, "Waiting...");
+  load_screen(scrCall);
 }
 
 // Talk topics: the same short replies as the web watch (src/i18n.ts).
@@ -456,14 +478,42 @@ void build_route_screen() {
   lv_obj_t *walk = add_button(scrRoute, 35, 278, 340, 72, FOREST, 17);
   lv_obj_set_style_bg_grad_color(walk, lv_color_hex(FOREST_LIGHT), 0);
   lv_obj_set_style_bg_grad_dir(walk, LV_GRAD_DIR_VER, 0);
-  lv_obj_t *walkText = add_label(walk, "Walk one step", &lv_font_montserrat_18, SURFACE);
+  lv_obj_t *walkText = add_label(walk, LV_SYMBOL_OK " I see it", &lv_font_montserrat_22, SURFACE);
   lv_obj_center(walkText);
   lv_obj_add_event_cb(walk, walk_step_cb, LV_EVENT_CLICKED, nullptr);
 
-  lv_obj_t *back = add_button(scrRoute, 35, 370, 340, 56, PALE, 13);
-  lv_obj_t *backText = add_label(back, "Back", &lv_font_montserrat_16, FOREST);
+  // "Not yet": the web pauses directions and offers "I see it now".
+  lv_obj_t *notYet = add_button(scrRoute, 35, 366, 165, 64, PALE, 14);
+  lv_obj_t *notYetText = add_label(notYet, "Not yet", &lv_font_montserrat_20, FOREST);
+  lv_obj_center(notYetText);
+  lv_obj_add_event_cb(notYet, not_yet_cb, LV_EVENT_CLICKED, nullptr);
+
+  lv_obj_t *back = add_button(scrRoute, 210, 366, 165, 64, PALE, 14);
+  lv_obj_t *backText = add_label(back, LV_SYMBOL_LEFT " Back", &lv_font_montserrat_20, FOREST);
   lv_obj_center(backText);
   lv_obj_add_event_cb(back, back_cb, LV_EVENT_CLICKED, nullptr);
+}
+
+// "Not yet" screen (mirror code 7): calm line, "I see it now", Call family.
+void build_missed_screen() {
+  scrMissed = new_screen(CREAM);
+  make_sprout_avatar(scrMissed, 182, 50);
+  lv_obj_t *title = add_label(scrMissed, "It's okay.", &lv_font_montserrat_28, INK);
+  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 116);
+  lv_obj_t *hint = add_label(scrMissed, "Look around slowly.", &lv_font_montserrat_22, SAGE_TEXT);
+  lv_obj_align(hint, LV_ALIGN_TOP_MID, 0, 160);
+
+  lv_obj_t *seen = add_button(scrMissed, 35, 220, 340, 80, FOREST, 17);
+  lv_obj_set_style_bg_grad_color(seen, lv_color_hex(FOREST_LIGHT), 0);
+  lv_obj_set_style_bg_grad_dir(seen, LV_GRAD_DIR_VER, 0);
+  lv_obj_t *seenText = add_label(seen, LV_SYMBOL_OK " I see it now", &lv_font_montserrat_24, SURFACE);
+  lv_obj_center(seenText);
+  lv_obj_add_event_cb(seen, seen_now_cb, LV_EVENT_CLICKED, nullptr);
+
+  lv_obj_t *call = add_button(scrMissed, 35, 316, 340, 64, PEACH, 14);
+  lv_obj_t *callText = add_label(call, LV_SYMBOL_CALL " Call family", &lv_font_montserrat_20, PEACH_TEXT);
+  lv_obj_center(callText);
+  lv_obj_add_event_cb(call, missed_call_cb, LV_EVENT_CLICKED, nullptr);
 }
 
 lv_obj_t *add_back(lv_obj_t *scr) {
@@ -674,6 +724,7 @@ bool init() {
   build_sos_screen();
   build_checkin_screens();
   build_mirror_screens();
+  build_missed_screen();
   build_home_screen();
 
   lv_timer_create(sos_hold_timer_cb, 50, nullptr);
@@ -714,6 +765,7 @@ void sync() {
         load_screen(scrSos);
         break;
       case 5: load_screen(scrThanks); break;
+      case 7: load_screen(scrMissed); break;
       case 6: {
         // Family handover (and other web-only screens) arrive as code 6:
         // keep the wearer on Call / Talk / Game rather than a generic screen.
@@ -732,10 +784,11 @@ void sync() {
   if (watch.wearerNameDirty) {
     watch.wearerNameDirty = false;
     static char hello[48];
+    const char *companion = watch.companionName[0] ? watch.companionName : "Sprout";
     if (watch.wearerName[0])
-      snprintf(hello, sizeof(hello), "Hi %s! I'm Sprout.", watch.wearerName);
+      snprintf(hello, sizeof(hello), "Hi %s! I'm %s.", watch.wearerName, companion);
     else
-      snprintf(hello, sizeof(hello), "I'm Sprout.");
+      snprintf(hello, sizeof(hello), "I'm %s.", companion);
     lv_label_set_text(lblName, hello);
   }
 

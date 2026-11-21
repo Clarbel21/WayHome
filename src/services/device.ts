@@ -11,6 +11,8 @@ export type DeviceEvent =
   | { type: "checkin_back" }
   | { type: "go_home" }
   | { type: "landmark_step"; step: number }
+  | { type: "landmark_missed" }
+  | { type: "landmark_seen_now" }
   | { type: "connection"; connected: boolean };
 export interface DeviceService {
   readonly mode: "simulated" | "ble";
@@ -47,6 +49,10 @@ export function applyDeviceEvent(e: DeviceEvent) {
     if (useStore.getState().mode === "GUIDED_RETURN") s.nextLandmark();
     else s.move();
   }
+  // "Not yet" / "I see it now" on the physical watch: the same store path as
+  // the web watch buttons, so the walk pauses and resumes identically.
+  if (e.type === "landmark_missed") s.chooseAssistance("unrecognized");
+  if (e.type === "landmark_seen_now") s.seeItNow();
   if (e.type === "connection") s.setConnection(e.connected);
 }
 // Default adapter for demos without paired hardware. The watch firmware
