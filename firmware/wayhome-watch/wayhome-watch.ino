@@ -30,6 +30,13 @@
 #include "Arduino_GFX_Library.h"
 #include "lv_conf.h"
 
+// The WayHome UI needs more than LVGL's default 64 KB pool: when that pool runs
+// out, LVGL halts forever and the screen freezes (touch stops, Bluetooth still
+// works). Use the lv_conf.h from the WayHome zip, which sets LV_STDLIB_CLIB.
+#if LV_USE_STDLIB_MALLOC == LV_STDLIB_BUILTIN && LV_MEM_SIZE < (192 * 1024U)
+#error "Copy lv_conf.h from the WayHome zip into Documents/Arduino/libraries (LVGL memory too small: the watch would freeze)."
+#endif
+
 #include "XPowersLib.h"
 #include "SensorQMI8658.hpp"
 #include "SensorPCF85063.hpp"
@@ -364,6 +371,15 @@ void loop() {
 
   ble::loopTick();
   ui::sync();
+
+  // Heartbeat: if these lines stop, the main loop (and touch) has frozen.
+  static uint32_t lastBeatMs = 0;
+  if (now - lastBeatMs >= 5000) {
+    lastBeatMs = now;
+    USBSerial.printf("[LOOP] running - free RAM %u KB, free PSRAM %u KB\n",
+                     (unsigned)(heap_caps_get_free_size(MALLOC_CAP_INTERNAL) / 1024),
+                     (unsigned)(heap_caps_get_free_size(MALLOC_CAP_SPIRAM) / 1024));
+  }
 
   delay(5);
 }
