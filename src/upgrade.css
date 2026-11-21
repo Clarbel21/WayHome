@@ -4751,3 +4751,75 @@
     font-size: 9.5px;
   }
 }
+
+/* ============================================================ stage v5
+   Wide screens (≥ 1200 px): the demo moments move into a left column so
+   the full height goes to the devices, and the caregiver phone grows. */
+@media (min-width: 1200px) and (min-height: 640px) {
+  .shared-experience:not(.large-text) .companion-main {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    column-gap: 18px;
+  }
+  .shared-experience:not(.large-text) .companion-main > .stage-heading {
+    grid-column: 1 / -1;
+  }
+  .shared-experience:not(.large-text) .companion-main > .shared-devices {
+    grid-column: 2;
+    grid-row: 2;
+    --phone-h: min(800px, calc(100dvh - 196px));
+  }
+  .shared-experience:not(.large-text) .companion-main > .stage-toolbar {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: center;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+  .shared-experience:not(.large-text) .stage-toolbar .demo-stage {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+  }
+  .shared-experience:not(.large-text) .stage-toolbar .demo-stage-chips {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 5px;
+    margin: 0;
+    padding: 12px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid #e3e6da;
+  }
+  .shared-experience:not(.large-text) .stage-toolbar .demo-stage-label {
+    margin: 0 0 4px 2px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+  }
+  .shared-experience:not(.large-text) .stage-toolbar button.demo-chip {
+    justify-content: flex-start;
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+  .shared-experience:not(.large-text) .stage-toolbar .demo-stage-caption {
+    margin: 0;
+    font-size: 11.5px;
+    line-height: 1.35;
+    text-align: left;
+  }
+  .shared-experience:not(.large-text) .stage-toolbar .companion-foot {
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.35;
+    text-align: left;
+  }
+}

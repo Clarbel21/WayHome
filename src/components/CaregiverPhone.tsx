@@ -44,7 +44,7 @@ import {
 import { status, useStore, simulatedLocation, navigable } from "../store";
 import { useLang, useT, timeAgo } from "../i18n";
 import { RADIUS_MAX, RADIUS_MIN, useZone } from "../zone/store";
-import { RouteHomeMap, ZoneLadder } from "../zone/ZoneViews";
+import { RouteHomeMap, ZoneLadder, ZoneMap } from "../zone/ZoneViews";
 import { evaluateSignals } from "../services/safety";
 import { Check, BatteryLow, Satellite, AlertTriangle } from "lucide-react";
 import { wearLabels } from "../services/safety";
@@ -71,28 +71,6 @@ type PhoneView =
   | "history"
   | "settings"
   | "device";
-
-// The shared safe-zone demo changes the radius from the caregiver stage.
-// Keep that control in the app bar so Today stays free of the map + slider
-// duplication while the existing stage flow keeps working.
-function LiveRadiusControl() {
-  const zone = useZone();
-  const t = useT();
-  return (
-    <label className="cph-radius" title={t("safeRadius")}>
-      <small>{zone.radiusM} m</small>
-      <input
-        type="range"
-        aria-label={t("safeRadius")}
-        min={RADIUS_MIN}
-        max={RADIUS_MAX}
-        step={50}
-        value={zone.radiusM}
-        onChange={(event) => zone.setRadius(Number(event.target.value))}
-      />
-    </label>
-  );
-}
 
 export function CaregiverPhone() {
   const s = useStore();
@@ -215,7 +193,6 @@ export function CaregiverPhone() {
                   ? t("navUpdates")
                   : t("navTools")}
             </span>
-            <LiveRadiusControl />
             <button
               className="phone-bell cph-bell"
               aria-label="View notifications"
@@ -731,6 +708,14 @@ function PhoneToday() {
             <small>Last known</small>
             <strong>{shortLocation}</strong>
           </span>
+        </section>
+      )}
+
+      {/* 7 — home and the safe-zone radius at a glance (the walk-home map
+          replaces it while guidance runs). */}
+      {!isEmergency && !routeActive && !alerting && (
+        <section className="cph-zone" aria-label="Safe zone around home">
+          <ZoneMap compact />
         </section>
       )}
 
