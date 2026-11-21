@@ -470,6 +470,12 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             >
               <Phone size={15} /> {t("helpFamily")}
             </button>
+            <button
+              className="wos-ghost cancel-guidance"
+              onClick={s.backToHome}
+            >
+              {t("cancelGuidance")}
+            </button>
           </>
         ) : (
           <>
@@ -486,6 +492,12 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
               onClick={() => s.chooseAssistance("family")}
             >
               <Phone size={17} /> {t("helpFamily")}
+            </button>
+            <button
+              className="wos-ghost cancel-guidance"
+              onClick={s.backToHome}
+            >
+              {t("cancelGuidance")}
             </button>
           </>
         )}
@@ -549,6 +561,11 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         {status === "acknowledged" && <p>{t("caregiverSeen")}</p>}
         <small>{s.familyRequest ? t("notifSent") : t("notifNone")}</small>
         {note}
+        {status !== "responded" && (
+          <button className="wos-back" onClick={s.backToHome}>
+            <ChevronLeft size={16} /> {t("backHome")}
+          </button>
+        )}
         {status === "responded" && (
           <button
             className="watch-action wos-primary"

@@ -205,3 +205,42 @@ describe("emergency priority and personalization", () => {
     expect(restored.mode).toBe("CHECK_IN");
   });
 });
+
+describe("backToHome wearer exit", () => {
+  it("cancels a waiting family request and restores the home screen", () => {
+    const s = useStore.getState();
+    s.chooseAssistance("family");
+    expect(useStore.getState().mode).toBe("CAREGIVER_HANDOVER");
+    expect(useStore.getState().familyRequest?.status).toBe("waiting");
+
+    useStore.getState().backToHome();
+    const after = useStore.getState();
+    expect(after.mode).toBe("NORMAL");
+    expect(after.familyRequest).toBeNull();
+    expect(after.alerts[0].title).toBe("Family request cancelled by wearer");
+  });
+
+  it("clears reorientation so the wearer can reach the emoji home", () => {
+    const s = useStore.getState();
+    s.event("CHECK");
+    s.answerCheckIn("help");
+    s.chooseAssistance("confused");
+    expect(useStore.getState().mode).toBe("REORIENTATION");
+
+    useStore.getState().backToHome();
+    const after = useStore.getState();
+    expect(after.mode).toBe("NORMAL");
+    expect(after.missedLandmark).toBeNull();
+    expect(after.alerts[0].title).toBe("Wearer returned to the watch home");
+  });
+
+  it("never leaves an active emergency through the wearer exit", () => {
+    useStore.getState().chooseAssistance("family");
+    useStore.getState().event("SOS");
+    expect(useStore.getState().mode).toBe("EMERGENCY_SIMULATED");
+
+    useStore.getState().backToHome();
+    expect(useStore.getState().mode).toBe("EMERGENCY_SIMULATED");
+    expect(useStore.getState().familyRequest).not.toBeNull();
+  });
+});

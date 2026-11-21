@@ -55,9 +55,10 @@
 .watch-area .watch .watch-screen.wos .wos-body {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  /* One-frame rule (TEAM_PLAN v2): watch content never scrolls inside the
+     frame. Every screen is built to fit; anything larger is clipped. */
+  overflow: hidden;
   overscroll-behavior: contain;
-  scrollbar-width: none;
   display: flex;
   flex-direction: column;
 }
@@ -324,8 +325,14 @@
   margin: 0;
   display: block;
 }
+/* .wos-photo.small img { height: 82px; } relaxed for one-frame fit */
 .watch-area .watch .watch-screen.wos .wos-photo.small img {
-  height: 82px;
+  height: 72px;
+}
+/* The calm reorientation screen stacks photo + text + two actions: give it
+   a slightly shorter photo so the exit button stays inside the frame. */
+.watch-area .watch .watch-screen.wos .wos-calm-screen .wos-photo.small img {
+  height: 64px;
 }
 .watch-area .watch .watch-screen.wos .wos-guide .wos-kicker {
   margin: 8px 0 0;

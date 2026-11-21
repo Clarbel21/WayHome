@@ -205,6 +205,7 @@ interface State {
   recordActivity: (title: string) => void;
   guidanceActive: boolean;
   cancelGuidance: () => void;
+  backToHome: () => void;
   closeDemo: () => void;
   dismissAcknowledgment: () => void;
   checkIn: CheckIn | null;
@@ -392,6 +393,44 @@ export const useStore = create<State>()(
             {
               id: crypto.randomUUID(),
               title: "Guidance cancelled by wearer",
+              time: Date.now(),
+              read: false,
+              urgent: false,
+            },
+            ...s.alerts,
+          ].slice(0, 100),
+        });
+      },
+      // Wearer exit from screens without their own back button (a waiting
+      // family request, or reorientation when they are not lost after all).
+      // Emergency stays until the caregiver resolve flow completes.
+      backToHome: () => {
+        const s = get();
+        if (
+          s.mode === "EMERGENCY_SIMULATED" ||
+          (s.incident && s.incident.stage !== "resolved")
+        )
+          return;
+        const cancelledRequest =
+          !!s.familyRequest && s.familyRequest.status !== "responded";
+        const mode =
+          scenarioMode(s.signals) ||
+          (verificationBlockers(s).length ||
+          s.checkIn?.stage === "unresolved"
+            ? "CHECK_IN"
+            : "NORMAL");
+        set({
+          guidanceActive: false,
+          missedLandmark: s.mode === "REORIENTATION" ? null : s.missedLandmark,
+          familyRequest: cancelledRequest ? null : s.familyRequest,
+          mode,
+          interactionNote: "",
+          alerts: [
+            {
+              id: crypto.randomUUID(),
+              title: cancelledRequest
+                ? "Family request cancelled by wearer"
+                : "Wearer returned to the watch home",
               time: Date.now(),
               read: false,
               urgent: false,
