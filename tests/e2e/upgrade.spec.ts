@@ -25,9 +25,7 @@ test("home screen offers four large actions plus SOS", async ({ page }) => {
   await w
     .getByRole("button", { name: "Who is my family?", exact: true })
     .click();
-  await expect(
-    w.getByText("Jamie Chen cares about you and is one tap away."),
-  ).toBeVisible();
+  await expect(w.getByText("Jamie Chen is one tap away.")).toBeVisible();
 });
 
 test("demo moments drive both devices and SOS disables unsafe moments", async ({
@@ -70,7 +68,7 @@ test("guided walk shows stop progress and ends on a welcome-home screen", async 
 }) => {
   const w = wearer(page);
   await w.getByRole("button", { name: "Help me home", exact: true }).click();
-  await expect(w.getByText("Stop 1 of 4")).toBeVisible();
+  await expect(w.getByRole("img", { name: "Stop 1 of 4" })).toBeVisible();
   for (let i = 0; i < 4; i++)
     await w.getByRole("button", { name: "I see it", exact: true }).click();
   await expect(w.getByText("Welcome home.", { exact: true })).toBeVisible();

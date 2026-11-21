@@ -124,9 +124,7 @@ test("wearer recognition returns home, empty approval offers help, and a short S
   for (let i = 0; i < 3; i++)
     await page.getByRole("button", { name: "I see it" }).click();
   await page.getByRole("button", { name: "I see it", exact: true }).click();
-  await expect(
-    page.getByText("Hi! I'm Sprout. I'm here with you."),
-  ).toBeVisible();
+  await expect(page.getByText("Hi Alex! I'm Sprout.")).toBeVisible();
   const sos = page.getByRole("button", { name: "SOS Hold for 3 seconds" });
   await sos.focus();
   await page.keyboard.down("Space");
@@ -142,7 +140,5 @@ test("wearer recognition returns home, empty approval offers help, and a short S
   await page.getByRole("button", { name: "Help me home" }).click();
   await expect(page.getByText("No approved landmarks yet.")).toBeVisible();
   await page.getByRole("button", { name: "Call someone I trust" }).click();
-  await expect(
-    page.getByText("Caregiver notification sent — simulation"),
-  ).toBeVisible();
+  await expect(page.getByText("Demo — no real call.")).toBeVisible();
 });

@@ -1099,3 +1099,49 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-bubble {
   font-size: 15px;
   line-height: 1.25;
 }
+/* Compact presenter stage: same layout, tighter rows; the photo keeps the
+   remaining space so it is never hidden. */
+@media (min-width: 860px) and (max-width: 1023px) and (min-height: 640px) {
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 {
+    gap: 3px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-photo2 {
+    min-height: 34px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-dir2 {
+    padding: 3px 8px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-dir2 b,
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-place {
+    font-size: 15px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-primary {
+    min-height: 38px;
+    font-size: 15px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-row2 .wos-secondary {
+    min-height: 34px;
+    font-size: 13px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-guide2
+    .cancel-guidance {
+    min-height: 24px;
+    font-size: 12px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-calm-screen
+    .wos-photo
+    img {
+    height: 44px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-bubble {
+    font-size: 13px;
+  }
+}

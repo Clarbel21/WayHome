@@ -72,10 +72,10 @@ test("same-screen caregiver response works and SOS stays separate from acknowled
     .getByRole("button", { name: "Simulate caregiver response", exact: true })
     .click();
   await wearer
-    .getByRole("button", { name: "Continue after response", exact: true })
+    .getByRole("button", { name: "I'm ready to continue", exact: true })
     .click();
   await expect(
-    wearer.getByText("Hi! I'm Sprout. I'm here with you.", { exact: true }),
+    wearer.getByText("Hi Alex! I'm Sprout.", { exact: true }),
   ).toBeVisible();
   await wearer
     .getByRole("button", { name: "SOS Hold for 3 seconds", exact: true })

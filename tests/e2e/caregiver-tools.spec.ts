@@ -176,7 +176,7 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
     page.getByRole("button", { name: "Look at my memories", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Maybe later", exact: true }).click();
-  await page.getByRole("button", { name: "Talk", exact: true }).click();
+  await page.getByRole("button", { name: "Let's talk", exact: true }).click();
   await page
     .getByRole("button", { name: "Something comforting", exact: true })
     .click();
@@ -335,7 +335,9 @@ for (const [width, height] of [
     await page
       .getByRole("button", { name: "Maybe later", exact: true })
       .click();
-    await page.getByRole("button", { name: "Help me home", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Help me home", exact: true })
+      .click();
     await fits();
     await page
       .getByRole("button", { name: "I know my way", exact: true })

@@ -158,7 +158,7 @@ const en: Dict = {
   legToward: "{m} m to the {name}",
   markAllRead: "Mark all read",
   hello: "Hello, {name}.",
-  hiName: "Hi, {name}!",
+  hiName: "Hi {name}! I'm {companion}.",
   circle: "YOUR CIRCLE OF CARE",
   reassureTitle: "A little reassurance.",
   reassureBody:
@@ -334,7 +334,7 @@ const id: Dict = {
   legToward: "{m} m ke {name}",
   markAllRead: "Tandai semua dibaca",
   hello: "Halo, {name}.",
-  hiName: "Hai, {name}!",
+  hiName: "Hai {name}! Aku {companion}.",
   circle: "LINGKARAN PEDULI ANDA",
   reassureTitle: "Sedikit ketenangan.",
   reassureBody: "Tanyakan perasaannya. Jawabannya muncul di layar pendamping.",

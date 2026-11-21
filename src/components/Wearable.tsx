@@ -800,7 +800,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       <div className="wos-home">
         <div className="wos-hello">
           <Sprout small />
-          {speech(t("hiName", { name: wearerFirst }))}
+          {speech(t("hiName", { name: wearerFirst, companion: name }))}
         </div>
         {/* Simplified emoji home (TEAM_PLAN v2): Home / Call / Talk / Game.
             Accessible names keep the established task wording. */}

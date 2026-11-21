@@ -8,7 +8,9 @@ test("help has a working way back and a blocked check-in offers recovery", async
     .getByRole("button", { name: "Start feeling check-in", exact: true })
     .click();
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "I'd like some help", exact: true }).click();
+  await page
+    .getByRole("button", { name: "I'd like some help", exact: true })
+    .click();
   const contrasts = await page
     .locator(".watch-controls button")
     .evaluateAll((buttons) => {
@@ -69,7 +71,7 @@ test("log-only unanswered check-in can be reviewed without getting stuck", async
     .click();
   await page.goto("/#/companion");
   await expect(
-    page.getByText("Hi! I'm Sprout. I'm here with you.", { exact: true }),
+    page.getByText("Hi Alex! I'm Sprout.", { exact: true }),
   ).toBeVisible();
   await page.goto("/#/caregiver/alerts");
   await expect(
@@ -88,9 +90,7 @@ test("removal handover provides a request, response and device recovery path", a
   await page
     .getByRole("button", { name: "Call someone I trust", exact: true })
     .click();
-  await expect(
-    page.getByText("Waiting for caregiver response", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("Waiting…", { exact: true })).toBeVisible();
   await page.goto("/#/caregiver/emergency");
   await page
     .getByRole("button", { name: "Acknowledge family request", exact: true })
@@ -123,7 +123,7 @@ test("removal handover provides a request, response and device recovery path", a
     .click();
   await page.goto("/#/companion");
   await expect(
-    page.getByText("Hi! I'm Sprout. I'm here with you.", { exact: true }),
+    page.getByText("Hi Alex! I'm Sprout.", { exact: true }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Explore Memories", exact: true })

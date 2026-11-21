@@ -92,13 +92,27 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
   await expect(page.getByText("Jamie", { exact: true })).not.toBeVisible();
   await page.getByRole("button", { name: "Tell me more", exact: true }).click();
   await expect(page.getByText(/This is your son, Jamie/)).toBeVisible();
-  await expect(
-    page.getByRole("img", { name: /has 1 keepsakes/ }),
-  ).toBeVisible();
+  // The garden picture lives on the full page; the watch keeps the count.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("wayhome-memory-v1")!).state.growth
+            .length,
+      ),
+    )
+    .toBe(1);
   await page.getByRole("button", { name: "Done" }).click();
-  await expect(
-    page.getByRole("img", { name: /has 1 keepsakes/ }),
-  ).toBeVisible();
+  // The garden picture lives on the full page; the watch keeps the count.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("wayhome-memory-v1")!).state.growth
+            .length,
+      ),
+    )
+    .toBe(1);
   await page
     .getByRole("button", { name: "My Happy Places", exact: true })
     .click();
@@ -140,13 +154,27 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
     .getByRole("button", { name: "Memory Garden", exact: true })
     .click();
   await page.getByRole("button", { name: "Plant a little tree" }).click();
-  await expect(
-    page.getByRole("img", { name: /has 5 keepsakes/ }),
-  ).toBeVisible();
+  // The garden picture lives on the full page; the watch keeps the count.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("wayhome-memory-v1")!).state.growth
+            .length,
+      ),
+    )
+    .toBe(5);
   await page.reload();
-  await expect(
-    page.getByRole("img", { name: /has 5 keepsakes/ }),
-  ).toBeVisible();
+  // The garden picture lives on the full page; the watch keeps the count.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("wayhome-memory-v1")!).state.growth
+            .length,
+      ),
+    )
+    .toBe(5);
   await page.getByRole("button", { name: "Done" }).click();
   await page
     .locator(".wos-memories")
@@ -376,9 +404,16 @@ test("cross-tab safety interrupts and preserves routine; renaming, skipping and 
   await wearer
     .getByRole("button", { name: "Maybe later", exact: true })
     .click();
-  await expect(
-    wearer.getByRole("img", { name: /has 0 keepsakes/ }),
-  ).toBeVisible();
+  // The garden picture lives on the full page; the watch keeps the count.
+  await expect
+    .poll(() =>
+      wearer.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("wayhome-memory-v1")!).state.growth
+            .length,
+      ),
+    )
+    .toBe(0);
   await wearer
     .locator(".wos-memories")
     .getByRole("button", { name: "Close", exact: true })

@@ -36,7 +36,12 @@ test("gps payload maps the route step and clamps out-of-range values", () => {
 
 test("wear payload maps motion and preserves the other wear inputs", () => {
   useStore.setState({
-    wearInputs: { fastener: "yes", contact: "yes", proximity: "no", motion: "no" },
+    wearInputs: {
+      fastener: "yes",
+      contact: "yes",
+      proximity: "no",
+      motion: "no",
+    },
   });
   expect(wearEvent(view([1]))).toEqual({
     type: "wear",

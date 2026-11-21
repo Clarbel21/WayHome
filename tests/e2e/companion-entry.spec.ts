@@ -84,9 +84,16 @@ test("old saved wear data shows an actionable pause and can be reviewed without 
     .getByRole("button", { name: "Familiar Faces", exact: true })
     .click();
   await page.getByRole("button", { name: "Tell me more", exact: true }).click();
-  await expect(
-    page.getByRole("img", { name: /has 1 keepsakes/ }),
-  ).toBeVisible();
+  // The garden picture lives on the full page; the watch keeps the count.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          JSON.parse(localStorage.getItem("wayhome-memory-v1")!).state.growth
+            .length,
+      ),
+    )
+    .toBe(1);
 });
 test("opening paused memories during SOS gives a review route without bypassing S5", async ({
   page,
