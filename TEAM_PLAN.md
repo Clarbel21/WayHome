@@ -1,83 +1,94 @@
-# WayHome team plan v2 — classic base, emoji watch, full parity
+# WayHome team plan v4
 
-**Agreed:** 11 November 2026, between clarbel21, itsme-lahlou (Ilyas) and the coding
-assistant. Supersedes plan v1's redesign sequencing. The product decision: **the app
-returns to the previous (classic) design** — https://wayhome-classic-cb0y.zai.site
-(build `63c2a46`) — and the presentation redesign moves to an archive branch
-(`esp32-watch-ble`, nothing deleted). Everything in `REDESIGN_HANDOFF.md` about
-safety behavior still applies; the presentation direction changes.
+**Updated:** 21 Nov 2026 · **Decides:** Clarine (`clarbel21`) · **Reviews logic:** Ilyas (`itsme-lahlou`)
+**Builders:** Codex · ZCode · Claude · WorkBuddy · Supersedes v3 (PR #5) and v2.
 
-**Already done on branch `classic-return` (commit `4f4b45e`, phase W1):** the
-classic shell with the simplified emoji watch home on both the web watch and the
-ESP32-S3 firmware — 2×2 tiles (🏠 Home / 📞 Call / 💬 Talk / 🎮 Game) plus a
-3-second-hold SOS bar; the BLE mirror now also carries the wearer's first name.
-124 unit tests pass; the e2e suite is 12 tests better than the classic baseline
-(all remaining e2e failures also fail on pristine `63c2a46` — that is phase A2's
-logic audit list).
+## Goal
 
-## The five rules for everything we build
+- **Watch = for the elderly wearer.** As simple as possible: big pictures, few words, big buttons.
+- **Phone = for the caregiver.** Complete and easy to use.
 
-1. **One watch interface, two screens.** Whatever the web watch shows during a demo,
-   the ESP32-S3 shows (same screen, same state). The BLE mirror
-   (`watch_state` characteristic `-4a08`) and companion commands (`-4a07`) stay the
-   contract; extend them, never fork them.
-2. **Every button works.** No dead tiles: each watch button drives the real store
-   flow on the web and notifies the ESP32 (and vice versa).
-3. **Phone ↔ ESP32 interaction.** Caregiver actions (check-in, Move one step,
-   attachment, review flows) reach the physical watch; wearer actions (SOS, Home,
-   Call, answers) reach the phone.
-4. **Simplified watch home.** Emoji tiles only: 🏠 Home (guided way home with
-   landmarks), 📞 Call (family), 💬 Talk (dialogue), 🎮 Game (Memory Garden cognition
-   test), plus the SOS bar — **hold 3 seconds** to send, on both screens.
-5. **Facts stay factual.** All of REDESIGN_HANDOFF's "Behavior that must remain true"
-   section applies unchanged.
+The watch does five things: **🏠 go home with familiar-landmark photos · 📞 call family ·
+💬 talk to Sprout · 🎮 memory game · SOS (hold 3 s).**
 
-## Phase W1 — simplified emoji watch home (DONE, both sides together)
+## Where we are (verified 21 Nov on `claude/watch-minimal-p0`)
 
-- Web watch home: 2×2 emoji tiles (🏠 Home / 📞 Call / 💬 Talk / 🎮 Game) + the
-  3-second SOS bar at the bottom. Accessible names keep the established wording
-  ("Help me home", "Call someone I trust", …) so tests and screen readers stay stable.
-- Firmware home: the same 2×2 tile layout with matching icons and labels + the same
-  SOS bar (compiles at 39% flash; re-flash the board after pulling this branch).
-- Talk opens the dialogue topics; Game opens Memory Garden; Call starts the family
-  request; Home starts guided return (watch requests it over BLE; the web applies its
-  safety gates and shows landmarks; the mirror keeps the ESP32 on the same screen).
+| Flow | Web watch | Phone sees it | ESP32 |
+|---|---|---|---|
+| 🏠 Home → landmark photo → "I see it" → next stop → Welcome home | ✅ | ✅ map dot moves | ⚠️ not re-tested |
+| "Not yet" → "I see it now" resumes the walk | ✅ | ✅ | ❌ no screen |
+| Leave safe zone → buzz → "Go home?" → guidance | ✅ | ✅ | ⚠️ |
+| 📞 Call → Sent / Seen / Replied → continue | ✅ | ✅ | ⚠️ |
+| 💬 Talk → 4 topics → back | ✅ | ✅ activity log | ❌ "Coming soon" screen |
+| 🎮 Game → Memory Garden → safety pauses it | ✅ | ✅ | ❌ "Coming soon" screen |
+| SOS: a tap does nothing, a 3-second hold sends once | ✅ | ✅ | ✅ (3000 ms in firmware) |
 
-## Phase W2 — button-by-button parity pass (clarbel21 + assistant)
+Tests: **127/127 unit tests and 86/86 browser tests pass.** Main had 19 browser
+failures before this pass; all were stale expectations, not bugs.
 
-For each watch action, walk the full loop and fix gaps:
-- **Home**: watch tile → web GUIDED_RETURN → landmarks advance from BOTH the web
-  ("I see it") and the watch steps → caregiver map moves → arrival restores home.
-- **Call**: watch tile → family request on the caregiver phone → respond flow.
-- **Talk**: watch tile → dialogue topics on the watch; caregiver sees the activity.
-- **Game**: watch tile → Memory Garden; safety interrupts pause it on both ends.
-- **Check-in / SOS / attachment / battery / wear**: already two-way; re-verify each.
+## Watch wording rules (apply to every watch screen)
 
-## Phase A1 — merge `classic-return` into main (DONE 21 Nov)
+1. **One idea per screen.** One photo or icon, one line, up to 3 buttons, plus SOS.
+2. **≤ 5 words per line, ≤ 3 words per button.** Example: "See the bakery?", "I see it", "Not yet".
+3. **Pictures before words.** During guidance, the landmark photo is the largest thing on screen and is never hidden.
+4. **Don't rely on left/right alone.** Always show the arrow *and* the photo of the next place.
+5. **No explanations on the watch.** Disclaimers, reasons and help text go on the phone or stage. The watch keeps only a short honesty note where needed, e.g. "Demo — no real call."
+6. **Minimum sizes:** text 15 px, buttons 44 px tall (primary 50 px). Nothing scrolls, and every screen has a way back home.
+7. **The same words on both watches.** The web watch and the ESP32 use the same strings (`src/i18n.ts` is the source; the firmware copies it).
+8. **The phone can say more.** It is for caregivers, but stays scannable: status first, details under Care tools.
 
-- `classic-return` IS the classic design (branched from `63c2a46`) with the BLE
-  stack and the emoji watch carried forward — the shell revert is already done.
-- Merged and deployed: main now serves the classic design with the emoji watch
-  (build dca3de4). This also fixed a live regression where the redesign had
-  turned the SOS button into an instant tap-to-send — it is hold-3-seconds again,
-  verified on the deployed site (tap sends nothing, hold 3 s sends once).
-- Review the diff against `63c2a46` (only the watch home, SOS timing, mirror name
-  bytes and test updates changed) and fast-forward `main`.
-- The redesign work stays archived on `esp32-watch-ble` for reference.
+## Lanes: who owns what
 
-## Phase A2 — logic audit (itsme-lahlou, his store expertise)
+Stay inside your files. If you need a change in someone else's file, ask in your PR.
 
-- Every store action reachable from the UI; no orphan screens; every demo moment in
-  the toolbar reflected on the watch (and mirrored to the ESP32 where a screen exists;
-  mirror code 6 "check the app" for the rest).
-- The e2e failures that pre-exist on the classic build (list in the branch commit
-  message and the failing specs) are the starting checklist.
-- Keep the mirror contract: codes 0–6 today; a new watch screen = a new mirror code in
-  the same PR on both sides.
+| Lane | Owns | Current focus |
+|---|---|---|
+| **ZCode** (watch look) | `Wearable.tsx` layout, `watch-ui.css` | Watch visuals follow the wording rules |
+| **WorkBuddy** (phone) | `CaregiverPhone.tsx`, `caregiver-phone-ui.css`, caregiver pages | Finish PR #6 |
+| **Codex** (logic + hardware) | `store.ts`, `zone/*`, `services/*`, `firmware/*`, stage layout in `App.tsx` | ESP32 parity, PR #8 |
+| **Claude** (words, content, QA) | `i18n.ts` copy, `memory/*` content and samples, `tests/e2e/*`, docs | Wording rules, green tests, plan |
+| **Ilyas** (review) | — | Logic review gate before merge |
+| **Clarine** (owner) | — | Approves each PR and the final demo |
 
-## Verification bar (unchanged)
+## Task list
 
-`npm test`, `npm run build` (relative base — same as the Pages workflow), Playwright flows. On Windows Git Bash never pass `--base /WayHome/` directly: MSYS rewrites it to `/Program Files/Git/WayHome/` in the output. If you need an explicit base, prefix it: `MSYS_NO_PATHCONV=1 npm run build -- --base /WayHome/`., firmware compile
-(`arduino-cli compile --fqbn esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB,PSRAM=opi,CDCOnBoot=cdc firmware/wayhome-watch`),
-then the 2-minute hardware smoke test: pair → each home tile → check-in → SOS hold 3 s.
-Record actual results in PRs and update this file when a decision changes.
+### ZCode — watch look
+- [ ] Call screen: enlarge the Sent/Seen/Replied chips (now ~9 px) and the status line to the 15 px minimum.
+- [ ] Replace the icon-only 🏠 "back" button (on "Not yet" and other screens) with a labelled "Back" button. A house icon reads as "go home", which is confusing during guidance.
+- [ ] Talk: chips to 15 px. Decide with Clarine whether 3 topics are enough.
+- [ ] Clarine to decide whether the "Mode · Normal" button stays on the watch home (simpler without it; the caregiver can set the mode).
+
+### WorkBuddy — caregiver phone
+- [ ] PR #6: apply Clarine's review (shared mode list, no overlap with the bottom nav, correct mode wording).
+- [ ] Add an "Open full workspace" link under Care tools. The old in-phone link is gone; today only the header has one.
+- [ ] Today screen must show at a glance: wearer status → active alert → Check-in / Find My → mode → location / battery.
+
+### Codex — logic and ESP32
+- [ ] ESP32 screens for "Not yet → I see it now", Talk and Game (no "Coming soon" dead ends), with new mirror codes and tests in the same PR.
+- [ ] Copy the short watch wording (rule 7) into `firmware/watch_ui.cpp`.
+- [ ] Fix the stale "2-second" comment in the firmware (the code already uses 3000 ms).
+- [ ] Restore `REDESIGN_HANDOFF.md` from `esp32-watch-ble` to `docs/`. Plans cite it, but it is missing from `main`.
+- [ ] Run and record the 2-minute hardware smoke test (below).
+
+### Claude — words, content, QA
+- [x] Guide screen: landmark photo back, one line, big buttons; shorter copy on home, zone prompt, call, talk and focus (EN + ID).
+- [x] Browser tests back to green (86/86) and aligned with the phone-left layout.
+- [ ] Wording pass on remaining screens: check-in, help options, SOS, arrived (rules 1–5).
+- [ ] Memory Garden on the watch: cut the menu to 4 big tiles.
+- [ ] Keep this plan current after each merge.
+
+### Ilyas — review gate
+- [ ] Review each PR's store/flow changes: no orphan screens, no dead buttons, safety interrupts and resumes correctly.
+
+## How we work
+
+1. **Branch per task:** `<lane>/<short-name>` from the latest `main`. No direct pushes to `main`.
+2. **Small PRs.** Each has before/after screenshots of the watch or phone, plus test results.
+3. **Green bar:** `npm test`, `npm run build`, and the full Playwright suite (baseline **86/86**). A PR may not lower it. If a test's wording is outdated, update the test in the same PR and say why.
+4. **Merge order:** owner opens the PR → Ilyas reviews logic (store/BLE PRs) → Clarine approves → squash-merge → GitHub Pages deploys.
+5. **Hardware PRs** also need the firmware compile and the smoke test:
+   `arduino-cli compile --fqbn esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB,PSRAM=opi,CDCOnBoot=cdc firmware/wayhome-watch`
+   Smoke test: pair → 4 home tiles → caregiver check-in → one route step → SOS tap (nothing happens) → SOS hold 3 s (sends once).
+6. **Facts stay factual.** Never imply real calling, GPS, monitoring or emergency dispatch.
+
+Windows Git Bash: build with `MSYS_NO_PATHCONV=1` if you pass `--base`.
