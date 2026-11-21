@@ -201,6 +201,13 @@ void my_touchpad_read(lv_indev_t *indev, lv_indev_data_t *data) {
     data->state = LV_INDEV_STATE_PR;
     data->point.x = touchX;
     data->point.y = touchY;
+    // Step 1 debugging: one line per press (rate-limited), so the Serial
+    // Monitor shows whether the touchscreen reports presses and where.
+    static uint32_t lastLogMs = 0;
+    if (millis() - lastLogMs > 250) {
+      lastLogMs = millis();
+      USBSerial.printf("[TOUCH] press at x=%ld y=%ld\n", (long)touchX, (long)touchY);
+    }
   } else {
     data->state = LV_INDEV_STATE_REL;
   }
