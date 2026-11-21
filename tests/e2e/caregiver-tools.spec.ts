@@ -95,6 +95,8 @@ test("phone contacts validate, persist, reorder, protect required caregiver and 
   await page
     .getByRole("button", { name: "Back to phone overview", exact: true })
     .click();
+  // Phone sub-pages go back to Care tools; Today is one tap on the tab bar.
+  await page.getByRole("button", { name: "Today", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Send a check-in", exact: true }),
   ).toBeVisible();
@@ -156,8 +158,10 @@ test("phone landmark upload and metadata approvals stay separate; cancel and Clo
     page.getByRole("heading", { name: "Fictional pharmacy", exact: true }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "Close Memory Library", exact: true })
+    .getByRole("button", { name: "Back to phone overview", exact: true })
     .click();
+  // Phone sub-pages go back to Care tools; Today is one tap on the tab bar.
+  await page.getByRole("button", { name: "Today", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Send a check-in", exact: true }),
   ).toBeVisible();
@@ -181,7 +185,7 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
     .getByRole("button", { name: "Something comforting", exact: true })
     .click();
   await expect(
-    page.getByText("Take your time. You are welcome here, just as you are.", {
+    page.getByText("Take your time. I'm here.", {
       exact: true,
     }),
   ).toBeVisible();
@@ -260,7 +264,7 @@ test("policy, optional journey, navigation roots and walkthrough exits work with
     .selectOption("sample-park");
   await page.getByRole("button", { name: "Save journey", exact: true }).click();
   await page
-    .getByRole("button", { name: "Close Memory Library", exact: true })
+    .getByRole("button", { name: "Back to phone overview", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Explore Memories", exact: true })
@@ -324,7 +328,8 @@ for (const [width, height] of [
       expect(boxes.phone.bottom).toBeLessThanOrEqual(height);
       expect(boxes.watch.bottom).toBeLessThanOrEqual(boxes.toolbar.top + 1);
       expect(boxes.sos.bottom).toBeLessThanOrEqual(boxes.toolbar.top + 1);
-      expect(boxes.watch.right).toBeLessThan(boxes.phone.left);
+      // Classic presentation: caregiver phone left, watch right (TEAM_PLAN).
+      expect(boxes.phone.right).toBeLessThan(boxes.watch.left);
     }
     await fits();
     await page

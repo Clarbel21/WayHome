@@ -74,17 +74,17 @@ test("family handover acknowledgment and simulated response synchronize tabs", a
   await caregiver
     .getByRole("button", { name: "Acknowledge family request", exact: true })
     .click();
+  // "Seen" ticks on the watch (Sent + Seen done).
   await expect(
-    page.getByText("Your caregiver has seen your request.", { exact: true }),
-  ).toBeVisible();
+    page
+      .getByRole("list", { name: "Family request progress" })
+      .locator("li.done"),
+  ).toHaveCount(2);
   await caregiver
     .getByRole("button", { name: "Simulate caregiver response", exact: true })
     .click();
   await expect(
-    page.getByText(
-      "Jamie Chen has responded in this demo. They are here to help.",
-      { exact: true },
-    ),
+    page.getByText("Jamie Chen replied.", { exact: true }),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "I'm ready to continue", exact: true })

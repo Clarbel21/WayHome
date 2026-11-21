@@ -63,9 +63,7 @@ test("leaving the safe zone buzzes the watch, escalates, then guides home landma
       .getByRole("button", { name: "I see it", exact: true })
       .click();
     if (name === "Community garden")
-      await expect(
-        watch(page).getByText("Turn right at the Community garden"),
-      ).toBeVisible();
+      await expect(watch(page).getByText("Turn right")).toBeVisible();
   }
   await expect(
     watch(page).getByText("Welcome home.", { exact: true }),

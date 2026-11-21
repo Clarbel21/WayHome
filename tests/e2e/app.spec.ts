@@ -124,7 +124,7 @@ test("wearer recognition returns home, empty approval offers help, and a short S
   for (let i = 0; i < 3; i++)
     await page.getByRole("button", { name: "I see it" }).click();
   await page.getByRole("button", { name: "I see it", exact: true }).click();
-  await expect(page.getByText("Hi Alex! I'm Sprout.")).toBeVisible();
+  await expect(page.getByText("Welcome home.")).toBeVisible();
   const sos = page.getByRole("button", { name: "SOS Hold for 3 seconds" });
   await sos.focus();
   await page.keyboard.down("Space");

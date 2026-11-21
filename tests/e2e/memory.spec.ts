@@ -68,10 +68,9 @@ async function openHome(
   await page.locator(".wos-memories").waitFor();
   const begin = page.getByRole("button", { name: "Let's begin", exact: true });
   if (await begin.isVisible()) await begin.click();
-  const back = page.getByRole("button", {
-    name: "Back",
-    exact: true,
-  });
+  const back = page
+    .locator(".wos-memories")
+    .getByRole("button", { name: /^(Back|Go back)$/ });
   if (!preserve && (await back.isVisible())) await back.click();
 }
 

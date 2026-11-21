@@ -13,8 +13,9 @@ test("wearer and caregiver phone sit side by side and share working check-ins", 
     name: "A little closer.",
     exact: true,
   });
-  const left = await wearer.boundingBox(),
-    right = await caregiver.boundingBox();
+  // Classic presentation: caregiver phone left, watch right (TEAM_PLAN).
+  const left = await caregiver.boundingBox(),
+    right = await wearer.boundingBox();
   expect(left!.x + left!.width).toBeLessThan(right!.x);
   expect(Math.abs(left!.y - right!.y)).toBeLessThan(3);
   await caregiver
@@ -33,11 +34,9 @@ test("wearer and caregiver phone sit side by side and share working check-ins", 
       .getByRole("region", { name: "Check-in responses" })
       .getByText(/I'm okay/),
   ).toBeVisible();
+  // The full workspace opens from the header's Caregiver Mode link.
   await expect(
-    caregiver.getByRole("link", {
-      name: "Open caregiver workspace",
-      exact: true,
-    }),
+    page.getByRole("link", { name: "Caregiver Mode", exact: true }),
   ).toBeVisible();
 });
 
@@ -108,15 +107,14 @@ test("mobile interfaces stack without overflow and caregiver workspace navigatio
   const caregiver = await page
     .getByRole("region", { name: "A little closer.", exact: true })
     .boundingBox();
-  expect(caregiver!.y).toBeGreaterThan(wearer!.y + wearer!.height);
+  // Phone first, then the watch, when the stage stacks on a phone screen.
+  expect(wearer!.y).toBeGreaterThan(caregiver!.y + caregiver!.height);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
-  await page
-    .getByRole("link", { name: "Open caregiver workspace", exact: true })
-    .click();
+  await page.getByRole("link", { name: "Caregiver Mode", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Looking out for Alex.", exact: true }),
   ).toBeVisible();

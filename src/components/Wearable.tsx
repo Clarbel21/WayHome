@@ -626,7 +626,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     screen = (
       <div className="wos-center">
         <Sprout small />
-        {speech(modeMessage(lang, "NORMAL", name))}
+        {speech(t("hiName", { name: wearerFirst, companion: name }))}
         {note}
         <div className="watch-controls wos-list">
           <button className="watch-action" onClick={watchUi.openMemories}>
@@ -649,7 +649,6 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           {lang === "id" ? "Selamat datang di rumah." : "Welcome home."}
         </strong>
         <Sprout small />
-        {speech(modeMessage(lang, "NORMAL", name))}
         <button
           className="watch-action wos-primary"
           onClick={() => {
