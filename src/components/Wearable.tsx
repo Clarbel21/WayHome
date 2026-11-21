@@ -285,14 +285,12 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         <p className="wos-sos-who">
           {seen ? t("sosAcked", { caregiver }) : t("sosWaiting", { caregiver })}
         </p>
-        <div className="sos-message">
-          <p>
-            {t("sosNotified", { caregiver, emergency: s.settings.emergency })}
-          </p>
-          <small>{t("sosNoReal")}</small>
-        </div>
+        <span className="sr-only">
+          {t("sosNotified", { caregiver, emergency: s.settings.emergency })}
+        </span>
         <p className="wos-calm">{t("stayHere")}</p>
-        <ResolveSOSButton />
+        <small className="wos-honest">{t("sosNoReal")}</small>
+        <ResolveSOSButton short />
       </div>
     );
   } else if (zonePrompt) {
@@ -471,13 +469,11 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             >
               <Phone size={17} /> {t("helpFamily")}
             </button>
-            {/* Minimal text (TEAM_PLAN v2): icon-only, name kept for tests */}
             <button
-              className="wos-ghost cancel-guidance wos-icon-only"
-              aria-label={t("cancelGuidance")}
+              className="wos-secondary cancel-guidance"
               onClick={s.backToHome}
             >
-              <House size={18} />
+              {t("cancelGuidance")}
             </button>
           </>
         )}
@@ -540,13 +536,8 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         <small>{s.familyRequest ? t("notifSent") : t("notifNone")}</small>
         {note}
         {status !== "responded" && (
-          /* Minimal text (TEAM_PLAN v2): icon-only, name kept for tests */
-          <button
-            className="wos-back wos-icon-only"
-            aria-label={t("backHome")}
-            onClick={s.backToHome}
-          >
-            <ChevronLeft size={18} />
+          <button className="wos-back" onClick={s.backToHome}>
+            <ChevronLeft size={18} aria-hidden="true" /> {t("backHome")}
           </button>
         )}
         {status === "responded" && (
@@ -565,7 +556,6 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       <div className="wos-center">
         <Sprout small />
         {speech(t("howHelp"))}
-        {note}
         <div className="watch-controls wos-list">
           <button
             className="watch-action"
@@ -596,7 +586,6 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       <div className="wos-center">
         <Sprout small />
         {speech(modeMessage(lang, s.mode, name))}
-        <small className="wos-kicker">{t("checkInHint")}</small>
         {note}
         <div className="watch-controls wos-answer">
           <button

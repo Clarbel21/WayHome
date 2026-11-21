@@ -52,7 +52,10 @@ test("Today follows the caregiver reading order and clears the nav", async ({
     const boxes = [];
     for (const selector of blocks) {
       const box = await page.locator(selector).boundingBox();
-      expect(box, `${selector} must be visible at ${size.width}`).not.toBeNull();
+      expect(
+        box,
+        `${selector} must be visible at ${size.width}`,
+      ).not.toBeNull();
       boxes.push(box!);
     }
     for (let i = 1; i < boxes.length; i += 1) {
@@ -71,7 +74,9 @@ test("Today follows the caregiver reading order and clears the nav", async ({
     await expect(page.locator(".cph-summary-item")).toHaveCount(3);
     const itemTops = await page
       .locator(".cph-summary-item")
-      .evaluateAll((items) => items.map((item) => item.getBoundingClientRect().top));
+      .evaluateAll((items) =>
+        items.map((item) => item.getBoundingClientRect().top),
+      );
     expect(
       Math.max(...itemTops) - Math.min(...itemTops),
       `summary items must share one row at ${size.width}`,
@@ -155,16 +160,20 @@ test("Today follows the caregiver reading order and clears the nav", async ({
 
 test("every caregiver phone control is still reachable", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  const nav = page.getByRole("navigation", { name: "Phone views", exact: true });
+  const nav = page.getByRole("navigation", {
+    name: "Phone views",
+    exact: true,
+  });
   const mode = page.locator(".cph-mode");
 
   const focus = mode.getByRole("button", { name: /^Focus:/ });
   await focus.click();
   await expect(focus).toHaveAttribute("aria-pressed", "true");
   await mode.getByRole("button", { name: /^Normal:/ }).click();
-  await expect(
-    mode.getByRole("button", { name: /^Normal:/ }),
-  ).toHaveAttribute("aria-pressed", "true");
+  await expect(mode.getByRole("button", { name: /^Normal:/ })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
 
   await page
     .getByRole("button", { name: "View notifications", exact: true })
@@ -182,9 +191,12 @@ test("every caregiver phone control is still reachable", async ({ page }) => {
     page.getByRole("link", { name: "Open full workspace", exact: true }),
   ).toHaveAttribute("href", "#/caregiver");
 
-  await page.locator(".phone-tool-list").getByRole("button", {
-    name: /Device & readings/,
-  }).click();
+  await page
+    .locator(".phone-tool-list")
+    .getByRole("button", {
+      name: /Device & readings/,
+    })
+    .click();
   await expect(
     page.getByRole("button", { name: "Back to phone overview" }),
   ).toBeVisible();
@@ -224,7 +236,9 @@ test("active alerts stand out without making the calm screen alarming", async ({
   await moments
     .getByRole("button", { name: "Wanders off route", exact: true })
     .click();
-  await expect(page.getByText("Needs attention", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Needs attention", { exact: true }),
+  ).toBeVisible();
   await expect(page.getByText("Route deviation")).toBeVisible();
   // The hero cross-fades its background; poll past the transition.
   await expect
@@ -236,9 +250,7 @@ test("active alerts stand out without making the calm screen alarming", async ({
   await expect(
     page.getByRole("button", { name: "Acknowledge SOS alert" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: "Review SOS" }),
-  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Review SOS" })).toBeVisible();
   await expect
     .poll(background, { message: "urgent must differ from calm" })
     .not.toBe(calm);
@@ -256,9 +268,7 @@ test("a wearer mode change still raises the caregiver notification", async ({
     exact: true,
   });
   await watch.getByRole("button", { name: /^Mode ·/ }).click();
-  await watch
-    .getByRole("button", { name: /^Focus/ })
-    .click();
+  await watch.getByRole("button", { name: /^Focus/ }).click();
   await expect(
     page.locator(".phone-popup-layer .phone-action-popup").first(),
   ).toBeVisible();
@@ -320,13 +330,17 @@ test("every Today state keeps an 8px clear margin above the nav", async ({
 
     await page.setViewportSize(size);
     await resetDemo(page);
-    await expect(page.getByText("No active alerts", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("No active alerts", { exact: true }),
+    ).toBeVisible();
     await expectClearNavMargin(page, `calm Today at ${label}`);
 
     await page
       .getByRole("button", { name: "Wanders off route", exact: true })
       .click();
-    await expect(page.getByText("Needs attention", { exact: true })).toBeVisible();
+    await expect(
+      page.getByText("Needs attention", { exact: true }),
+    ).toBeVisible();
     await expectClearNavMargin(page, `attention Today at ${label}`);
 
     await page.getByRole("button", { name: "SOS", exact: true }).click();

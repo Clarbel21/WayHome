@@ -689,7 +689,10 @@ function PhoneToday() {
       {/* 6 — one row carries connection, battery and the single last-known
           location reading. Live maps and the radius slider live in Care tools. */}
       {!isEmergency && (
-        <section className="cph-summary" aria-label="Device and location summary">
+        <section
+          className="cph-summary"
+          aria-label="Device and location summary"
+        >
           <span className="cph-summary-item">
             <Wifi size={14} aria-hidden="true" />
             <strong>{s.connected ? t("connected") : t("disconnected")}</strong>

@@ -407,7 +407,10 @@
   font-size: max(11px, calc(var(--pu) * 11.5));
   font-weight: 750;
 }
-.care-phone.cpui .cph-mode .phone-mode-dock-options button[aria-pressed="true"] {
+.care-phone.cpui
+  .cph-mode
+  .phone-mode-dock-options
+  button[aria-pressed="true"] {
   border-color: var(--cph-forest);
   background: var(--cph-forest);
   color: #fff;
@@ -1018,4 +1021,69 @@
 }
 .care-phone.cpui .care-phone-screen {
   --pu: calc(100cqw / 290);
+}
+
+/* Every Today card is exactly the screen's width: content can never push
+   a card past the phone's edge on a small phone. */
+.care-phone.cpui .cph-today {
+  grid-template-columns: minmax(0, 1fr);
+}
+.care-phone.cpui .cph-today > * {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.care-phone.cpui .cph-actions {
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+}
+.care-phone.cpui .cph-actions .button {
+  min-width: 0;
+}
+.care-phone.cpui .cph-mode-options button {
+  min-width: 0;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+/* Small phones (narrow presenter screens): stack each mode's emoji above
+   its name, like a phone tab bar, and let the check-in label use the full
+   button width. Nothing is cut off. */
+@container (max-width: 260px) {
+  .care-phone.cpui .cph-mode-options button {
+    flex-direction: column;
+    gap: 1px;
+    line-height: 1.1;
+    padding-block: 4px;
+    white-space: nowrap;
+  }
+  .care-phone.cpui .cph-mode-options button .cph-mode-emoji {
+    font-size: max(11px, calc(var(--pu) * 13));
+  }
+  .care-phone.cpui .phone-quick-actions.cph-actions {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+  .care-phone.cpui .cph-actions .button {
+    min-height: 34px;
+    justify-content: center;
+  }
+}
+@container (max-width: 260px) {
+  /* Small phone: the status row drops its icons so the words never collide. */
+  .care-phone.cpui .cph-summary {
+    column-gap: 7px;
+    padding-inline: 8px;
+  }
+  .care-phone.cpui .cph-summary svg {
+    display: none;
+  }
+  .care-phone.cpui .cph-summary-item {
+    flex: none;
+  }
+}
+@container (max-width: 260px) {
+  .care-phone.cpui .cph-hero-title {
+    font-size: 15px;
+    line-height: 1.15;
+  }
 }

@@ -1271,3 +1271,112 @@ html
     min-height: 28px;
   }
 }
+
+/* ---------------------------------------------- big-print pass (rule 6)
+   Every word the wearer reads on the watch is at least 15 px; buttons are
+   at least 44 px tall. The clock and the SOS sub-label are the only
+   exceptions (status, not reading). */
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .speech,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-bubble {
+  font-size: 16px;
+  line-height: 1.25;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-chip,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-list
+  .watch-action,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-row2
+  .wos-secondary,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .cancel-guidance,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-back,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-mode-button,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-handover p,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-sos-who,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-calm,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .resolve-sos-button {
+  font-size: 15px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-chip,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-back,
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-mode-button,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-list
+  .watch-action {
+  min-height: 44px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-steps li {
+  font-size: 14px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-handover
+  > strong {
+  font-size: 17px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-honest,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-handover
+  small {
+  font-size: 12px;
+}
+/* Taller watches have room for full-size guide buttons. */
+@media (min-height: 801px) {
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos.wos.wos
+    .wos-row2
+    .wos-secondary,
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos.wos.wos
+    .wos-guide2
+    > .cancel-guidance {
+    min-height: 44px;
+  }
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-list
+  .wos-back {
+  min-height: 44px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-steps {
+  flex-wrap: wrap;
+  justify-content: center;
+  row-gap: 3px;
+  max-width: 100%;
+}
+/* "How can I help?": one full-width answer per row, so no answer wraps. */
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-body[data-screen="help-options"]
+  .wos-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 5px;
+}

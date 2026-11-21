@@ -72,7 +72,7 @@ test("emoji home keeps the four tiles and SOS in the watch frame", async ({
   const frame = await watch.boundingBox();
   for (const name of [
     "Help me home",
-    "Call someone I trust",
+    "Call family",
     "Let's talk",
     "My memories",
   ]) {

@@ -48,7 +48,7 @@ describe("language layer", () => {
 
   it("uses calm, first-person wording for wearer choices", () => {
     expect(translate("en", "cancelGuidance")).toBe("I know my way");
-    expect(translate("en", "helpConfused")).toBe("I'm not sure where I am");
+    expect(translate("en", "helpConfused")).toBe("I'm not sure");
     expect(translate("en", "returnHome")).toBe("Maybe later");
     expect(translate("id", "cancelGuidance")).toBe("Saya tahu jalannya");
   });

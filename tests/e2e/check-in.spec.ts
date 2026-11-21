@@ -27,19 +27,13 @@ test("help, recognition and failed recognition stop guidance", async ({
   page,
 }) => {
   await start(page);
-  await page
-    .getByRole("button", { name: "I'd like some help", exact: true })
-    .click();
-  for (const label of [
-    "Please guide me home",
-    "Call someone I trust",
-    "I'm not sure where I am",
-  ])
+  await page.getByRole("button", { name: "Help me", exact: true }).click();
+  for (const label of ["Guide me home", "Call family", "I'm not sure"])
     await expect(
       page.getByRole("button", { name: label, exact: true }),
     ).toBeVisible();
   await page
-    .getByRole("button", { name: "Please guide me home", exact: true })
+    .getByRole("button", { name: "Guide me home", exact: true })
     .click();
   await expect(
     page.getByText("Community garden", { exact: true }),
@@ -62,12 +56,8 @@ test("family handover acknowledgment and simulated response synchronize tabs", a
   context,
 }) => {
   await start(page);
-  await page
-    .getByRole("button", { name: "I'd like some help", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Call someone I trust", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Help me", exact: true }).click();
+  await page.getByRole("button", { name: "Call family", exact: true }).click();
   await expect(page.getByText("Waiting…", { exact: true })).toBeVisible();
   const caregiver = await context.newPage();
   await caregiver.goto("/#/caregiver/alerts");
@@ -97,12 +87,8 @@ test("confusion offers support without a recognition test", async ({
   page,
 }) => {
   await start(page);
-  await page
-    .getByRole("button", { name: "I'd like some help", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "I'm not sure where I am", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Help me", exact: true }).click();
+  await page.getByRole("button", { name: "I'm not sure", exact: true }).click();
   await expect(
     page.getByText(
       "It's okay to feel unsure. Take your time. I'm here with you.",
@@ -111,7 +97,7 @@ test("confusion offers support without a recognition test", async ({
   ).toBeVisible();
   await expect(page.locator(".watch-landmark img")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Call someone I trust", exact: true }),
+    page.getByRole("button", { name: "Call family", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "I see it", exact: true }),
@@ -143,9 +129,7 @@ test("SOS interrupts help choices and okay cannot bypass the incident", async ({
   page,
 }) => {
   await start(page);
-  await page
-    .getByRole("button", { name: "I'd like some help", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Help me", exact: true }).click();
   await page
     .getByRole("button", { name: "SOS Hold for 3 seconds", exact: true })
     .focus();
