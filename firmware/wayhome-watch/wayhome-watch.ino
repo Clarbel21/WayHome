@@ -13,11 +13,29 @@
 #include <Wire.h>
 #include <Arduino.h>
 #include "pin_config.h"
+
+// Board pins from the Waveshare ESP32-S3-Touch-AMOLED-2.06 docs. Set here so an
+// older pin_config.h in someone's Arduino libraries cannot move the I2C bus or
+// the touch pins.
+#undef IIC_SDA
+#undef IIC_SCL
+#undef TP_INT
+#undef TP_RESET
+#define IIC_SDA 15
+#define IIC_SCL 14
+#define TP_INT 38
+#define TP_RESET 9
 #include <lvgl.h>
 
 #include "Arduino_GFX_Library.h"
-#include "Arduino_DriveBus_Library.h"
 #include "lv_conf.h"
+
+// The WayHome UI needs more than LVGL's default 64 KB pool: when that pool runs
+// out, LVGL halts forever and the screen freezes (touch stops, Bluetooth still
+// works). Use the lv_conf.h from the WayHome zip, which sets LV_STDLIB_CLIB.
+#if LV_USE_STDLIB_MALLOC == LV_STDLIB_BUILTIN && LV_MEM_SIZE < (192 * 1024U)
+#error "Copy lv_conf.h from the WayHome zip into Documents/Arduino/libraries (LVGL memory too small: the watch would freeze)."
+#endif
 
 #include "XPowersLib.h"
 #include "SensorQMI8658.hpp"
@@ -53,16 +71,41 @@ Arduino_GFX *gfx = new Arduino_CO5300(bus, LCD_RESET /* RST */,
                                       0 /* col_offset2 */,
                                       0 /* row_offset2 */);
 
-std::shared_ptr<Arduino_IIC_DriveBus> IIC_Bus =
-  std::make_shared<Arduino_HWIIC>(IIC_SDA, IIC_SCL, &Wire);
+// LVGL calls this instead of a silent while(1) when an internal check fails
+// (lv_conf.h from firmware/lvgl-config), so a freeze names its cause.
+extern "C" void wayhome_lvgl_halt(const char *file, int line) {
+  while (true) {
+    USBSerial.printf("[LVGL] halted at %s:%d - please report this line\n", file, line);
+    delay(5000);
+  }
+}
 
-void Arduino_IIC_Touch_Interrupt(void);
+// ---- Touch (FT3168 at 0x38), read directly over I2C ----
+// Same method as the touch-test sketch that worked on the board: no touch
+// library, so library versions on the PC cannot break touch.
+constexpr uint8_t TOUCH_ADDR = 0x38;
 
-std::unique_ptr<Arduino_IIC> FT3168(new Arduino_FT3x68(IIC_Bus, FT3168_DEVICE_ADDRESS,
-                                                       DRIVEBUS_DEFAULT_VALUE, TP_INT, Arduino_IIC_Touch_Interrupt));
+bool touch_read(uint8_t reg, uint8_t *buf, size_t n) {
+  Wire.beginTransmission(TOUCH_ADDR);
+  Wire.write(reg);
+  if (Wire.endTransmission(false) != 0) return false;
+  if (Wire.requestFrom((int)TOUCH_ADDR, (int)n) != (int)n) return false;
+  for (size_t i = 0; i < n; i++) buf[i] = Wire.read();
+  return true;
+}
 
-void Arduino_IIC_Touch_Interrupt(void) {
-  FT3168->IIC_Interrupt_Flag = true;
+void touch_begin() {
+  pinMode(TP_INT, INPUT_PULLUP);
+  pinMode(TP_RESET, OUTPUT);
+  digitalWrite(TP_RESET, LOW);
+  delay(20);
+  digitalWrite(TP_RESET, HIGH);
+  delay(300);
+  uint8_t id = 0;
+  if (touch_read(0xA3, &id, 1))
+    USBSerial.printf("Touch ready (chip id 0x%02x)\n", id);
+  else
+    USBSerial.println("Touch chip not answering at 0x38");
 }
 
 XPowersPMU power;
@@ -193,14 +236,24 @@ void my_disp_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map) {
 }
 
 void my_touchpad_read(lv_indev_t *indev, lv_indev_data_t *data) {
-  int32_t touchX = FT3168->IIC_Read_Device_Value(FT3168->Arduino_IIC_Touch::Value_Information::TOUCH_COORDINATE_X);
-  int32_t touchY = FT3168->IIC_Read_Device_Value(FT3168->Arduino_IIC_Touch::Value_Information::TOUCH_COORDINATE_Y);
-
-  if (FT3168->IIC_Interrupt_Flag == true) {
-    FT3168->IIC_Interrupt_Flag = false;
+  // Registers 0x02..0x06: finger count, X high/low, Y high/low.
+  uint8_t r[5];
+  uint8_t fingers = 0;
+  int32_t x = 0, y = 0;
+  if (touch_read(0x02, r, 5)) {
+    fingers = r[0] & 0x0F;
+    x = ((r[1] & 0x0F) << 8) | r[2];
+    y = ((r[3] & 0x0F) << 8) | r[4];
+  }
+  if (fingers > 0 && fingers <= 2) {
     data->state = LV_INDEV_STATE_PR;
-    data->point.x = touchX;
-    data->point.y = touchY;
+    data->point.x = x;
+    data->point.y = y;
+    static uint32_t lastLogMs = 0;
+    if (millis() - lastLogMs > 250) {
+      lastLogMs = millis();
+      USBSerial.printf("[TOUCH] press at x=%ld y=%ld\n", (long)x, (long)y);
+    }
   } else {
     data->state = LV_INDEV_STATE_REL;
   }
@@ -225,15 +278,10 @@ void setup() {
   }
   gfx->fillScreen(RGB565_BLACK);
 
-  Wire.begin(IIC_SDA, IIC_SCL);
+  Wire.begin(IIC_SDA, IIC_SCL, 400000);
 
   // Touch
-  while (FT3168->begin() == false) {
-    USBSerial.println("FT3168 initialization fail");
-    delay(2000);
-  }
-  FT3168->IIC_Write_Device_State(FT3168->Arduino_IIC_Touch::Device::TOUCH_POWER_MODE,
-                                 FT3168->Arduino_IIC_Touch::Device_Mode::TOUCH_POWER_MONITOR);
+  touch_begin();
 
   // PMIC (explicit begin: the shipped example relies on the default ctor)
   if (!power.begin(Wire, AXP2101_SLAVE_ADDRESS, IIC_SDA, IIC_SCL)) {
@@ -308,7 +356,7 @@ void setup() {
 
   bootMs = millis();
   lastActiveMs = millis();
-  USBSerial.println("Setup done");
+  USBSerial.println("Setup done - touch the screen to see [TOUCH] lines");
 }
 
 void loop() {
@@ -332,6 +380,15 @@ void loop() {
 
   ble::loopTick();
   ui::sync();
+
+  // Heartbeat: if these lines stop, the main loop (and touch) has frozen.
+  static uint32_t lastBeatMs = 0;
+  if (now - lastBeatMs >= 5000) {
+    lastBeatMs = now;
+    USBSerial.printf("[LOOP] running - free RAM %u KB, free PSRAM %u KB\n",
+                     (unsigned)(heap_caps_get_free_size(MALLOC_CAP_INTERNAL) / 1024),
+                     (unsigned)(heap_caps_get_free_size(MALLOC_CAP_SPIRAM) / 1024));
+  }
 
   delay(5);
 }

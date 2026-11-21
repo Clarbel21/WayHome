@@ -26,6 +26,10 @@ there is no real GNSS (the board has none), no real calling, and no emergency di
 2. Install the Waveshare board libraries from the
    [vendor repo](https://github.com/waveshareteam/ESP32-S3-Touch-AMOLED-2.06)
    (`examples/arduino/libraries/` → your sketchbook `libraries/` folder, including `lv_conf.h`).
+   **Important:** replace `libraries/lv_conf.h` with [`firmware/lvgl-config/lv_conf.h`](../lvgl-config/lv_conf.h)
+   from this repo. It lets LVGL use the system heap/PSRAM; the vendor default (a 64 KB
+   pool) runs out with the WayHome screens and LVGL then freezes the watch (no touch).
+   The sketch refuses to compile with the old setting.
 3. Board settings: **ESP32S3 Dev Module**, Flash Size **16MB**, Partition Scheme
    **16M Flash (3MB APP/9.9MB FATFS)**, PSRAM **OPI PSRAM**, USB CDC On Boot **Enabled**.
 4. Open `wayhome-watch.ino`, upload, open the serial monitor (USB CDC, 115200).

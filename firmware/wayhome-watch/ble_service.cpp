@@ -2,6 +2,10 @@
 #include "watch_state.h"
 
 #include <NimBLEDevice.h>
+#include <HWCDC.h>
+
+// Defined in wayhome-watch.ino; the same USB serial the Serial Monitor shows.
+extern HWCDC USBSerial;
 
 namespace ble {
 
@@ -32,12 +36,14 @@ uint8_t wearMotionByte() { return (uint8_t)watch.wearMotion; }
 class ServerCallbacks : public NimBLEServerCallbacks {
   void onConnect(NimBLEServer *server, NimBLEConnInfo &connInfo) override {
     watch.bleConnected = true;
+    USBSerial.println("[BLE] connected to the WayHome web app");
     // The web store resets wear observations on reconnect: re-push everything.
     snapshotPending = true;
   }
 
   void onDisconnect(NimBLEServer *server, NimBLEConnInfo &connInfo, int reason) override {
     watch.bleConnected = false;
+    USBSerial.printf("[BLE] disconnected (reason %d), advertising again\n", reason);
     NimBLEDevice::startAdvertising();
   }
 };
@@ -75,6 +81,7 @@ class CompanionCallbacks : public NimBLECharacteristicCallbacks {
   void onWrite(NimBLECharacteristic *chr, NimBLEConnInfo &connInfo) override {
     NimBLEAttValue value = chr->getValue();
     if (value.size() >= 1 && value[0] == 0x01) {
+      USBSerial.println("[BLE] web -> watch: show check-in");
       watch.checkInPending = true;
     }
   }
@@ -86,6 +93,8 @@ class WatchStateCallbacks : public NimBLECharacteristicCallbacks {
   void onWrite(NimBLECharacteristic *chr, NimBLEConnInfo &connInfo) override {
     NimBLEAttValue value = chr->getValue();
     if (value.size() >= 1) {
+      USBSerial.printf("[BLE] web -> watch: screen %u, step %u\n", (unsigned)value[0],
+                       value.size() >= 2 ? (unsigned)value[1] : 0u);
       watch.remoteScreen = value[0];
       if (value.size() >= 2 && value[1] <= 6) {
         watch.remotePosition = value[1];
@@ -165,6 +174,7 @@ bool begin() {
   advertising->enableScanResponse(true);
   advertising->setName("Sprout Watch");
   NimBLEDevice::startAdvertising();
+  USBSerial.println("[BLE] advertising as \"Sprout Watch\"");
 
   return true;
 }
@@ -210,7 +220,11 @@ void publishSos() {
 }
 
 void publishCheckIn(uint8_t code, uint8_t arg) {
-  if (chrCompanion == nullptr || !watch.bleConnected) return;
+  if (chrCompanion == nullptr || !watch.bleConnected) {
+    USBSerial.printf("[BLE] not connected: command 0x%02x not sent\n", code);
+    return;
+  }
+  USBSerial.printf("[BLE] watch -> web: command 0x%02x %u\n", code, arg);
   uint8_t payload[2] = {code, arg};
   chrCompanion->setValue(payload, 2);
   chrCompanion->notify();

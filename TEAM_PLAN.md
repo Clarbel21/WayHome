@@ -49,34 +49,46 @@ name next to it in a PR or issue so two people don't take the same step. When it
 tick the box here in the same PR. One step = one small PR with before/after screenshots of
 the watch **and** the phone, and the green bar below.
 
-- [ ] **Step 1 — Test the physical watch.** Flash the latest `main` to the ESP32-S3 and run
-  the smoke test below. Write ✅/❌ per item into this file. *(Needs the board.)*
-- [ ] **Step 2 — "Loses signal".** Today the offline watch still shows the caregiver's
+- [x] **Step 1 — Physical watch works.** *(22 Nov, Clarine on the board.)* Touch works and
+  the watch connects to the web app. Fixed on the way: a crash 1 s after start-up (missing
+  weekday label), LVGL's 64 KB memory pool (now system heap/PSRAM via
+  `firmware/lvgl-config/lv_conf.h`), touch read directly over I2C, Bluetooth logs in the
+  Serial Monitor. Still to tick in the smoke test below: each tile, check-in, Not yet → I
+  see it now, SOS hold.
+- [ ] **Step 2 — Landmark pictures on the ESP32.** Today the physical watch shows the walk
+  home with text and a progress bar only; the landmark photos appear only on the web watch.
+  Done when: during guided return the ESP32 shows the same landmark photo as the web watch
+  for each stop (big, as on the web), plus the place name and "I see it" / "Not yet".
+  Suggested route: convert the built-in landmark photos to small RGB565 images stored in
+  the board's flash (the 9.9 MB FAT partition or compiled-in LVGL images), and send the
+  current stop number in the watch-state mirror so the watch knows which photo to show.
+  Caregiver-uploaded photos can follow later (sent over Bluetooth in small chunks).
+- [ ] **Step 3 — "Loses signal".** Today the offline watch still shows the caregiver's
   check-in, which it could not have received. Done when: the watch shows an "Offline" screen
   whose Home / Call / SOS still work, and the phone shows "Watch offline · last seen near home"
   with the check-in waiting until the watch reconnects.
-- [ ] **Step 3 — "Takes it off".** Today the phone says "Caregiver Assistance Requested",
+- [ ] **Step 4 — "Takes it off".** Today the phone says "Caregiver Assistance Requested",
   but nobody asked for help, and the watch shows a call screen to nobody. Done when: the
   phone says "Watch taken off" and offers Find My, the watch shows a quiet "Put me on?"
   screen, and no family request is created.
-- [ ] **Step 4 — "+8 min" escalation.** Today the phone escalates to Urgent while the watch
+- [ ] **Step 5 — "+8 min" escalation.** Today the phone escalates to Urgent while the watch
   stays on "Go home?". Done when: every ladder step also shows on the watch (buzz again →
   "Call family?" → caregiver alerted) and both devices always show the same step.
-- [ ] **Step 5 — "Weak GPS" during a walk.** Done when: during a walk the watch keeps the
+- [ ] **Step 6 — "Weak GPS" during a walk.** Done when: during a walk the watch keeps the
   landmark photo, hides the arrow and says "Look for the bakery"; outside a walk it stays a
   calm check-in.
-- [ ] **Step 6 — Happy endings.** Add two moments: "Arrives home" (watch: Welcome home;
+- [ ] **Step 7 — Happy endings.** Add two moments: "Arrives home" (watch: Welcome home;
   phone: All calm + a short summary) and "Family calls back" (watch: "Jamie replied";
   phone: request done).
-- [ ] **Step 7 — Last long sentences.** Shorten the store messages still shown on the
+- [ ] **Step 8 — Last long sentences.** Shorten the store messages still shown on the
   watch ("It's okay. I'm here with you.", "Help request sent — simulation") to ≤ 5 words,
   first-person, and copy them to the ESP32 firmware.
-- [ ] **Step 8 — Final check.** A logic review of steps 2–5 (Ilyas), then Clarine runs the
+- [ ] **Step 9 — Final check.** A logic review of steps 3–6 (Ilyas), then Clarine runs the
   whole demo on the web and the physical watch and approves.
 
 ### Hardware smoke test (step 1; repeat after any firmware change)
 
-Pair from **Connect Sprout watch** → 4 home tiles (Home, Call, Talk, Game) → caregiver
+✅ touch, ✅ connects. Still to check: pair from **Connect Sprout watch** → 4 home tiles (Home, Call, Talk, Game) → caregiver
 check-in → "I see it" → "Not yet" → "I see it now" → SOS tap (nothing) → SOS hold 3 s (sends once).
 
 ## Files by area (so changes stay small)

@@ -2,6 +2,9 @@
 #include "watch_state.h"
 #include "watch_hal.h"
 #include "ble_service.h"
+#include <HWCDC.h>
+
+extern HWCDC USBSerial;  // defined in wayhome-watch.ino
 
 // WayHome watch UI, mirroring the web app's wearer screen
 // (src/components/Wearable.tsx + src/upgrade.css "wearer home hierarchy"):
@@ -197,6 +200,7 @@ lv_obj_t *make_sprout_avatar(lv_obj_t *parent, int32_t x, int32_t y) {
 void tile_cb(lv_event_t *e) {
   if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
   int which = (int)(intptr_t)lv_event_get_user_data(e);
+  USBSerial.printf("[UI] home tile %d tapped\n", which);
   switch (which) {
     case 0:
       // Tell the web app to start guided return (it applies its own
@@ -376,8 +380,10 @@ void sos_hold_timer_cb(lv_timer_t *timer) {
 
 void clock_timer_cb(lv_timer_t *timer) {
   LV_UNUSED(timer);
-  lv_label_set_text(lblClock, hal_clock_text());
-  lv_label_set_text(lblWeekday, hal_weekday_text());
+  // The emoji home (11 Nov) has no weekday label any more: updating a missing
+  // label made LVGL halt one second after start-up (screen frozen, no touch).
+  if (lblClock) lv_label_set_text(lblClock, hal_clock_text());
+  if (lblWeekday) lv_label_set_text(lblWeekday, hal_weekday_text());
 }
 
 // ---- Screen construction ----
