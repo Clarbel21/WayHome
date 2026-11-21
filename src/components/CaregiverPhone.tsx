@@ -1,3 +1,4 @@
+import "../caregiver-phone-ui.css";
 import {
   Contacts,
   SafetyPolicy,
@@ -42,30 +43,63 @@ import {
 } from "lucide-react";
 import { status, useStore, simulatedLocation, navigable } from "../store";
 import { useLang, useT, timeAgo } from "../i18n";
-import { useZone } from "../zone/store";
-import { RouteHomeMap, ZoneLadder, ZoneMap } from "../zone/ZoneViews";
+import { RADIUS_MAX, RADIUS_MIN, useZone } from "../zone/store";
+import { RouteHomeMap, ZoneLadder } from "../zone/ZoneViews";
 import { evaluateSignals } from "../services/safety";
 import { Check, BatteryLow, Satellite, AlertTriangle } from "lucide-react";
 import { wearLabels } from "../services/safety";
 import { CheckInHistory, FamilyResponse } from "./CheckInSupport";
 import { bleDevice } from "../services/ble";
 
+// Codex's shared list (src/experienceModes.ts, PR #8) is not on main yet.
+// Keep this single local copy of the agreed emoji + names; Codex will swap it
+// for the shared import during integration.
+const PHONE_EXPERIENCE_MODES = [
+  { id: "normal", emoji: "🌿", name: "Normal" },
+  { id: "focus", emoji: "🏠", name: "Focus" },
+  { id: "dialogue", emoji: "💬", name: "Dialogue" },
+] as const;
+
+type PhoneView =
+  | "more"
+  | "today"
+  | "updates"
+  | "contacts"
+  | "policy"
+  | "landmarks"
+  | "library"
+  | "history"
+  | "settings"
+  | "device";
+
+// The shared safe-zone demo changes the radius from the caregiver stage.
+// Keep that control in the app bar so Today stays free of the map + slider
+// duplication while the existing stage flow keeps working.
+function LiveRadiusControl() {
+  const zone = useZone();
+  const t = useT();
+  return (
+    <label className="cph-radius" title={t("safeRadius")}>
+      <small>{zone.radiusM} m</small>
+      <input
+        type="range"
+        aria-label={t("safeRadius")}
+        min={RADIUS_MIN}
+        max={RADIUS_MAX}
+        step={50}
+        value={zone.radiusM}
+        onChange={(event) => zone.setRadius(Number(event.target.value))}
+      />
+    </label>
+  );
+}
+
 export function CaregiverPhone() {
   const s = useStore();
   const lang = useLang((l) => l.lang);
   const t = useT();
   useCare((s) => s.receipts.length);
-  const [view, setView] = useState<
-    | "more"
-    | "today"
-    | "updates"
-    | "contacts"
-    | "policy"
-    | "landmarks"
-    | "library"
-    | "history"
-    | "settings"
-  >("today");
+  const [view, setView] = useState<PhoneView>("today");
   const scrollArea = useRef<HTMLDivElement>(null);
   // Bring the caregiver to Today when the wearer leaves the zone or guidance starts,
   // so the escalation ladder and live route map are actually on screen.
@@ -109,20 +143,24 @@ export function CaregiverPhone() {
       icon: History,
     },
     {
+      id: "device",
+      label: "Device & readings",
+      detail: "Connection, wear, battery and GPS",
+      icon: Battery,
+    },
+    {
       id: "settings",
       label: "Settings",
       detail: "Personalize your companion",
       icon: Settings,
     },
   ] as const;
-  const emergency = s.alerts.find(
-    (a) => a.emergency && !a.emergency.resolvedAt,
-  );
   const waiting = !!s.familyRequest && s.familyRequest.status !== "responded";
   const isEmergency = s.mode === "EMERGENCY_SIMULATED";
   const activeSection = sections.find((section) => section.id === view);
+  const unread = s.alerts.some((a) => !a.read);
   return (
-    <div className="care-phone" aria-label="Caregiver phone interface">
+    <div className="care-phone cpui" aria-label="Caregiver phone interface">
       <div className="phone-island" aria-hidden="true" />
       <div className="care-phone-screen" data-view={view}>
         <div className="phone-system" aria-hidden="true">
@@ -144,37 +182,41 @@ export function CaregiverPhone() {
           </button>
         )}
         <div className="phone-scroll" ref={scrollArea}>
-          <header className="phone-greeting">
-            <span className="phone-avatar">
-              {s.settings.caregiver[0] || "J"}
+          <header className="cph-appbar">
+            <span className="cph-brand">
+              <Leaf size={14} aria-hidden="true" />
+              <strong>WayHome</strong>
             </span>
-            <div>
-              <p>{t("circle")}</p>
-              <strong>
-                {t("hello", { name: s.settings.caregiver.split(" ")[0] })}
-              </strong>
-            </div>
+            <span className="cph-appbar-view">
+              {view === "today"
+                ? t("navToday")
+                : view === "updates"
+                  ? t("navUpdates")
+                  : t("navTools")}
+            </span>
+            <LiveRadiusControl />
             <button
-              className="phone-bell"
+              className="phone-bell cph-bell"
               aria-label="View notifications"
               onClick={() => setView("updates")}
             >
-              <Bell size={20} />
-              {s.alerts.some((a) => !a.read) && (
-                <span className="notification-dot" />
-              )}
+              <Bell size={18} />
+              {unread && <span className="notification-dot" />}
             </button>
           </header>
           {view === "more" ? (
-            <section className="phone-tools">
+            <section className="phone-tools cph-tools">
               <p className="phone-kicker">MADE FOR YOUR FAMILY</p>
               <h3>Your care tools</h3>
-              <p>A few thoughtful ways to stay close.</p>
-              <div className="phone-tool-list">
+              <p>
+                {t("hello", { name: s.settings.caregiver.split(" ")[0] })} A few
+                thoughtful ways to stay close.
+              </p>
+              <div className="phone-tool-list cph-tool-list">
                 {sections.map(({ id, label, detail, icon: Icon }) => (
                   <button key={id} onClick={() => setView(id)}>
                     <span className="tool-icon">
-                      <Icon size={20} />
+                      <Icon size={19} />
                     </span>
                     <span>
                       <strong>{label}</strong>
@@ -187,8 +229,8 @@ export function CaregiverPhone() {
             </section>
           ) : null}
           {view !== "today" && view !== "updates" && view !== "more" ? (
-            <div className="phone-manager">
-              <header className="phone-manager-head">
+            <div className="phone-manager cph-manager">
+              <header className="phone-manager-head cph-manager-head">
                 <button
                   type="button"
                   aria-label="Back to phone overview"
@@ -217,6 +259,8 @@ export function CaregiverPhone() {
                   <PolicyHistory />
                   <MemoryActivityHistory />
                 </>
+              ) : view === "device" ? (
+                <PhoneDeviceDetails />
               ) : (
                 <PhoneSettings />
               )}
@@ -224,10 +268,10 @@ export function CaregiverPhone() {
           ) : view === "today" ? (
             <PhoneToday />
           ) : view === "updates" ? (
-            <section className="phone-updates">
-              <div className="phone-updates-head">
+            <section className="phone-updates cph-updates">
+              <div className="phone-updates-head cph-updates-head">
                 <h3>{t("updatesTitle")}</h3>
-                {s.alerts.some((a) => !a.read) && (
+                {unread && (
                   <button className="text-button" onClick={() => s.read()}>
                     {t("markAllRead")}
                   </button>
@@ -273,14 +317,18 @@ export function CaregiverPhone() {
           ) : null}
           {view === "more" && (
             <>
-              <Link className="phone-workspace-link" to="/caregiver">
-                {t("workspace")} <ArrowRight size={16} />
+              <Link
+                className="phone-workspace-link cph-workspace-link"
+                to="/caregiver"
+                aria-label="Open full workspace"
+              >
+                Open full workspace <ArrowRight size={16} />
               </Link>
               <p className="phone-disclaimer">{t("demoOnly")}</p>
             </>
           )}
         </div>
-        <nav className="phone-bottom-nav" aria-label="Phone views">
+        <nav className="phone-bottom-nav cph-nav" aria-label="Phone views">
           <button
             aria-pressed={view === "today"}
             onClick={() => setView("today")}
@@ -294,9 +342,7 @@ export function CaregiverPhone() {
           >
             <Bell size={20} />
             <span>{t("navUpdates")}</span>
-            {s.alerts.some((a) => !a.read) && (
-              <i className="notification-dot" />
-            )}
+            {unread && <i className="notification-dot" />}
           </button>
           <button
             aria-pressed={view !== "today" && view !== "updates"}
@@ -363,51 +409,47 @@ function CaregiverPopupLayer() {
 function CaregiverModeDock() {
   const s = useStore();
   const t = useT();
-  const modes = [
-    {
-      id: "normal" as const,
-      label: t("normalMode"),
-      hint: t("normalModeHint"),
-    },
-    {
-      id: "focus" as const,
-      label: t("focusMode"),
-      hint: t("focusModeHint"),
-    },
-    {
-      id: "dialogue" as const,
-      label: t("dialogueMode"),
-      hint: t("dialogueModeHint", {
-        companion: s.settings.companionName,
-      }),
-    },
-  ];
+  const modes = PHONE_EXPERIENCE_MODES.map((mode) => ({
+    ...mode,
+    hint:
+      mode.id === "normal"
+        ? t("normalModeHint")
+        : mode.id === "focus"
+          ? t("focusModeHint")
+          : t("dialogueModeHint", { companion: s.settings.companionName }),
+  }));
   const active =
     modes.find((mode) => mode.id === s.settings.experienceMode) ?? modes[0];
 
   return (
-    <section className="phone-mode-dock" aria-label={t("watchMode")}>
-      <header>
+    <section className="phone-mode-dock cph-mode" aria-label={t("watchMode")}>
+      <header className="cph-mode-head">
         <span className="phone-mode-symbol" aria-hidden="true">
-          <SlidersHorizontal size={15} />
+          <Watch size={15} />
         </span>
         <span>
           <strong>{t("watchMode")}</strong>
           <small>
-            {active.label} on {s.settings.wearer.split(" ")[0]}'s watch
+            <span className="cph-mode-emoji" aria-hidden="true">
+              {active.emoji}
+            </span>{" "}
+            {active.name} on {s.settings.wearer.split(" ")[0]}'s watch
           </small>
         </span>
       </header>
-      <div className="phone-mode-dock-options">
-        {modes.map(({ id, label, hint }) => (
+      <div className="phone-mode-dock-options cph-mode-options">
+        {modes.map(({ id, emoji, name, hint }) => (
           <button
             type="button"
             key={id}
-            aria-label={`${label}: ${hint}`}
+            aria-label={`${name}: ${hint}`}
             aria-pressed={s.settings.experienceMode === id}
             onClick={() => s.setExperienceMode(id, "caregiver")}
           >
-            <span>{label}</span>
+            <span className="cph-mode-emoji" aria-hidden="true">
+              {emoji}
+            </span>{" "}
+            <span>{name}</span>
           </button>
         ))}
       </div>
@@ -423,244 +465,14 @@ const statusId: Record<string, string> = {
   "Simulated SOS": "SOS simulasi",
 };
 
-// Today tab: one status, one next action, then context. Safety rules stay in the store.
-function PhoneToday() {
+// Detailed device readings live in Care tools so Today stays scannable.
+function PhoneDeviceDetails() {
   const s = useStore();
-  const lang = useLang((l) => l.lang);
   const t = useT();
-  const find = useFind();
   const wearer = s.settings.wearer;
-  const first = wearer.split(" ")[0];
-  const isEmergency = s.mode === "EMERGENCY_SIMULATED";
-  const waiting = !!s.familyRequest && s.familyRequest.status !== "responded";
-  const findings = evaluateSignals(s.signals);
-  const emergency = s.alerts.find(
-    (a) => a.emergency && !a.emergency.resolvedAt,
-  );
   const approved = s.landmarks.filter(navigable);
-  const zone = useZone();
-  const tone =
-    isEmergency || (zone.active && zone.level >= 3)
-      ? "urgent"
-      : s.mode === "NORMAL" && !findings.length && s.connected && !zone.active
-        ? "calm"
-        : "attention";
-  const heading =
-    zone.active && s.mode === "NORMAL"
-      ? t("zoneOutside")
-      : lang === "id"
-        ? (statusId[status[s.mode]] ?? status[s.mode])
-        : status[s.mode];
-  const subtitle = isEmergency
-    ? t("sosSub")
-    : zone.active && s.mode !== "GUIDED_RETURN"
-      ? t("zoneFor", {
-          min: Math.floor(zone.vmin),
-          km: (zone.distanceM / 1000).toFixed(2),
-        })
-      : s.mode === "GUIDED_RETURN"
-        ? t("walkingHome", { wearer: first })
-        : s.checkIn?.stage === "question"
-          ? t("waitingAnswer", { wearer: first })
-          : waiting
-            ? t("familySub")
-            : s.mode === "NORMAL" && !findings.length
-              ? t("calmSub")
-              : t("changedSub");
-  const sendCheckIn = () => {
-    s.event("CHECK");
-    // A paired watch shows the same question; the simulated one renders below.
-    void bleDevice.sendCheckInRequest().catch(() => {});
-    requestAnimationFrame(() => {
-      const heading = document.getElementById("wearer-view-title");
-      if (
-        !matchMedia("(min-width: 1000px) and (min-height: 650px)").matches ||
-        s.settings.largeText
-      )
-        heading?.scrollIntoView({
-          behavior: s.settings.reducedMotion ? "instant" : "smooth",
-          block: "start",
-        });
-      heading?.focus({ preventScroll: true });
-    });
-  };
-  const ack = emergency?.emergency?.acknowledgedAt;
   return (
-    <>
-      <section
-        className={`phone-status tone-${tone} ${isEmergency ? "phone-emergency" : ""}`}
-        aria-live="polite"
-      >
-        <div className="phone-status-topline">
-          <span className="phone-status-label">{wearer}</span>
-          <span className={`phone-tone-chip ${tone}`}>
-            {tone === "urgent"
-              ? t("urgent")
-              : tone === "calm"
-                ? t("allCalm")
-                : t("needsAttention")}
-          </span>
-        </div>
-        <h3>{heading}</h3>
-        <p>{subtitle}</p>
-        {s.mode === "CHECK_IN" && s.checkIn?.stage === "question" && (
-          <span className="phone-live-dot" aria-hidden="true" />
-        )}
-      </section>
-
-      {!isEmergency && (
-        <section className="phone-quick-actions" aria-label="Caregiver actions">
-          <button className="button" disabled={waiting} onClick={sendCheckIn}>
-            <MessageCircle size={16} />
-            {t("sendCheckIn")}
-          </button>
-          <button
-            className={`button light ${find.ringing ? "is-ringing" : ""}`}
-            disabled={!s.connected && !find.ringing}
-            title={!s.connected ? t("findOffline") : undefined}
-            aria-pressed={Boolean(find.ringing)}
-            onClick={() =>
-              find.ringing
-                ? useFind.getState().stop()
-                : useFind.getState().start(s.settings.caregiver)
-            }
-          >
-            {find.ringing ? <BellOff size={16} /> : <BellRing size={16} />}
-            {find.ringing ? t("findStop") : t("findBand")}
-          </button>
-          {waiting && <p>{t("respondFirst")}</p>}
-          {find.ringing && (
-            <p className="phone-find-note" role="status">
-              {t("findNote")}
-            </p>
-          )}
-        </section>
-      )}
-
-      {!isEmergency && <CaregiverModeDock />}
-
-      {!isEmergency && (
-        <section
-          className="phone-location-card phone-location-primary"
-          aria-label="Simulated location overview"
-        >
-          <header className="phone-card-heading">
-            <span>
-              <MapPin size={15} /> {t("lastKnown")}
-            </span>
-            <small>{Math.round(s.signals.gpsConfidence * 100)}% GPS</small>
-          </header>
-          <ZoneMap />
-          <div className="location-caption">
-            <div>
-              <strong>
-                {zone.distanceM > 0
-                  ? `About ${(zone.distanceM / 1000).toFixed(2)} km from home`
-                  : simulatedLocation(s.position)}
-              </strong>
-              <small>Simulated location · latest available reading</small>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {isEmergency ? (
-        <section className="phone-action-card urgent">
-          <h3>{t("attention")}</h3>
-          <ol className="phone-timeline" aria-label={t("sosTimeline")}>
-            <li className="done">
-              <Check size={14} />
-              <span>{t("tlSent")}</span>
-              {emergency && <time>{timeAgo(lang, emergency.time)}</time>}
-            </li>
-            <li className={ack ? "done" : "current"}>
-              {ack ? <Check size={14} /> : <i />}
-              <span>{t("tlAcked")}</span>
-              {ack && <time>{timeAgo(lang, ack)}</time>}
-            </li>
-            <li>
-              <i />
-              <span>{t("tlResolved")}</span>
-            </li>
-          </ol>
-          {emergency && !ack && (
-            <button
-              className="button"
-              onClick={() => s.acknowledgeEmergency(emergency.id)}
-            >
-              {t("ackSos")}
-            </button>
-          )}
-          {ack && <p>{t("sosAckRecorded")}</p>}
-          <Link className="button light" to="/caregiver/emergency">
-            {t("reviewSos")} <ArrowRight size={15} />
-          </Link>
-        </section>
-      ) : (
-        <>
-          {!(s.mode === "GUIDED_RETURN" && zone.guideStartM !== null) && (
-            <ZoneLadder />
-          )}
-          {waiting && <FamilyResponse />}
-          <section className="phone-action-card">
-            {s.mode === "GUIDED_RETURN" && approved.length > 0 ? (
-              <>
-                <h3>{t("routeLabel")}</h3>
-                {zone.guideStartM !== null && <RouteHomeMap />}
-                <div className="phone-stops" aria-hidden="true">
-                  {approved.map((l, i) => (
-                    <span
-                      key={l.id}
-                      className={
-                        i < s.guideIndex
-                          ? "done"
-                          : i === s.guideIndex
-                            ? "now"
-                            : ""
-                      }
-                    >
-                      <i />
-                      <small data-name={l.name} />
-                    </span>
-                  ))}
-                </div>
-                <p>
-                  {t("nextStop", {
-                    place: approved[s.guideIndex]?.name ?? "—",
-                  })}
-                </p>
-              </>
-            ) : findings.length ? (
-              <>
-                <h3>{t("whyAttention")}</h3>
-                <ul className="phone-findings">
-                  {findings.map((f) => (
-                    <li key={f.key}>
-                      <AlertTriangle size={15} />
-                      <span>{f.reason.split(":")[0]}</span>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            ) : (
-              <>
-                <h3>{t("reassureTitle")}</h3>
-                <p>{t("reassureBody")}</p>
-              </>
-            )}
-          </section>
-          {s.mode === "GUIDED_RETURN" && zone.guideStartM !== null && (
-            <ZoneLadder />
-          )}
-        </>
-      )}
-      {(!waiting || isEmergency) && <FamilyResponse />}
-      {s.battery <= 20 && (
-        <p className="phone-banner warn">
-          <BatteryLow size={16} />
-          {t("lowBattery", { n: s.battery, wearer: first })}
-        </p>
-      )}
+    <div className="cph-device">
       <div className="phone-readings four">
         <div className={s.connected ? "ok" : "bad"}>
           <Wifi size={17} />
@@ -711,6 +523,260 @@ function PhoneToday() {
         Wear status is inferred. GPS confidence:{" "}
         {Math.round(s.signals.gpsConfidence * 100)}% · simulated readings.
       </p>
-    </>
+      <p className="phone-disclaimer">
+        Last known position: {simulatedLocation(s.position)}
+      </p>
+    </div>
+  );
+}
+
+// Today tab: one person, one status, one next action, then quiet context.
+// Safety rules stay in the store.
+function PhoneToday() {
+  const s = useStore();
+  const lang = useLang((l) => l.lang);
+  const t = useT();
+  const find = useFind();
+  const wearer = s.settings.wearer;
+  const first = wearer.split(" ")[0];
+  const isEmergency = s.mode === "EMERGENCY_SIMULATED";
+  const waiting = !!s.familyRequest && s.familyRequest.status !== "responded";
+  const findings = evaluateSignals(s.signals);
+  const emergency = s.alerts.find(
+    (a) => a.emergency && !a.emergency.resolvedAt,
+  );
+  const approved = s.landmarks.filter(navigable);
+  const zone = useZone();
+  const tone =
+    isEmergency || (zone.active && zone.level >= 3)
+      ? "urgent"
+      : s.mode === "NORMAL" && !findings.length && s.connected && !zone.active
+        ? "calm"
+        : "attention";
+  const alerting = tone !== "calm";
+  const heading =
+    zone.active && s.mode === "NORMAL"
+      ? t("zoneOutside")
+      : lang === "id"
+        ? (statusId[status[s.mode]] ?? status[s.mode])
+        : status[s.mode];
+  const subtitle = isEmergency
+    ? t("sosSub")
+    : zone.active && s.mode !== "GUIDED_RETURN"
+      ? t("zoneFor", {
+          min: Math.floor(zone.vmin),
+          km: (zone.distanceM / 1000).toFixed(2),
+        })
+      : s.mode === "GUIDED_RETURN"
+        ? t("walkingHome", { wearer: first })
+        : s.checkIn?.stage === "question"
+          ? t("waitingAnswer", { wearer: first })
+          : waiting
+            ? t("familySub")
+            : s.mode === "NORMAL" && !findings.length
+              ? t("calmSub")
+              : t("changedSub");
+  const sendCheckIn = () => {
+    s.event("CHECK");
+    // A paired watch shows the same question; the simulated one renders below.
+    void bleDevice.sendCheckInRequest().catch(() => {});
+    requestAnimationFrame(() => {
+      const heading = document.getElementById("wearer-view-title");
+      if (
+        !matchMedia("(min-width: 1000px) and (min-height: 650px)").matches ||
+        s.settings.largeText
+      )
+        heading?.scrollIntoView({
+          behavior: s.settings.reducedMotion ? "instant" : "smooth",
+          block: "start",
+        });
+      heading?.focus({ preventScroll: true });
+    });
+  };
+  const ack = emergency?.emergency?.acknowledgedAt;
+  const routeActive = s.mode === "GUIDED_RETURN" && approved.length > 0;
+  const guiding = s.mode === "GUIDED_RETURN" && zone.guideStartM !== null;
+  const shortLocation =
+    zone.distanceM > 0
+      ? t("routeLeft", { m: Math.round(zone.distanceM) })
+      : t("nearHome");
+  return (
+    <div className={`cph-today ${alerting ? "cph-today-alert" : ""}`}>
+      {/* 1 + 2 — who we are looking after, and whether anything needs us. */}
+      <section
+        className={`phone-status cph-hero tone-${tone} ${isEmergency ? "phone-emergency" : ""}`}
+        aria-live="polite"
+      >
+        <div className="phone-status-topline cph-hero-top">
+          <span className="phone-status-label cph-wearer">{wearer}</span>
+          <span className={`phone-tone-chip ${tone}`}>
+            {tone === "urgent"
+              ? t("urgent")
+              : tone === "calm"
+                ? t("allCalm")
+                : t("needsAttention")}
+          </span>
+        </div>
+        <h3 className="cph-hero-title">{heading}</h3>
+        <p className="cph-hero-sub">{subtitle}</p>
+        {s.mode === "CHECK_IN" && s.checkIn?.stage === "question" && (
+          <span className="phone-live-dot" aria-hidden="true" />
+        )}
+      </section>
+
+      {/* Alerts stay immediately below the status, never buried in the scroll. */}
+      {s.battery <= 20 && (
+        <p className="phone-banner warn cph-banner">
+          <BatteryLow size={16} />
+          {t("lowBattery", { n: s.battery, wearer: first })}
+        </p>
+      )}
+      {!isEmergency && findings.length > 0 && !routeActive && (
+        <section className="cph-alert" aria-label={t("whyAttention")}>
+          <span className="cph-alert-label">{t("whyAttention")}</span>
+          <ul className="phone-findings cph-findings">
+            {findings.map((f) => (
+              <li key={f.key}>
+                <AlertTriangle size={14} />
+                <span>{f.reason.split(":")[0]}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* 3 + 4 — the two things a caregiver reaches for first. */}
+      {!isEmergency && (
+        <section
+          className="phone-quick-actions cph-actions"
+          aria-label="Caregiver actions"
+        >
+          <button
+            className="button cph-action-primary"
+            disabled={waiting}
+            onClick={sendCheckIn}
+          >
+            <MessageCircle size={16} />
+            <span>{t("sendCheckIn")}</span>
+          </button>
+          <button
+            className={`button light cph-action-secondary ${find.ringing ? "is-ringing" : ""}`}
+            disabled={!s.connected && !find.ringing}
+            title={!s.connected ? t("findOffline") : undefined}
+            aria-pressed={Boolean(find.ringing)}
+            onClick={() =>
+              find.ringing
+                ? useFind.getState().stop()
+                : useFind.getState().start(s.settings.caregiver)
+            }
+          >
+            {find.ringing ? <BellOff size={16} /> : <BellRing size={16} />}
+            <span>{find.ringing ? t("findStop") : t("findBand")}</span>
+          </button>
+          {waiting && <p>{t("respondFirst")}</p>}
+          {find.ringing && (
+            <p className="phone-find-note" role="status">
+              {t("findNote")}
+            </p>
+          )}
+        </section>
+      )}
+
+      {/* 5 — the caregiver sets the default mode; the wearer may change it,
+          which still raises the existing caregiver notification. */}
+      {!isEmergency && <CaregiverModeDock />}
+
+      {/* 6 — one row carries connection, battery and the single last-known
+          location reading. Live maps and the radius slider live in Care tools. */}
+      {!isEmergency && (
+        <section className="cph-summary" aria-label="Device and location summary">
+          <span className="cph-summary-item">
+            <Wifi size={14} aria-hidden="true" />
+            <strong>{s.connected ? t("connected") : t("disconnected")}</strong>
+          </span>
+          <span className="cph-summary-item">
+            <Battery size={14} aria-hidden="true" />
+            <strong>{s.battery}%</strong>
+          </span>
+          <span
+            className="cph-summary-item cph-summary-location"
+            title={`${t("lastKnown")}: ${shortLocation}`}
+            aria-label={`${t("lastKnown")}: ${shortLocation}`}
+          >
+            <MapPin size={14} aria-hidden="true" />
+            <small>Last known</small>
+            <strong>{shortLocation}</strong>
+          </span>
+        </section>
+      )}
+
+      {isEmergency ? (
+        <section className="phone-action-card urgent cph-emergency">
+          <h3>{t("attention")}</h3>
+          <ol className="phone-timeline" aria-label={t("sosTimeline")}>
+            <li className="done">
+              <Check size={14} />
+              <span>{t("tlSent")}</span>
+              {emergency && <time>{timeAgo(lang, emergency.time)}</time>}
+            </li>
+            <li className={ack ? "done" : "current"}>
+              {ack ? <Check size={14} /> : <i />}
+              <span>{t("tlAcked")}</span>
+              {ack && <time>{timeAgo(lang, ack)}</time>}
+            </li>
+            <li>
+              <i />
+              <span>{t("tlResolved")}</span>
+            </li>
+          </ol>
+          {emergency && !ack && (
+            <button
+              className="button"
+              onClick={() => s.acknowledgeEmergency(emergency.id)}
+            >
+              {t("ackSos")}
+            </button>
+          )}
+          {ack && <p>{t("sosAckRecorded")}</p>}
+          <Link className="button light" to="/caregiver/emergency">
+            {t("reviewSos")} <ArrowRight size={15} />
+          </Link>
+        </section>
+      ) : (
+        <>
+          {!guiding && <ZoneLadder />}
+          {routeActive ? (
+            <section className="phone-action-card cph-route">
+              <h3>{t("routeLabel")}</h3>
+              {guiding && <RouteHomeMap />}
+              <div className="phone-stops" aria-hidden="true">
+                {approved.map((l, i) => (
+                  <span
+                    key={l.id}
+                    className={
+                      i < s.guideIndex
+                        ? "done"
+                        : i === s.guideIndex
+                          ? "now"
+                          : ""
+                    }
+                  >
+                    <i />
+                    <small data-name={l.name} />
+                  </span>
+                ))}
+              </div>
+              <p>
+                {t("nextStop", {
+                  place: approved[s.guideIndex]?.name ?? "—",
+                })}
+              </p>
+            </section>
+          ) : null}
+          {guiding && <ZoneLadder />}
+        </>
+      )}
+      <FamilyResponse />
+    </div>
   );
 }
