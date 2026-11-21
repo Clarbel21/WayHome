@@ -89,15 +89,29 @@
 .care-phone.cpui .cph-brand svg {
   color: #4d7a58;
 }
+/* The stage already names the current view; the app bar keeps the brand,
+   the shared safe-radius control and notifications without competing text. */
 .care-phone.cpui .cph-appbar-view {
-  flex: 1;
+  display: none;
+}
+.care-phone.cpui .cph-radius {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   min-width: 0;
+  margin-left: auto;
   color: var(--cph-muted);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-align: right;
-  text-transform: uppercase;
+}
+.care-phone.cpui .cph-radius small {
+  font-size: 9.5px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.care-phone.cpui .cph-radius input {
+  width: 52px;
+  height: 14px;
+  margin: 0;
+  accent-color: var(--cph-forest);
 }
 .care-phone.cpui .phone-bell.cph-bell {
   position: relative;
@@ -299,8 +313,9 @@
 }
 .care-phone.cpui .cph-actions .button span {
   min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .care-phone.cpui .cph-actions .button svg {
   flex: 0 0 auto;
@@ -435,122 +450,16 @@
   line-height: 1.3;
   white-space: nowrap;
 }
+.care-phone.cpui .cph-summary-location small {
+  color: var(--cph-muted);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+}
 
-/* Live safe-zone reading stays on Today, but as a compact module. */
-.care-phone.cpui .phone-location-card.cph-location {
-  margin: 0;
-  border: 1px solid var(--cph-line);
-  border-radius: 15px;
-  background: var(--cph-surface);
-  box-shadow: none;
-  overflow: hidden;
-}
-.care-phone.cpui .cph-location .phone-card-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 28px;
-  padding: 5px 10px;
-  border-bottom: 1px solid #e8ede3;
-  background: #f6f8f2;
-}
-.care-phone.cpui .cph-location .phone-card-heading span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--cph-forest-deep);
-  font-size: 11.5px;
-  font-weight: 800;
-}
-.care-phone.cpui .cph-location .phone-card-heading small {
-  color: var(--cph-muted);
-  font-size: 11px;
-  font-weight: 700;
-}
-.care-phone.cpui .cph-location .zone-map {
-  display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  align-items: center;
-  column-gap: 8px;
-  min-height: 0;
-  padding: 6px 9px 7px;
-}
-.care-phone.cpui .cph-location .zone-map svg {
-  grid-column: 1;
-  grid-row: 1 / span 2;
-  width: 96px;
-  height: 52px;
-  border: 1px solid var(--cph-line);
-  border-radius: 9px;
-}
-.care-phone.cpui .cph-location .zone-map-tag {
-  position: static;
-  grid-column: 2;
-  grid-row: 1;
-  padding: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--cph-forest-deep);
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1.3;
-}
-.care-phone.cpui .cph-location .zone-radius {
-  grid-column: 2;
-  grid-row: 2;
-  display: grid;
-  gap: 2px;
-  padding: 3px 0 0;
-  color: var(--cph-muted);
-  font-size: 11px;
-  line-height: 1.25;
-}
-.care-phone.cpui .cph-location .zone-radius b {
-  color: var(--cph-forest-deep);
-}
-.care-phone.cpui .cph-location .zone-radius input {
-  width: 100%;
-  height: 14px;
-  margin: 0;
-  accent-color: var(--cph-forest);
-}
-/* In an alert the live map and radius slider collapse to one short row. */
-.care-phone.cpui .cph-location.cph-location-compact {
-  min-height: 0;
-}
-.care-phone.cpui .cph-location-compact .cph-location-head {
-  display: none;
-}
-.care-phone.cpui .cph-location-compact .cph-location-compact-text {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 34px;
-  margin: 0;
-  padding: 5px 10px;
-  color: var(--cph-forest-deep);
-  font-size: 11.5px;
-  font-weight: 750;
-  line-height: 1.3;
-}
-.care-phone.cpui .cph-location-compact .cph-location-compact-text span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-.care-phone.cpui .cph-location-compact .cph-location-compact-text small {
-  flex: 0 0 auto;
-  color: var(--cph-muted);
-  font-size: 10.5px;
-  font-weight: 700;
-}
-.care-phone.cpui .cph-location-compact .cph-location-label {
-  display: none;
-}
+/* The map and radius slider are intentionally not on Today. Live location
+   and Care tools keep the full ZoneMap/ZonedLadder presentation. */
 
 /* Escalation / route context only appears when it is actually relevant. */
 .care-phone.cpui .cph-today .phone-action-card,
@@ -885,16 +794,39 @@
 }
 
 /* --- Compact presenter viewports: keep everything, shrink the furniture -- */
+/* Shared device sizing leaves this phone ~243px wide at 1280x720. Keep both
+   quick actions on one line at that width without changing the device frame. */
+@container (max-width: 300px) {
+  .care-phone.cpui .cph-summary-location small {
+    display: none;
+  }
+  .care-phone.cpui .cph-actions .button {
+    gap: 4px;
+    padding: 5px 5px;
+    font-size: 10.5px;
+  }
+  .care-phone.cpui .cph-actions .button svg {
+    width: 14px;
+    height: 14px;
+  }
+  .care-phone.cpui .cph-actions:has(.is-ringing) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  }
+  .care-phone.cpui .cph-actions .button.is-ringing {
+    font-size: 9.5px;
+  }
+}
+
 @container (max-width: 230px) {
   .care-phone.cpui .phone-scroll {
-    gap: 6px;
-    padding: 4px 10px 7px;
+    gap: 5px;
+    padding: 3px 9px 7px;
   }
   .care-phone.cpui .cph-today {
-    gap: 5px;
+    gap: 4px;
   }
   .care-phone.cpui .cph-today-alert {
-    gap: 4px;
+    gap: 3px;
   }
   .care-phone.cpui .cph-appbar {
     min-height: 28px;
@@ -905,6 +837,16 @@
   .care-phone.cpui .cph-brand {
     font-size: 11.5px;
   }
+  .care-phone.cpui .cph-brand strong {
+    display: none;
+  }
+  .care-phone.cpui .cph-radius input {
+    width: 34px;
+    height: 12px;
+  }
+  .care-phone.cpui .cph-radius small {
+    font-size: 9px;
+  }
   .care-phone.cpui .phone-bell.cph-bell {
     width: 30px;
     height: 30px;
@@ -912,40 +854,47 @@
     flex-basis: 30px;
   }
   .care-phone.cpui .phone-status.cph-hero {
-    padding: 8px 10px 9px;
+    padding: 6px 9px;
     border-radius: 14px;
   }
   .care-phone.cpui .phone-status.cph-hero .cph-hero-top {
+    gap: 4px;
     margin-bottom: 4px;
   }
   .care-phone.cpui .phone-status.cph-hero .cph-hero-title {
-    font-size: 17px;
+    font-size: 16px;
   }
   .care-phone.cpui .phone-status.cph-hero .cph-hero-sub {
     display: none;
   }
   .care-phone.cpui .phone-status.cph-hero .cph-wearer,
   .care-phone.cpui .phone-status.cph-hero .phone-tone-chip {
-    font-size: 10.5px;
+    font-size: 9px;
+  }
+  .care-phone.cpui .phone-status.cph-hero .phone-tone-chip {
+    padding: 3px 6px;
   }
   .care-phone.cpui .cph-actions .button {
     min-height: 40px;
-    gap: 4px;
-    padding: 5px 6px;
-    font-size: 11px;
+    gap: 2px;
+    padding: 4px 3px;
+    font-size: 9px;
   }
   .care-phone.cpui .cph-actions .button svg {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
   }
   .care-phone.cpui .cph-today .cph-alert {
     padding: 7px 9px;
   }
   .care-phone.cpui .cph-mode {
-    padding: 5px 8px;
+    padding: 4px 7px;
+  }
+  .care-phone.cpui .cph-mode .phone-mode-symbol {
+    display: none;
   }
   .care-phone.cpui .cph-mode .cph-mode-head {
-    margin-bottom: 4px;
+    margin-bottom: 3px;
   }
   .care-phone.cpui .cph-mode .cph-mode-head strong {
     font-size: 11.5px;
@@ -953,14 +902,20 @@
   .care-phone.cpui .cph-mode .cph-mode-head small {
     display: none;
   }
+  .care-phone.cpui .cph-mode .phone-mode-dock-options {
+    gap: 3px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.3fr);
+  }
   .care-phone.cpui .cph-mode .phone-mode-dock-options button {
-    min-height: 30px;
-    font-size: 10px;
+    min-height: 26px;
+    gap: 1px;
+    padding: 3px 1px;
+    font-size: 8px;
   }
   .care-phone.cpui .cph-summary {
     flex-wrap: nowrap;
-    column-gap: 5px;
-    padding: 5px 7px;
+    column-gap: 3px;
+    padding: 3px 5px;
   }
   .care-phone.cpui .cph-summary-item {
     gap: 3px;
@@ -970,75 +925,64 @@
     height: 12px;
   }
   .care-phone.cpui .cph-summary-item strong {
-    font-size: 10px;
+    font-size: 9px;
   }
-  .care-phone.cpui .cph-location .cph-location-head {
-    display: none;
-  }
-  .care-phone.cpui .cph-location .zone-map {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2px;
+  .care-phone.cpui .phone-status.cph-hero.tone-attention,
+  .care-phone.cpui .phone-status.cph-hero.tone-urgent {
     padding: 4px 9px;
   }
-  .care-phone.cpui .cph-location .zone-map svg {
-    display: none;
-  }
-  .care-phone.cpui .cph-location .zone-map-tag,
-  .care-phone.cpui .cph-location .zone-radius {
-    grid-column: 1;
-    grid-row: auto;
-  }
-  .care-phone.cpui .cph-location .zone-map-tag {
-    font-size: 10.5px;
-    line-height: 1.2;
-  }
-  .care-phone.cpui .cph-location .zone-radius {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 0;
-    font-size: 10px;
-  }
-  .care-phone.cpui .cph-location .zone-radius input {
-    flex: 1 1 auto;
-    width: auto;
-    height: 12px;
-  }
-  .care-phone.cpui .cph-location-compact .cph-location-label {
-    display: none;
-  }
   .care-phone.cpui .cph-today-alert .cph-alert {
-    padding: 6px 9px;
+    padding: 3px 8px;
   }
   .care-phone.cpui .cph-today-alert .cph-alert-label {
     display: none;
   }
   .care-phone.cpui .cph-today-alert .cph-mode {
-    padding: 5px 8px;
-  }
-  .care-phone.cpui .cph-today-alert .cph-mode .phone-mode-symbol {
-    display: none;
+    padding: 4px 7px;
   }
   .care-phone.cpui .cph-today-alert .cph-mode .cph-mode-head {
     margin-bottom: 3px;
   }
   .care-phone.cpui .cph-today-alert .cph-mode .phone-mode-dock-options button {
-    min-height: 28px;
-    font-size: 9.5px;
+    min-height: 26px;
+    font-size: 8px;
   }
   .care-phone.cpui .cph-today-alert .cph-emergency {
-    padding: 8px 9px;
+    padding: 6px 8px;
+  }
+  .care-phone.cpui .cph-today-alert .cph-emergency h3 {
+    display: none;
   }
   .care-phone.cpui .cph-today-alert .phone-timeline {
-    margin-bottom: 6px;
+    gap: 0;
+    margin-bottom: 5px;
   }
   .care-phone.cpui .cph-today-alert .phone-timeline li {
-    padding: 2px 0;
-    font-size: 10.5px;
+    grid-template-columns: 16px minmax(0, 1fr);
+    gap: 4px;
+    padding: 1px 0;
+    font-size: 10px;
+    line-height: 1.15;
+  }
+  .care-phone.cpui .cph-today-alert .phone-timeline li span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .care-phone.cpui .cph-today-alert .phone-timeline time {
+    display: none;
+  }
+  .care-phone.cpui .cph-today-alert .phone-timeline li > svg,
+  .care-phone.cpui .cph-today-alert .phone-timeline li > i {
+    width: 13px;
+    height: 13px;
   }
   .care-phone.cpui .cph-today-alert .phone-action-card .button {
-    min-height: 34px;
-    font-size: 11.5px;
+    min-height: 28px;
+    padding: 4px 8px;
+    font-size: 10.5px;
+    white-space: nowrap;
   }
   .care-phone.cpui .cph-tool-list button {
     min-height: 50px;
@@ -1061,40 +1005,5 @@
   font-size: 13px;
 }
 
-/* Give the 1280/1366 presenter sizes enough vertical room for the full
-   Today reading order while keeping the shared 2.064 portrait ratio and the
-   device inside the viewport. */
-@media (min-width: 1200px) and (min-height: 700px) and (max-height: 780px) {
-  .shared-experience:not(.large-text) .care-phone.cpui {
-    --phone-height: min(500px, calc(100dvh - 228px));
-  }
-}
-
-/* ==========================================================================
-   Presenter framing (phone-only). The shared fit lock sizes every phone from
-   viewport height at a 0.4845 ratio, which makes this phone look unnaturally
-   narrow beside the watch on wide/short presenter windows. Give the caregiver
-   phone a fuller silhouette while leaving the watch, device order and all
-   shared stage rules untouched.
-   ========================================================================== */
-@media (min-width: 1400px) and (min-height: 700px) and (min-aspect-ratio: 1.9 / 1) {
-  .shared-experience:not(.large-text) .care-phone.cpui {
-    --phone-height: min(650px, calc(100dvh - 250px));
-    width: calc(var(--phone-height) * 0.57);
-    max-width: none;
-  }
-}
-
-/* Keep the demo entry point easy to find: when the caregiver phone is on
-   stage, place "Explore demo controls" on the left of the header instead of
-   leaving it in the crowded right-hand action group. */
-.companion-page:has(.care-phone.cpui) .stage-header-actions {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-.companion-page:has(.care-phone.cpui)
-  .stage-header-actions
-  > a.text-button:first-of-type {
-  order: -1;
-  margin-right: auto;
-}
+/* Device framing and the stage header are shared lanes. Today is sized to
+   fit inside the existing shared device frame at 1440x900 and 1280x720. */

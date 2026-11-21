@@ -6,6 +6,35 @@ import { test, expect, type Page } from "@playwright/test";
 
 const phone = (page: Page) => page.locator(".care-phone");
 const scroll = (page: Page) => page.locator(".phone-scroll");
+const sizes = [
+  { width: 1440, height: 900 },
+  { width: 1280, height: 720 },
+];
+const NAV_CLEARANCE = 8;
+
+// Geometry-only check: the entire Today column must end above the fixed
+// navigation with a visible gap. It does not depend on font metrics.
+async function expectClearNavMargin(page: Page, label: string) {
+  await scroll(page).evaluate((element) => {
+    element.scrollTop = 0;
+  });
+  const today = await page.locator(".cph-today").boundingBox();
+  const nav = await page.locator(".cph-nav").boundingBox();
+  expect(today, `${label}: Today must be laid out`).not.toBeNull();
+  expect(nav, `${label}: phone navigation must be visible`).not.toBeNull();
+  const gap = nav!.y - (today!.y + today!.height);
+  expect(
+    gap,
+    `${label}: need at least ${NAV_CLEARANCE}px above the nav, measured ${gap.toFixed(1)}px`,
+  ).toBeGreaterThanOrEqual(NAV_CLEARANCE - 0.5);
+}
+
+async function resetDemo(page: Page) {
+  await page.goto("/#/together");
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await expect(phone(page)).toBeVisible();
+}
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/#/together");
@@ -14,20 +43,11 @@ test.beforeEach(async ({ page }) => {
   await expect(phone(page)).toBeVisible();
 });
 
-test("Today follows the caregiver reading order and fits without scrolling", async ({
+test("Today follows the caregiver reading order and clears the nav", async ({
   page,
 }) => {
-  const blocks = [
-    ".cph-hero",
-    ".cph-actions",
-    ".cph-mode",
-    ".cph-summary",
-    ".cph-location",
-  ];
-  for (const size of [
-    { width: 1440, height: 900 },
-    { width: 1280, height: 720 },
-  ]) {
+  const blocks = [".cph-hero", ".cph-actions", ".cph-mode", ".cph-summary"];
+  for (const size of sizes) {
     await page.setViewportSize(size);
     const boxes = [];
     for (const selector of blocks) {
@@ -41,15 +61,62 @@ test("Today follows the caregiver reading order and fits without scrolling", asy
         `${blocks[i]} must sit below ${blocks[i - 1]} without overlap`,
       ).toBeGreaterThanOrEqual(boxes[i - 1].y + boxes[i - 1].height - 1);
     }
+    await expectClearNavMargin(
+      page,
+      `calm Today at ${size.width}x${size.height}`,
+    );
 
-    const fit = await scroll(page).evaluate((element) => ({
-      content: element.scrollHeight,
-      visible: element.clientHeight,
-    }));
+    // The merged device/location row is one line, not two stacked cards.
+    await expect(page.locator(".cph-location")).toHaveCount(0);
+    await expect(page.locator(".cph-summary-item")).toHaveCount(3);
+    const itemTops = await page
+      .locator(".cph-summary-item")
+      .evaluateAll((items) => items.map((item) => item.getBoundingClientRect().top));
     expect(
-      fit.content,
-      `Today must fit inside the phone at ${size.width}x${size.height}`,
-    ).toBeLessThanOrEqual(fit.visible + 1);
+      Math.max(...itemTops) - Math.min(...itemTops),
+      `summary items must share one row at ${size.width}`,
+    ).toBeLessThanOrEqual(1);
+
+    // Both quick actions stay on a single line even with a wider Linux font.
+    const actionLines = await page
+      .locator(".cph-actions .button span")
+      .evaluateAll((labels) =>
+        labels.map((label) => {
+          const style = getComputedStyle(label);
+          const lineHeight =
+            parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.2;
+          return label.getBoundingClientRect().height / lineHeight;
+        }),
+      );
+    expect(
+      actionLines.length,
+      `both quick actions must be present at ${size.width}`,
+    ).toBe(2);
+    for (const lines of actionLines) {
+      expect(
+        lines,
+        `quick action labels must stay on one line at ${size.width}x${size.height}`,
+      ).toBeLessThanOrEqual(1.2);
+    }
+
+    const truncated = await page
+      .locator(
+        ".cph-actions .button span, .cph-mode-options button, .cph-summary-item strong, .cph-wearer, .phone-tone-chip",
+      )
+      .evaluateAll((labels) =>
+        labels
+          .filter(
+            (label) =>
+              getComputedStyle(label).display !== "none" &&
+              label.scrollWidth > label.clientWidth + 1,
+          )
+          .map((label) => (label.textContent || "").trim()),
+      );
+    expect(
+      truncated,
+      `Today labels must be readable, not ellipsized, at ${size.width}x${size.height}`,
+    ).toEqual([]);
+
     const pageOverflow = await page.evaluate(
       () =>
         document.documentElement.scrollHeight -
@@ -77,6 +144,10 @@ test("Today follows the caregiver reading order and fits without scrolling", asy
   ).toBeVisible();
   await expect(page.locator(".cph-mode-options button")).toHaveCount(3);
   await expect(scroll(page)).toContainText("Connected");
+  await expect(scroll(page).locator(".cph-summary-location")).toHaveAttribute(
+    "aria-label",
+    /Last known location:/,
+  );
   await expect(
     page.getByRole("navigation", { name: "Phone views", exact: true }),
   ).toBeVisible();
@@ -241,56 +312,28 @@ test("Today text stays readable and the phone stays on the left", async ({
   ).toBeLessThanOrEqual(watchBox!.x);
 });
 
-test("alert states keep live details clear of the fixed bottom navigation", async ({
+test("every Today state keeps an 8px clear margin above the nav", async ({
   page,
 }) => {
-  for (const size of [
-    { width: 1440, height: 900 },
-    { width: 1280, height: 720 },
-  ]) {
+  for (const size of sizes) {
+    const label = `${size.width}x${size.height}`;
+
     await page.setViewportSize(size);
-    await page.goto("/#/together");
-    await page.evaluate(() => localStorage.clear());
-    await page.reload();
-    await expect(phone(page)).toBeVisible();
+    await resetDemo(page);
+    await expect(page.getByText("No active alerts", { exact: true })).toBeVisible();
+    await expectClearNavMargin(page, `calm Today at ${label}`);
 
     await page
       .getByRole("button", { name: "Wanders off route", exact: true })
       .click();
     await expect(page.getByText("Needs attention", { exact: true })).toBeVisible();
-    const location = page.locator(".cph-location");
-    await expect(location).toHaveClass(/cph-location-compact/);
-    const locationBox = await location.boundingBox();
-    expect(locationBox, "location row must be visible in attention").not.toBeNull();
-    expect(
-      locationBox!.height,
-      "location collapses to one short row in an alert",
-    ).toBeLessThan(50);
-    const attentionNav = await page.locator(".cph-nav").boundingBox();
-    expect(attentionNav).not.toBeNull();
-    expect(
-      locationBox!.y + locationBox!.height,
-      `attention location must clear the nav at ${size.width}x${size.height}`,
-    ).toBeLessThanOrEqual(attentionNav!.y + 1);
+    await expectClearNavMargin(page, `attention Today at ${label}`);
 
     await page.getByRole("button", { name: "SOS", exact: true }).click();
     await expect(page.getByText("Urgent", { exact: true })).toBeVisible();
-    const emergencyBox = await page.locator(".cph-emergency").boundingBox();
-    expect(emergencyBox).not.toBeNull();
-    const sosNav = await page.locator(".cph-nav").boundingBox();
-    expect(sosNav).not.toBeNull();
-    expect(
-      emergencyBox!.y + emergencyBox!.height,
-      `SOS card must clear the nav at ${size.width}x${size.height}`,
-    ).toBeLessThanOrEqual(sosNav!.y + 1);
-
-    const fit = await scroll(page).evaluate((element) => ({
-      content: element.scrollHeight,
-      visible: element.clientHeight,
-    }));
-    expect(
-      fit.content,
-      `alert state must fit at ${size.width}x${size.height}`,
-    ).toBeLessThanOrEqual(fit.visible + 1);
+    await expect(
+      page.getByRole("button", { name: "Acknowledge SOS alert" }),
+    ).toBeVisible();
+    await expectClearNavMargin(page, `SOS Today at ${label}`);
   }
 });

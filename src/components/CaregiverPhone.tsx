@@ -43,8 +43,8 @@ import {
 } from "lucide-react";
 import { status, useStore, simulatedLocation, navigable } from "../store";
 import { useLang, useT, timeAgo } from "../i18n";
-import { useZone } from "../zone/store";
-import { RouteHomeMap, ZoneLadder, ZoneMap } from "../zone/ZoneViews";
+import { RADIUS_MAX, RADIUS_MIN, useZone } from "../zone/store";
+import { RouteHomeMap, ZoneLadder } from "../zone/ZoneViews";
 import { evaluateSignals } from "../services/safety";
 import { Check, BatteryLow, Satellite, AlertTriangle } from "lucide-react";
 import { wearLabels } from "../services/safety";
@@ -71,6 +71,28 @@ type PhoneView =
   | "history"
   | "settings"
   | "device";
+
+// The shared safe-zone demo changes the radius from the caregiver stage.
+// Keep that control in the app bar so Today stays free of the map + slider
+// duplication while the existing stage flow keeps working.
+function LiveRadiusControl() {
+  const zone = useZone();
+  const t = useT();
+  return (
+    <label className="cph-radius" title={t("safeRadius")}>
+      <small>{zone.radiusM} m</small>
+      <input
+        type="range"
+        aria-label={t("safeRadius")}
+        min={RADIUS_MIN}
+        max={RADIUS_MAX}
+        step={50}
+        value={zone.radiusM}
+        onChange={(event) => zone.setRadius(Number(event.target.value))}
+      />
+    </label>
+  );
+}
 
 export function CaregiverPhone() {
   const s = useStore();
@@ -172,6 +194,7 @@ export function CaregiverPhone() {
                   ? t("navUpdates")
                   : t("navTools")}
             </span>
+            <LiveRadiusControl />
             <button
               className="phone-bell cph-bell"
               aria-label="View notifications"
@@ -663,7 +686,8 @@ function PhoneToday() {
           which still raises the existing caregiver notification. */}
       {!isEmergency && <CaregiverModeDock />}
 
-      {/* 6 — one quiet line for connection, battery and last known location. */}
+      {/* 6 — one row carries connection, battery and the single last-known
+          location reading. Live maps and the radius slider live in Care tools. */}
       {!isEmergency && (
         <section className="cph-summary" aria-label="Device and location summary">
           <span className="cph-summary-item">
@@ -674,40 +698,15 @@ function PhoneToday() {
             <Battery size={14} aria-hidden="true" />
             <strong>{s.battery}%</strong>
           </span>
-          <span className="cph-summary-item">
+          <span
+            className="cph-summary-item cph-summary-location"
+            title={`${t("lastKnown")}: ${shortLocation}`}
+            aria-label={`${t("lastKnown")}: ${shortLocation}`}
+          >
             <MapPin size={14} aria-hidden="true" />
+            <small>Last known</small>
             <strong>{shortLocation}</strong>
           </span>
-        </section>
-      )}
-
-      {/* Last known location: full reading when calm, one short row in an
-          alert so the fixed bottom navigation can never cover it. */}
-      {!isEmergency && (
-        <section
-          className={`phone-location-card phone-location-primary cph-location ${alerting ? "cph-location-compact" : ""}`}
-          aria-label="Simulated location overview"
-        >
-          {alerting ? (
-            <p className="cph-location-compact-text">
-              <span>
-                <MapPin size={14} aria-hidden="true" />
-                <span className="cph-location-label">{t("lastKnown")} ·</span>{" "}
-                {shortLocation}
-              </span>
-              <small>{Math.round(s.signals.gpsConfidence * 100)}% GPS</small>
-            </p>
-          ) : (
-            <>
-              <header className="phone-card-heading cph-location-head">
-                <span>
-                  <MapPin size={14} /> {t("lastKnown")}
-                </span>
-                <small>{Math.round(s.signals.gpsConfidence * 100)}% GPS</small>
-              </header>
-              <ZoneMap />
-            </>
-          )}
         </section>
       )}
 
