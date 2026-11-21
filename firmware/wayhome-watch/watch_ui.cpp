@@ -63,10 +63,17 @@ lv_obj_t *lblRouteProgress = nullptr;
 lv_obj_t *barRoute = nullptr;
 lv_obj_t *lblArrived = nullptr;
 
+// Talk / Game / Call widgets
+lv_obj_t *lblTalkReply = nullptr;
+lv_obj_t *lblGamePrompt = nullptr;
+lv_obj_t *lblGameStep = nullptr;
+lv_obj_t *lblCallStatus = nullptr;
+uint8_t gameIndex = 0;
+
 // Settings widgets
 lv_obj_t *btnAttachment[3] = {nullptr, nullptr, nullptr};
 
-// SOS hold tracking (matches the web's 2-second hold)
+// SOS hold tracking (matches the web's 3-second hold)
 constexpr uint32_t SOS_HOLD_MS = 3000;
 uint32_t sosPressStart = 0;
 bool sosHolding = false;
@@ -197,9 +204,20 @@ void tile_cb(lv_event_t *e) {
       refresh_route_widgets();
       load_screen(scrRoute);
       break;
-    case 1: load_screen(scrCall); break;
-    case 2: load_screen(scrTalk); break;
-    default: load_screen(scrMemories); break;
+    case 1:
+      // Same as the web "Call family": the caregiver phone gets the request.
+      ble::publishCheckIn(0x04, 1);
+      lv_label_set_text(lblCallStatus, "Waiting...");
+      load_screen(scrCall);
+      break;
+    case 2:
+      lv_label_set_text(lblTalkReply, "I'm here with you.");
+      load_screen(scrTalk);
+      break;
+    default:
+      gameIndex = 0;
+      load_screen(scrMemories);
+      break;
   }
 }
 
@@ -251,7 +269,48 @@ void checkin_help_cb(lv_event_t *e) {
 void checkin_assist_cb(lv_event_t *e) {
   int which = (int)(intptr_t)lv_event_get_user_data(e);
   ble::publishCheckIn(0x04, (uint8_t)which);
-  load_screen(scrHome);
+  if (which == 1) {
+    lv_label_set_text(lblCallStatus, "Waiting...");
+    load_screen(scrCall);
+  } else {
+    load_screen(scrHome);
+  }
+}
+
+// Talk topics: the same short replies as the web watch (src/i18n.ts).
+void talk_cb(lv_event_t *e) {
+  static const char *replies[4] = {
+      "Near home. I can guide you.",
+      "Your family is one tap away.",
+      "Take your time. I'm here.",
+      "I'm glad you're here.",
+  };
+  int which = (int)(intptr_t)lv_event_get_user_data(e);
+  lv_label_set_text(lblTalkReply, replies[which & 3]);
+}
+
+// Memory moments: one gentle prompt at a time, no scores.
+constexpr uint8_t GAME_COUNT = 5;
+const char *const gamePrompts[GAME_COUNT] = {
+    "Think of a happy place.",
+    "Hum a favourite song.",
+    "Picture a friendly face.",
+    "Remember a tasty meal.",
+    "Think of your garden.",
+};
+
+void game_show() {
+  static char step[12];
+  lv_label_set_text(lblGamePrompt, gamePrompts[gameIndex % GAME_COUNT]);
+  snprintf(step, sizeof(step), "%u / %u", (unsigned)(gameIndex % GAME_COUNT) + 1,
+           (unsigned)GAME_COUNT);
+  lv_label_set_text(lblGameStep, step);
+}
+
+void game_next_cb(lv_event_t *e) {
+  LV_UNUSED(e);
+  gameIndex = (uint8_t)((gameIndex + 1) % GAME_COUNT);
+  game_show();
 }
 
 void checkin_back_cb(lv_event_t *e) {
@@ -273,7 +332,7 @@ void sos_btn_event_cb(lv_event_t *e) {
     sosHolding = true;
     sos_set_holding_visual(true);
   } else if (code == LV_EVENT_RELEASED || code == LV_EVENT_PRESS_LOST) {
-    // Releasing early cancels; the 2 s trigger fires from the timer.
+    // Releasing early cancels; the 3 s trigger fires from the timer.
     sosHolding = false;
     lv_bar_set_value(sosHoldBar, 0, LV_ANIM_OFF);
     sos_set_holding_visual(false);
@@ -302,19 +361,20 @@ void clock_timer_cb(lv_timer_t *timer) {
 // ---- Screen construction ----
 
 void build_home_screen() {
-  scrHome = new_screen(INK);
+  scrHome = new_screen(CREAM);
 
-  // Status bar (.watch-status): time | companion name | dot + battery
-  lblClock = add_label(scrHome, "--:--", &lv_font_montserrat_16, SURFACE);
+  // Status bar (.watch-status): time | greeting | dot + battery
+  lblClock = add_label(scrHome, "--:--", &lv_font_montserrat_16, INK);
   lv_obj_align(lblClock, LV_ALIGN_TOP_LEFT, 16, 10);
 
-  lblName = add_label(scrHome, "Sprout", &lv_font_montserrat_16, PALE);
+  // "Hi Alex! I'm Sprout." once the web sends the wearer's first name.
+  lblName = add_label(scrHome, "I'm Sprout.", &lv_font_montserrat_16, INK);
   lv_obj_align(lblName, LV_ALIGN_TOP_MID, 0, 10);
 
-  lblBattery = add_label(scrHome, "--%", &lv_font_montserrat_14, PALE);
+  lblBattery = add_label(scrHome, "--%", &lv_font_montserrat_14, MUTED);
   lv_obj_align(lblBattery, LV_ALIGN_TOP_RIGHT, -14, 12);
 
-  lblBatteryIcon = add_label(scrHome, LV_SYMBOL_BATTERY_EMPTY, &lv_font_montserrat_16, PALE);
+  lblBatteryIcon = add_label(scrHome, LV_SYMBOL_BATTERY_EMPTY, &lv_font_montserrat_16, MUTED);
   lv_obj_align(lblBatteryIcon, LV_ALIGN_TOP_RIGHT, -58, 10);
 
   dotBle = lv_obj_create(scrHome);
@@ -329,14 +389,18 @@ void build_home_screen() {
   const char *tileLabels[4] = {"Home", "Call", "Talk", "Game"};
   const char *tileIcons[4] = {LV_SYMBOL_HOME, LV_SYMBOL_CALL, LV_SYMBOL_ENVELOPE,
                               LV_SYMBOL_IMAGE};
+  // Icon colours follow the web tiles; labels are dark ink on the light tile.
+  const uint32_t tileIconColors[4] = {FOREST, PEACH_TEXT, LAVENDER_TEXT, MINT_TEXT};
   for (int i = 0; i < 4; i++) {
     int col = i % 2;
     int row = i / 2;
     lv_obj_t *tile =
         add_button(scrHome, 16 + col * 194, 52 + row * 166, 178, 150, SURFACE, 16);
-    lv_obj_t *icon = add_label(tile, tileIcons[i], &lv_font_montserrat_28, PALE);
-    lv_obj_align(icon, LV_ALIGN_TOP_MID, 0, 34);
-    lv_obj_t *text = add_label(tile, tileLabels[i], &lv_font_montserrat_18, SURFACE);
+    lv_obj_set_style_border_color(tile, lv_color_hex(PALE), 0);
+    lv_obj_set_style_border_width(tile, 2, 0);
+    lv_obj_t *icon = add_label(tile, tileIcons[i], &lv_font_montserrat_42, tileIconColors[i]);
+    lv_obj_align(icon, LV_ALIGN_TOP_MID, 0, 26);
+    lv_obj_t *text = add_label(tile, tileLabels[i], &lv_font_montserrat_24, INK);
     lv_obj_align(text, LV_ALIGN_TOP_MID, 0, 92);
     lv_obj_add_event_cb(tile, tile_cb, LV_EVENT_CLICKED, (void *)(intptr_t)i);
   }
@@ -381,7 +445,7 @@ void build_route_screen() {
   lv_obj_set_style_bg_color(barRoute, lv_color_hex(FOREST), LV_PART_INDICATOR);
   lv_obj_set_style_radius(barRoute, 8, LV_PART_INDICATOR | LV_STATE_DEFAULT);
 
-  lv_obj_t *caption = add_label(scrRoute, "Simulated GPS - no real location",
+  lv_obj_t *caption = add_label(scrRoute, "Demo - simulated GPS",
                                 &lv_font_montserrat_14, MUTED);
   lv_obj_align(caption, LV_ALIGN_TOP_MID, 0, 190);
 
@@ -402,26 +466,74 @@ void build_route_screen() {
   lv_obj_add_event_cb(back, back_cb, LV_EVENT_CLICKED, nullptr);
 }
 
-void build_placeholder_screens() {
-  const char *titles[3] = {"Calling family...", "Let's talk", "My memories"};
-  const char *captions[3] = {"Simulation - no call is placed",
-                             "Coming soon on the watch",
-                             "Coming soon on the watch"};
-  lv_obj_t **screens[3] = {&scrCall, &scrTalk, &scrMemories};
+lv_obj_t *add_back(lv_obj_t *scr) {
+  lv_obj_t *back = add_button(scr, 35, 380, 340, 64, PALE, 14);
+  lv_obj_t *backText = add_label(back, LV_SYMBOL_LEFT " Back", &lv_font_montserrat_20, FOREST);
+  lv_obj_center(backText);
+  lv_obj_add_event_cb(back, back_cb, LV_EVENT_CLICKED, nullptr);
+  return back;
+}
 
-  for (int i = 0; i < 3; i++) {
-    lv_obj_t *scr = new_screen(CREAM);
-    lv_obj_t *title = add_label(scr, titles[i], &lv_font_montserrat_26, INK);
-    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 96);
-    lv_obj_t *cap = add_label(scr, captions[i], &lv_font_montserrat_14, MUTED);
-    lv_obj_align(cap, LV_ALIGN_TOP_MID, 0, 146);
+lv_obj_t *add_wrapped(lv_obj_t *parent, const char *text, const lv_font_t *font,
+                      uint32_t color, int32_t y) {
+  lv_obj_t *lbl = add_label(parent, text, font, color);
+  lv_label_set_long_mode(lbl, LV_LABEL_LONG_WRAP);
+  lv_obj_set_width(lbl, 360);
+  lv_obj_set_style_text_align(lbl, LV_TEXT_ALIGN_CENTER, 0);
+  lv_obj_align(lbl, LV_ALIGN_TOP_MID, 0, y);
+  return lbl;
+}
 
-    lv_obj_t *back = add_button(scr, 35, 370, 340, 56, PALE, 13);
-    lv_obj_t *backText = add_label(back, "Back", &lv_font_montserrat_16, FOREST);
-    lv_obj_center(backText);
-    lv_obj_add_event_cb(back, back_cb, LV_EVENT_CLICKED, nullptr);
-    *screens[i] = scr;
+// Call: the caregiver phone receives a family request (BLE 0x04, family).
+void build_call_screen() {
+  scrCall = new_screen(CREAM);
+  lv_obj_t *icon = add_label(scrCall, LV_SYMBOL_CALL, &lv_font_montserrat_42, PEACH_TEXT);
+  lv_obj_align(icon, LV_ALIGN_TOP_MID, 0, 70);
+  add_wrapped(scrCall, "Calling family", &lv_font_montserrat_28, INK, 136);
+  lblCallStatus = add_wrapped(scrCall, "Waiting...", &lv_font_montserrat_22, SAGE_TEXT, 186);
+  add_wrapped(scrCall, "Demo - no real call.", &lv_font_montserrat_16, MUTED, 232);
+  add_back(scrCall);
+}
+
+// Talk: Sprout's reply on top, four big topics, Back.
+void build_talk_screen() {
+  scrTalk = new_screen(CREAM);
+  make_sprout_avatar(scrTalk, 182, 20);
+  lblTalkReply = add_wrapped(scrTalk, "I'm here with you.", &lv_font_montserrat_22, INK, 76);
+  const char *topics[4] = {"Where am I?", "My family?", "Comfort me", "Something nice"};
+  for (int i = 0; i < 4; i++) {
+    int col = i % 2;
+    int row = i / 2;
+    lv_obj_t *btn = add_button(scrTalk, 20 + col * 190, 152 + row * 108, 180, 96, LAVENDER, 16);
+    lv_obj_t *text = add_label(btn, topics[i], &lv_font_montserrat_20, LAVENDER_TEXT);
+    lv_label_set_long_mode(text, LV_LABEL_LONG_WRAP);
+    lv_obj_set_width(text, 160);
+    lv_obj_set_style_text_align(text, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_center(text);
+    lv_obj_add_event_cb(btn, talk_cb, LV_EVENT_CLICKED, (void *)(intptr_t)i);
   }
+  add_back(scrTalk);
+}
+
+// Game: gentle memory moments, one prompt at a time.
+void build_game_screen() {
+  scrMemories = new_screen(CREAM);
+  lv_obj_t *title = add_label(scrMemories, "Memory Garden", &lv_font_montserrat_26, INK);
+  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 40);
+  lblGameStep = add_label(scrMemories, "1 / 5", &lv_font_montserrat_16, MUTED);
+  lv_obj_align(lblGameStep, LV_ALIGN_TOP_MID, 0, 82);
+  lblGamePrompt = add_wrapped(scrMemories, gamePrompts[0], &lv_font_montserrat_28, MINT_TEXT, 132);
+  lv_obj_t *next = add_button(scrMemories, 35, 290, 340, 72, FOREST, 17);
+  lv_obj_set_style_bg_grad_color(next, lv_color_hex(FOREST_LIGHT), 0);
+  lv_obj_set_style_bg_grad_dir(next, LV_GRAD_DIR_VER, 0);
+  lv_obj_t *nextText = add_label(next, "Next " LV_SYMBOL_RIGHT, &lv_font_montserrat_22, SURFACE);
+  lv_obj_center(nextText);
+  lv_obj_add_event_cb(next, game_next_cb, LV_EVENT_CLICKED, nullptr);
+  add_back(scrMemories);
+  // Each visit starts at the first prompt.
+  lv_obj_add_event_cb(
+      scrMemories, [](lv_event_t *e) { LV_UNUSED(e); game_show(); },
+      LV_EVENT_SCREEN_LOAD_START, nullptr);
 }
 
 void build_settings_screen() {
@@ -457,12 +569,12 @@ void build_sos_screen() {
   lv_obj_t *title = add_label(scrSos, "SOS sent", &lv_font_montserrat_40, SURFACE);
   lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 120);
 
-  lv_obj_t *line1 = add_label(scrSos, "Stay calm. Family has been notified.",
-                              &lv_font_montserrat_16, SURFACE);
+  lv_obj_t *line1 = add_label(scrSos, "Stay where you are.",
+                              &lv_font_montserrat_22, SURFACE);
   lv_obj_align(line1, LV_ALIGN_TOP_MID, 0, 192);
 
-  lv_obj_t *cap = add_label(scrSos, "Emergency simulation - nothing real is sent",
-                            &lv_font_montserrat_12, 0xf3d9db);
+  lv_obj_t *cap = add_label(scrSos, "Demo - no real call.",
+                            &lv_font_montserrat_16, 0xf3d9db);
   lv_obj_align(cap, LV_ALIGN_TOP_MID, 0, 226);
 
   lv_obj_t *ok = add_button(scrSos, 35, 300, 340, 72, SURFACE, 17);
@@ -481,10 +593,6 @@ void build_checkin_screens() {
                               &lv_font_montserrat_24, INK);
   lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 104);
 
-  lv_obj_t *hint = add_label(scrCheckQ, "Take your time. Tap one.",
-                             &lv_font_montserrat_14, MUTED);
-  lv_obj_align(hint, LV_ALIGN_TOP_MID, 0, 146);
-
   lv_obj_t *okay = add_button(scrCheckQ, 35, 190, 340, 110, MINT, 17);
   lv_obj_t *okayText = add_label(okay, "I'm okay", &lv_font_montserrat_24, MINT_TEXT);
   lv_obj_center(okayText);
@@ -493,7 +601,7 @@ void build_checkin_screens() {
   lv_obj_t *help = add_button(scrCheckQ, 35, 320, 340, 110, SOS_BG, 17);
   lv_obj_set_style_border_color(help, lv_color_hex(SOS_BORDER), 0);
   lv_obj_set_style_border_width(help, 1, 0);
-  lv_obj_t *helpText = add_label(help, "I'd like some help", &lv_font_montserrat_20, SOS_TEXT);
+  lv_obj_t *helpText = add_label(help, "Help me", &lv_font_montserrat_24, SOS_TEXT);
   lv_obj_center(helpText);
   lv_obj_add_event_cb(help, checkin_help_cb, LV_EVENT_CLICKED, nullptr);
 
@@ -504,14 +612,13 @@ void build_checkin_screens() {
                                &lv_font_montserrat_24, INK);
   lv_obj_align(hTitle, LV_ALIGN_TOP_MID, 0, 40);
 
-  const char *labels[3] = {"Please guide me home", "Call someone I trust",
-                           "I'm not sure where I am"};
+  const char *labels[3] = {"Guide me home", "Call family", "I'm not sure"};
   const char *icons[3] = {LV_SYMBOL_HOME, LV_SYMBOL_CALL, LV_SYMBOL_GPS};
   for (int i = 0; i < 3; i++) {
     lv_obj_t *btn = add_button(scrCheckH, 35, 100 + i * 84, 340, 72, PALE, 15);
     lv_obj_t *icon = add_label(btn, icons[i], &lv_font_montserrat_18, FOREST);
     lv_obj_align(icon, LV_ALIGN_LEFT_MID, 18, 0);
-    lv_obj_t *text = add_label(btn, labels[i], &lv_font_montserrat_14, FOREST);
+    lv_obj_t *text = add_label(btn, labels[i], &lv_font_montserrat_20, FOREST);
     lv_obj_align(text, LV_ALIGN_LEFT_MID, 52, 0);
     lv_obj_add_event_cb(btn, checkin_assist_cb, LV_EVENT_CLICKED,
                         (void *)(intptr_t)i);
@@ -529,12 +636,12 @@ void build_mirror_screens() {
   // Acknowledged: wearer answered "I'm okay" but safety checks block NORMAL.
   scrThanks = new_screen(CREAM);
   make_sprout_avatar(scrThanks, 182, 60);
-  lv_obj_t *tTitle = add_label(scrThanks, "Thank you for telling me.",
-                               &lv_font_montserrat_22, INK);
+  lv_obj_t *tTitle = add_label(scrThanks, "Thank you.",
+                               &lv_font_montserrat_28, INK);
   lv_obj_align(tTitle, LV_ALIGN_TOP_MID, 0, 124);
   lv_obj_t *tNote = add_label(scrThanks,
-                              "Your caregiver still needs\nto review the safety concern.",
-                              &lv_font_montserrat_16, SAGE_TEXT);
+                              "Your caregiver will check.",
+                              &lv_font_montserrat_20, SAGE_TEXT);
   lv_obj_align(tNote, LV_ALIGN_TOP_MID, 0, 168);
   lv_obj_set_style_text_align(tNote, LV_TEXT_ALIGN_CENTER, 0);
   lv_obj_set_style_text_line_space(tNote, 4, 0);
@@ -545,8 +652,8 @@ void build_mirror_screens() {
                                &lv_font_montserrat_24, INK);
   lv_obj_align(mTitle, LV_ALIGN_TOP_MID, 0, 150);
   lv_obj_t *mNote = add_label(scrMirror,
-                              "Your companion is showing\nsomething new.\n\nCheck the app to respond.",
-                              &lv_font_montserrat_16, SAGE_TEXT);
+                              "One moment, please.",
+                              &lv_font_montserrat_22, SAGE_TEXT);
   lv_obj_align(mNote, LV_ALIGN_TOP_MID, 0, 204);
   lv_obj_set_style_text_align(mNote, LV_TEXT_ALIGN_CENTER, 0);
   lv_obj_set_style_text_line_space(mNote, 4, 0);
@@ -560,7 +667,9 @@ bool init() {
   if (lv_display_get_default() == nullptr) return false;
 
   build_route_screen();
-  build_placeholder_screens();
+  build_call_screen();
+  build_talk_screen();
+  build_game_screen();
   build_settings_screen();
   build_sos_screen();
   build_checkin_screens();
@@ -605,9 +714,29 @@ void sync() {
         load_screen(scrSos);
         break;
       case 5: load_screen(scrThanks); break;
-      case 6: load_screen(scrMirror); break;
+      case 6: {
+        // Family handover (and other web-only screens) arrive as code 6:
+        // keep the wearer on Call / Talk / Game rather than a generic screen.
+        lv_obj_t *now = lv_screen_active();
+        if (now == scrCall) {
+          lv_label_set_text(lblCallStatus, "Your family knows.");
+        } else if (now != scrTalk && now != scrMemories) {
+          load_screen(scrMirror);
+        }
+        break;
+      }
       default: break;  // 255 = nothing received yet
     }
+  }
+
+  if (watch.wearerNameDirty) {
+    watch.wearerNameDirty = false;
+    static char hello[48];
+    if (watch.wearerName[0])
+      snprintf(hello, sizeof(hello), "Hi %s! I'm Sprout.", watch.wearerName);
+    else
+      snprintf(hello, sizeof(hello), "I'm Sprout.");
+    lv_label_set_text(lblName, hello);
   }
 
   // A check-in request (BLE 0x01) takes over the screen, like CHECK_IN mode
