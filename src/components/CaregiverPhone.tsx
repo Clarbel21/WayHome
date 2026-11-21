@@ -51,6 +51,15 @@ import { wearLabels } from "../services/safety";
 import { CheckInHistory, FamilyResponse } from "./CheckInSupport";
 import { bleDevice } from "../services/ble";
 
+// Codex's shared list (src/experienceModes.ts, PR #8) is not on main yet.
+// Keep this single local copy of the agreed emoji + names; Codex will swap it
+// for the shared import during integration.
+const PHONE_EXPERIENCE_MODES = [
+  { id: "normal", emoji: "🌿", name: "Normal" },
+  { id: "focus", emoji: "🏠", name: "Focus" },
+  { id: "dialogue", emoji: "💬", name: "Dialogue" },
+] as const;
+
 type PhoneView =
   | "more"
   | "today"
@@ -285,8 +294,12 @@ export function CaregiverPhone() {
           ) : null}
           {view === "more" && (
             <>
-              <Link className="phone-workspace-link" to="/caregiver">
-                {t("workspace")} <ArrowRight size={16} />
+              <Link
+                className="phone-workspace-link cph-workspace-link"
+                to="/caregiver"
+                aria-label="Open full workspace"
+              >
+                Open full workspace <ArrowRight size={16} />
               </Link>
               <p className="phone-disclaimer">{t("demoOnly")}</p>
             </>
@@ -373,25 +386,15 @@ function CaregiverPopupLayer() {
 function CaregiverModeDock() {
   const s = useStore();
   const t = useT();
-  const modes = [
-    {
-      id: "normal" as const,
-      label: t("normalMode"),
-      hint: t("normalModeHint"),
-    },
-    {
-      id: "focus" as const,
-      label: t("focusMode"),
-      hint: t("focusModeHint"),
-    },
-    {
-      id: "dialogue" as const,
-      label: t("dialogueMode"),
-      hint: t("dialogueModeHint", {
-        companion: s.settings.companionName,
-      }),
-    },
-  ];
+  const modes = PHONE_EXPERIENCE_MODES.map((mode) => ({
+    ...mode,
+    hint:
+      mode.id === "normal"
+        ? t("normalModeHint")
+        : mode.id === "focus"
+          ? t("focusModeHint")
+          : t("dialogueModeHint", { companion: s.settings.companionName }),
+  }));
   const active =
     modes.find((mode) => mode.id === s.settings.experienceMode) ?? modes[0];
 
@@ -404,20 +407,26 @@ function CaregiverModeDock() {
         <span>
           <strong>{t("watchMode")}</strong>
           <small>
-            {active.label} on {s.settings.wearer.split(" ")[0]}'s watch
+            <span className="cph-mode-emoji" aria-hidden="true">
+              {active.emoji}
+            </span>{" "}
+            {active.name} on {s.settings.wearer.split(" ")[0]}'s watch
           </small>
         </span>
       </header>
       <div className="phone-mode-dock-options cph-mode-options">
-        {modes.map(({ id, label, hint }) => (
+        {modes.map(({ id, emoji, name, hint }) => (
           <button
             type="button"
             key={id}
-            aria-label={`${label}: ${hint}`}
+            aria-label={`${name}: ${hint}`}
             aria-pressed={s.settings.experienceMode === id}
             onClick={() => s.setExperienceMode(id, "caregiver")}
           >
-            <span>{label}</span>
+            <span className="cph-mode-emoji" aria-hidden="true">
+              {emoji}
+            </span>{" "}
+            <span>{name}</span>
           </button>
         ))}
       </div>
@@ -521,6 +530,7 @@ function PhoneToday() {
       : s.mode === "NORMAL" && !findings.length && s.connected && !zone.active
         ? "calm"
         : "attention";
+  const alerting = tone !== "calm";
   const heading =
     zone.active && s.mode === "NORMAL"
       ? t("zoneOutside")
@@ -568,7 +578,7 @@ function PhoneToday() {
       ? t("routeLeft", { m: Math.round(zone.distanceM) })
       : t("nearHome");
   return (
-    <div className="cph-today">
+    <div className={`cph-today ${alerting ? "cph-today-alert" : ""}`}>
       {/* 1 + 2 — who we are looking after, and whether anything needs us. */}
       <section
         className={`phone-status cph-hero tone-${tone} ${isEmergency ? "phone-emergency" : ""}`}
@@ -649,7 +659,8 @@ function PhoneToday() {
         </section>
       )}
 
-      {/* 5 — the caregiver, and only the caregiver, chooses the watch mode. */}
+      {/* 5 — the caregiver sets the default mode; the wearer may change it,
+          which still raises the existing caregiver notification. */}
       {!isEmergency && <CaregiverModeDock />}
 
       {/* 6 — one quiet line for connection, battery and last known location. */}
@@ -670,19 +681,33 @@ function PhoneToday() {
         </section>
       )}
 
-      {/* Last known location keeps its live, adjustable safe-zone reading. */}
+      {/* Last known location: full reading when calm, one short row in an
+          alert so the fixed bottom navigation can never cover it. */}
       {!isEmergency && (
         <section
-          className="phone-location-card phone-location-primary cph-location"
+          className={`phone-location-card phone-location-primary cph-location ${alerting ? "cph-location-compact" : ""}`}
           aria-label="Simulated location overview"
         >
-          <header className="phone-card-heading cph-location-head">
-            <span>
-              <MapPin size={14} /> {t("lastKnown")}
-            </span>
-            <small>{Math.round(s.signals.gpsConfidence * 100)}% GPS</small>
-          </header>
-          <ZoneMap />
+          {alerting ? (
+            <p className="cph-location-compact-text">
+              <span>
+                <MapPin size={14} aria-hidden="true" />
+                <span className="cph-location-label">{t("lastKnown")} ·</span>{" "}
+                {shortLocation}
+              </span>
+              <small>{Math.round(s.signals.gpsConfidence * 100)}% GPS</small>
+            </p>
+          ) : (
+            <>
+              <header className="phone-card-heading cph-location-head">
+                <span>
+                  <MapPin size={14} /> {t("lastKnown")}
+                </span>
+                <small>{Math.round(s.signals.gpsConfidence * 100)}% GPS</small>
+              </header>
+              <ZoneMap />
+            </>
+          )}
         </section>
       )}
 

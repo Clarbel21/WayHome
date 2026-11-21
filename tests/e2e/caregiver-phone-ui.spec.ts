@@ -17,8 +17,6 @@ test.beforeEach(async ({ page }) => {
 test("Today follows the caregiver reading order and fits without scrolling", async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-
   const blocks = [
     ".cph-hero",
     ".cph-actions",
@@ -26,33 +24,47 @@ test("Today follows the caregiver reading order and fits without scrolling", asy
     ".cph-summary",
     ".cph-location",
   ];
-  const boxes = [];
-  for (const selector of blocks) {
-    const box = await page.locator(selector).boundingBox();
-    expect(box, `${selector} must be visible`).not.toBeNull();
-    boxes.push(box!);
-  }
-  for (let i = 1; i < boxes.length; i += 1) {
+  for (const size of [
+    { width: 1440, height: 900 },
+    { width: 1280, height: 720 },
+  ]) {
+    await page.setViewportSize(size);
+    const boxes = [];
+    for (const selector of blocks) {
+      const box = await page.locator(selector).boundingBox();
+      expect(box, `${selector} must be visible at ${size.width}`).not.toBeNull();
+      boxes.push(box!);
+    }
+    for (let i = 1; i < boxes.length; i += 1) {
+      expect(
+        boxes[i].y,
+        `${blocks[i]} must sit below ${blocks[i - 1]} without overlap`,
+      ).toBeGreaterThanOrEqual(boxes[i - 1].y + boxes[i - 1].height - 1);
+    }
+
+    const fit = await scroll(page).evaluate((element) => ({
+      content: element.scrollHeight,
+      visible: element.clientHeight,
+    }));
     expect(
-      boxes[i].y,
-      `${blocks[i]} must sit below ${blocks[i - 1]} without overlap`,
-    ).toBeGreaterThanOrEqual(boxes[i - 1].y + boxes[i - 1].height - 1);
+      fit.content,
+      `Today must fit inside the phone at ${size.width}x${size.height}`,
+    ).toBeLessThanOrEqual(fit.visible + 1);
+    const pageOverflow = await page.evaluate(
+      () =>
+        document.documentElement.scrollHeight -
+        document.documentElement.clientHeight,
+    );
+    expect(pageOverflow, "the page must not scroll").toBeLessThanOrEqual(2);
   }
 
-  const fit = await scroll(page).evaluate((element) => ({
-    content: element.scrollHeight,
-    visible: element.clientHeight,
-  }));
-  expect(fit.content, "Today must fit inside the phone").toBeLessThanOrEqual(
-    fit.visible + 1,
-  );
-  const pageOverflow = await page.evaluate(
-    () =>
-      document.documentElement.scrollHeight -
-      document.documentElement.clientHeight,
-  );
-  expect(pageOverflow, "the page must not scroll").toBeLessThanOrEqual(2);
-
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(page.locator(".cph-mode-head small")).toContainText("🌿 Normal");
+  await expect(page.locator(".cph-mode-options button")).toHaveText([
+    "🌿 Normal",
+    "🏠 Focus",
+    "💬 Dialogue",
+  ]);
   await expect(page.locator(".cph-hero .cph-wearer")).toHaveText("Alex Chen");
   await expect(page.locator(".cph-hero .cph-hero-title")).toHaveText(
     "No active alerts",
@@ -95,6 +107,9 @@ test("every caregiver phone control is still reachable", async ({ page }) => {
     page.getByRole("heading", { name: "Your care tools", exact: true }),
   ).toBeVisible();
   await expect(page.locator(".phone-tool-list button")).toHaveCount(7);
+  await expect(
+    page.getByRole("link", { name: "Open full workspace", exact: true }),
+  ).toHaveAttribute("href", "#/caregiver");
 
   await page.locator(".phone-tool-list").getByRole("button", {
     name: /Device & readings/,
@@ -224,4 +239,58 @@ test("Today text stays readable and the phone stays on the left", async ({
     phoneBox!.x + phoneBox!.width,
     "caregiver phone must stay left of the watch",
   ).toBeLessThanOrEqual(watchBox!.x);
+});
+
+test("alert states keep live details clear of the fixed bottom navigation", async ({
+  page,
+}) => {
+  for (const size of [
+    { width: 1440, height: 900 },
+    { width: 1280, height: 720 },
+  ]) {
+    await page.setViewportSize(size);
+    await page.goto("/#/together");
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await expect(phone(page)).toBeVisible();
+
+    await page
+      .getByRole("button", { name: "Wanders off route", exact: true })
+      .click();
+    await expect(page.getByText("Needs attention", { exact: true })).toBeVisible();
+    const location = page.locator(".cph-location");
+    await expect(location).toHaveClass(/cph-location-compact/);
+    const locationBox = await location.boundingBox();
+    expect(locationBox, "location row must be visible in attention").not.toBeNull();
+    expect(
+      locationBox!.height,
+      "location collapses to one short row in an alert",
+    ).toBeLessThan(50);
+    const attentionNav = await page.locator(".cph-nav").boundingBox();
+    expect(attentionNav).not.toBeNull();
+    expect(
+      locationBox!.y + locationBox!.height,
+      `attention location must clear the nav at ${size.width}x${size.height}`,
+    ).toBeLessThanOrEqual(attentionNav!.y + 1);
+
+    await page.getByRole("button", { name: "SOS", exact: true }).click();
+    await expect(page.getByText("Urgent", { exact: true })).toBeVisible();
+    const emergencyBox = await page.locator(".cph-emergency").boundingBox();
+    expect(emergencyBox).not.toBeNull();
+    const sosNav = await page.locator(".cph-nav").boundingBox();
+    expect(sosNav).not.toBeNull();
+    expect(
+      emergencyBox!.y + emergencyBox!.height,
+      `SOS card must clear the nav at ${size.width}x${size.height}`,
+    ).toBeLessThanOrEqual(sosNav!.y + 1);
+
+    const fit = await scroll(page).evaluate((element) => ({
+      content: element.scrollHeight,
+      visible: element.clientHeight,
+    }));
+    expect(
+      fit.content,
+      `alert state must fit at ${size.width}x${size.height}`,
+    ).toBeLessThanOrEqual(fit.visible + 1);
+  }
 });
