@@ -1,7 +1,7 @@
 # WayHome team plan v5
 
 **Updated:** 21 Nov 2026 · **Decides:** Clarine (`clarbel21`) · **Reviews logic:** Ilyas (`itsme-lahlou`)
-**Builders:** Codex · ZCode · Claude · WorkBuddy · Supersedes v4.
+**Builders:** anyone — take the next step below · Supersedes v4.
 
 ## Goal
 
@@ -42,48 +42,62 @@ The watch does five things: **🏠 go home with familiar-landmark photos · 📞
 7. **Same words on both watches** (`src/i18n.ts` → `firmware/watch_ui.cpp`).
 8. **The phone can say more**, but status first and details under Care tools.
 
-## Next: finish the demo moments, one step at a time
+## Next steps — take the next unchecked one
 
-Audit of every "Try a moment" button on 21 Nov. Do the steps **in order**; each step is
-**one small PR** with before/after screenshots of both devices and the green bar.
+Anyone (person or AI) works on the **lowest unchecked step**. Before starting, write your
+name next to it in a PR or issue so two people don't take the same step. When it merges,
+tick the box here in the same PR. One step = one small PR with before/after screenshots of
+the watch **and** the phone, and the green bar below.
 
-| Step | Moment | Problem found | What "done" looks like | Owner |
-|---|---|---|---|---|
-| **D0** | — | The physical watch has never been tested with this build | Flash latest `main`, run the smoke test below, write the results into this file | Clarine (needs the board) |
-| **D1** | Loses signal | The watch still shows the caregiver's check-in, but an offline watch cannot receive it | Watch: "Offline" screen with Home / Call / SOS that still work locally. Phone: "Watch offline · last seen near home", check-in waits until reconnect | Codex (store), Claude (copy) |
-| **D2** | Takes it off | Phone says "Caregiver Assistance Requested", but nobody asked for help; the watch shows a call screen to nobody | Phone: "Watch taken off" + Find My. Watch: quiet "Put me on?" screen. No family request is created | Codex (store), WorkBuddy (phone) |
-| **D3** | +8 min (outside the zone) | Phone escalates to Urgent; the watch stays on "Go home?" | Each ladder step shows on the watch too: buzz again → "Call family?" → caregiver alerted. Watch and phone always agree on the step | Codex (zone), ZCode (watch) |
-| **D4** | Weak GPS | Caption promised "directions pause"; outside a walk it is just a check-in | During a walk: watch keeps the landmark photo, hides the arrow, says "Look for the bakery". Outside a walk: calm check-in (caption already fixed) | Codex, ZCode |
-| **D5** | (new) Arrives home · Family calls back | The story has no happy ending to show | Two new moments: "Arrives home" (watch: Welcome home; phone: All calm + summary) and "Family calls back" (watch: "Jamie replied"; phone: done) | Claude (moments + copy), Codex (store) |
-| **D6** | Wanders off route · SOS | Store sentences still too long for the watch ("It's okay. I'm here with you.", "Help request sent — simulation") | ≤ 5 words, first-person, identical on the ESP32 | Codex (store `messages`), Claude (firmware copy) |
-| **D7** | All | — | Ilyas reviews D1–D4 logic; Clarine approves the full demo run-through | Ilyas, Clarine |
+- [ ] **Step 1 — Test the physical watch.** Flash the latest `main` to the ESP32-S3 and run
+  the smoke test below. Write ✅/❌ per item into this file. *(Needs the board.)*
+- [ ] **Step 2 — "Loses signal".** Today the offline watch still shows the caregiver's
+  check-in, which it could not have received. Done when: the watch shows an "Offline" screen
+  whose Home / Call / SOS still work, and the phone shows "Watch offline · last seen near home"
+  with the check-in waiting until the watch reconnects.
+- [ ] **Step 3 — "Takes it off".** Today the phone says "Caregiver Assistance Requested",
+  but nobody asked for help, and the watch shows a call screen to nobody. Done when: the
+  phone says "Watch taken off" and offers Find My, the watch shows a quiet "Put me on?"
+  screen, and no family request is created.
+- [ ] **Step 4 — "+8 min" escalation.** Today the phone escalates to Urgent while the watch
+  stays on "Go home?". Done when: every ladder step also shows on the watch (buzz again →
+  "Call family?" → caregiver alerted) and both devices always show the same step.
+- [ ] **Step 5 — "Weak GPS" during a walk.** Done when: during a walk the watch keeps the
+  landmark photo, hides the arrow and says "Look for the bakery"; outside a walk it stays a
+  calm check-in.
+- [ ] **Step 6 — Happy endings.** Add two moments: "Arrives home" (watch: Welcome home;
+  phone: All calm + a short summary) and "Family calls back" (watch: "Jamie replied";
+  phone: request done).
+- [ ] **Step 7 — Last long sentences.** Shorten the store messages still shown on the
+  watch ("It's okay. I'm here with you.", "Help request sent — simulation") to ≤ 5 words,
+  first-person, and copy them to the ESP32 firmware.
+- [ ] **Step 8 — Final check.** A logic review of steps 2–5 (Ilyas), then Clarine runs the
+  whole demo on the web and the physical watch and approves.
 
-### Hardware smoke test (D0, repeat after D1–D6)
+### Hardware smoke test (step 1; repeat after any firmware change)
 
 Pair from **Connect Sprout watch** → 4 home tiles (Home, Call, Talk, Game) → caregiver
 check-in → "I see it" → "Not yet" → "I see it now" → SOS tap (nothing) → SOS hold 3 s (sends once).
-Record ✅/❌ per step here.
 
-## Lanes: who owns what
+## Files by area (so changes stay small)
 
-| Lane | Owns |
+| Area | Files |
 |---|---|
-| **ZCode** (watch look) | `Wearable.tsx` layout, `watch-ui.css` |
-| **WorkBuddy** (phone) | `CaregiverPhone.tsx`, `caregiver-phone-ui.css`, caregiver pages |
-| **Codex** (logic) | `store.ts`, `zone/*`, `services/*` |
-| **Claude** (words, firmware, QA) | `i18n.ts` copy, demo moments/captions, `firmware/*`, `tests/*`, docs |
-| **Ilyas** (review) | Logic review before merge |
-| **Clarine** (owner) | Approves every PR and the final demo |
+| Watch look | `src/components/Wearable.tsx`, `src/watch-ui.css` |
+| Phone | `src/components/CaregiverPhone.tsx`, `src/caregiver-phone-ui.css` |
+| Logic | `src/store.ts`, `src/zone/*`, `src/services/*` |
+| Words | `src/i18n.ts`, `src/components/DemoStage.tsx` (moments + captions) |
+| Physical watch | `firmware/wayhome-watch/*` |
+| Tests | `tests/*` |
 
-If a task needs another lane's file, say so in the PR. When a lane is out of tokens, Claude
-covers it and notes that in the PR.
+Clarine approves every PR. Logic changes (`store`, `zone`, `services`) also get a review from Ilyas.
 
 ## How we work
 
-1. Branch `<lane>/<step>-<short-name>` from the latest `main`. No direct pushes to `main`.
+1. Branch `step-<n>-<short-name>` from the latest `main`. No direct pushes to `main`.
 2. One step per PR, with before/after screenshots of the watch **and** the phone.
 3. **Green bar:** `npm test` (129), `npm run build`, full Playwright (92). A PR may not lower it.
 4. Firmware PRs also compile:
    `arduino-cli compile --fqbn esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB,PSRAM=opi,CDCOnBoot=cdc firmware/wayhome-watch`
-5. Merge order: owner → Ilyas (logic PRs) → Clarine → squash-merge → Pages deploys.
+5. Merge order: PR → Ilyas (logic PRs) → Clarine → squash-merge → Pages deploys.
 6. **Facts stay factual.** Never imply real calling, GPS, monitoring or emergency dispatch.
