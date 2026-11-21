@@ -470,11 +470,13 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             >
               <Phone size={15} /> {t("helpFamily")}
             </button>
+            {/* Minimal text (TEAM_PLAN v2): icon-only, name kept for tests */}
             <button
-              className="wos-ghost cancel-guidance"
+              className="wos-ghost cancel-guidance wos-icon-only"
+              aria-label={t("cancelGuidance")}
               onClick={s.backToHome}
             >
-              {t("cancelGuidance")}
+              <House size={18} />
             </button>
           </>
         ) : (
@@ -493,11 +495,13 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             >
               <Phone size={17} /> {t("helpFamily")}
             </button>
+            {/* Minimal text (TEAM_PLAN v2): icon-only, name kept for tests */}
             <button
-              className="wos-ghost cancel-guidance"
+              className="wos-ghost cancel-guidance wos-icon-only"
+              aria-label={t("cancelGuidance")}
               onClick={s.backToHome}
             >
-              {t("cancelGuidance")}
+              <House size={18} />
             </button>
           </>
         )}
@@ -562,8 +566,13 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         <small>{s.familyRequest ? t("notifSent") : t("notifNone")}</small>
         {note}
         {status !== "responded" && (
-          <button className="wos-back" onClick={s.backToHome}>
-            <ChevronLeft size={16} /> {t("backHome")}
+          /* Minimal text (TEAM_PLAN v2): icon-only, name kept for tests */
+          <button
+            className="wos-back wos-icon-only"
+            aria-label={t("backHome")}
+            onClick={s.backToHome}
+          >
+            <ChevronLeft size={18} />
           </button>
         )}
         {status === "responded" && (

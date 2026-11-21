@@ -141,7 +141,12 @@ function Brand() {
   return (
     <Link to="/" className="brand">
       <span>
-        <Leaf size={23} />
+        <img
+          className="brand-logo"
+          src={`${import.meta.env.BASE_URL}wayhome-logo.svg`}
+          alt=""
+          aria-hidden="true"
+        />
       </span>
       WayHome<span className="brand-dot">.</span>
     </Link>

@@ -4570,3 +4570,174 @@
     height: 68px;
   }
 }
+
+/* ============================================================ fit lock
+   TEAM_PLAN v2: #/together fits 1440x900, 1280x720 and the 880x700
+   minimum with no page scroll — fixed stage, viewport-tied phone height,
+   compact heading row and moments chips. Last block in the cascade. */
+@media (min-width: 860px) and (min-height: 640px) {
+  .shared-experience:not(.large-text) {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .shared-experience:not(.large-text) .companion-main {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 8px 24px 10px;
+    max-width: none;
+  }
+  .shared-experience:not(.large-text) .shared-devices {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: clamp(20px, 4vw, 62px);
+    width: min(100%, 1080px);
+    margin: 0 auto;
+  }
+  .shared-experience:not(.large-text) .care-phone {
+    --phone-height: min(600px, calc(100dvh - 300px));
+    height: var(--phone-height);
+    width: calc(var(--phone-height) * 0.4845);
+    max-width: none;
+    margin: auto;
+  }
+  .shared-experience:not(.large-text) .care-phone-screen {
+    height: 100%;
+    overflow: hidden;
+  }
+  .shared-experience:not(.large-text) .watch-area {
+    width: min(100%, 300px);
+    margin: auto;
+  }
+  /* Must out-rank the :not(.pendant):not(.clip) padding rule below. */
+  .shared-experience:not(.large-text) .watch-area:not(.pendant):not(.clip) {
+    padding-block: 0;
+  }
+  .shared-experience:not(.large-text) .watch-area .watch-strap {
+    display: none;
+  }
+  .shared-experience:not(.large-text) .watch-area .watch {
+    height: min(440px, calc(100dvh - 320px));
+  }
+  .shared-experience:not(.large-text) .watch-area .watch .watch-screen.wos {
+    height: 100%;
+    min-height: 0;
+  }
+  .shared-experience:not(.large-text) .stage-heading {
+    margin: 2px 0 4px;
+    gap: 4px;
+  }
+  .shared-experience:not(.large-text) .stage-heading h1 {
+    font-size: 19px;
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    margin: 0;
+  }
+  .shared-experience:not(.large-text) .experience-view-switcher button {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+  /* Pairing pill stays visible, just one compact row. */
+  .shared-experience:not(.large-text) .stage-heading .device-connect {
+    flex-wrap: nowrap;
+    gap: 10px;
+    margin: 0;
+  }
+  .shared-experience:not(.large-text) .stage-heading .device-connect .button {
+    padding: 6px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .shared-experience:not(.large-text) .device-connect .device-status {
+    margin: 0;
+    font-size: 10px;
+    max-width: 560px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .shared-experience:not(.large-text) .stage-toolbar {
+    flex-wrap: nowrap;
+    gap: 4px;
+    margin: 6px auto 0;
+  }
+  .shared-experience:not(.large-text) .stage-toolbar button {
+    padding: 3px 6px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .shared-experience:not(.large-text) .companion-foot {
+    margin: 4px 0 0;
+  }
+  .shared-experience:not(.large-text) .wearer-interface .explore-memories {
+    min-height: 30px;
+    padding: 4px 10px;
+    font-size: 11px;
+    margin-top: 3px;
+  }
+}
+/* Narrow-desktop tier (880x700 class): tighter devices so the wrapped
+   chips row still fits. */
+@media (min-width: 860px) and (max-width: 1023px) and (min-height: 640px) {
+  /* Stack the heading so its min-content width cannot force a horizontal
+     blow-out at 880; the status sentence is text we can lose (minimal
+     text rule) — the Connect pill itself stays. */
+  .shared-experience:not(.large-text) .stage-heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  .shared-experience:not(.large-text) .device-connect .device-status {
+    display: none;
+  }
+  .shared-experience:not(.large-text) .care-phone {
+    --phone-height: min(560px, calc(100dvh - 350px));
+  }
+  .shared-experience:not(.large-text) .watch-area .watch {
+    height: min(370px, calc(100dvh - 370px));
+  }
+  /* Every heading element compact: the 880x700 budget has ~110px for it. */
+  .shared-experience:not(.large-text) .stage-heading h1 {
+    font-size: 18px;
+    margin: 0;
+    white-space: nowrap;
+  }
+  /* Minimal text: drop the eyebrow + subtitle lines on the tight stage. */
+  .shared-experience:not(.large-text) .stage-heading .eyebrow,
+  .shared-experience:not(.large-text) .stage-heading > p {
+    display: none;
+  }
+  .shared-experience:not(.large-text) > .topbar {
+    padding: 6px 16px;
+    font-size: 12px;
+    gap: 10px;
+  }
+  .shared-experience:not(.large-text) > .topbar .brand {
+    font-size: 20px;
+  }
+  .shared-experience:not(.large-text) .experience-view-switcher button {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  .shared-experience:not(.large-text) .device-connect .button {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  .shared-experience:not(.large-text) .stage-heading > * {
+    margin: 0;
+  }
+  .shared-experience:not(.large-text) .stage-toolbar {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 4px;
+  }
+  .shared-experience:not(.large-text) .stage-toolbar button {
+    padding: 2px 5px;
+    font-size: 9.5px;
+  }
+}

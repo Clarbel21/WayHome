@@ -77,7 +77,7 @@ For each watch action, walk the full loop and fix gaps:
 
 ## Verification bar (unchanged)
 
-`npm test`, `npm run build -- --base /WayHome/`, Playwright flows, firmware compile
+`npm test`, `npm run build` (relative base — same as the Pages workflow), Playwright flows. On Windows Git Bash never pass `--base /WayHome/` directly: MSYS rewrites it to `/Program Files/Git/WayHome/` in the output. If you need an explicit base, prefix it: `MSYS_NO_PATHCONV=1 npm run build -- --base /WayHome/`., firmware compile
 (`arduino-cli compile --fqbn esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB,PSRAM=opi,CDCOnBoot=cdc firmware/wayhome-watch`),
 then the 2-minute hardware smoke test: pair → each home tile → check-in → SOS hold 3 s.
 Record actual results in PRs and update this file when a decision changes.
