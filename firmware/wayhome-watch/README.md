@@ -17,7 +17,7 @@ there is no real GNSS (the board has none), no real calling, and no emergency di
 | Battery % | AXP2101 PMIC `getBatteryPercent()` |
 | Wear motion | QMI8658 accelerometer (1 g-deviation EMA, debounced) |
 | GPS progress | Simulated route steps 0–6 (no GNSS on board) |
-| SOS | 2-second hold on the red home-screen button |
+| SOS | 3-second hold on the red home-screen bar |
 
 ## Arduino IDE setup
 
@@ -55,5 +55,20 @@ for every wear event.
 
 1. Open the WayHome app (GitHub Pages or `npm run dev` — Web Bluetooth needs HTTPS or localhost; Chrome/Edge/Android only, not iOS Safari).
 2. On the demo page (**Wearable configuration**), click **Connect Sprout watch** and pick `Sprout Watch`.
-3. Try it: hold the red SOS button for 2 s, walk the route steps, change the attachment
-   in Settings, or just shake the watch to flip wear motion.
+3. Try it: hold the red SOS bar for 3 s, tap the four home tiles, walk the route steps,
+   change the attachment in Settings, or just shake the watch to flip wear motion.
+
+## Watch screens (same words as the web watch, `src/i18n.ts`)
+
+| Tile | What happens |
+|---|---|
+| Home | Sends `0x06`; the web starts guided return and mirrors the route (code 3). |
+| Call | Sends `0x04` + `1` (family): the caregiver phone gets the family request. Shows "Calling family" until the web confirms. No real call is placed. |
+| Talk | Four topics with Sprout's short replies (on-device, like the web watch). |
+| Game | Memory Garden: five gentle prompts, one at a time, with Next and Back. |
+
+Wording follows TEAM_PLAN v4: one idea per screen, at most 3 words per button.
+
+Not yet on the physical watch: "Not yet → I see it now" during guided return. It needs
+two new companion commands on the web side (`src/services/ble.ts`), for example `0x08`
+(landmark not seen) and `0x09` (seen it now).
