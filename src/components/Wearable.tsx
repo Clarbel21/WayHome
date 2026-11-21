@@ -44,6 +44,7 @@ import {
   useCaregiverPopups,
   type CaregiverPopupLevel,
 } from "../services/caregiverPopup";
+import { EXPERIENCE_MODES, experienceModeOption } from "../experienceModes";
 export { Photo } from "./Photo";
 
 type TalkReply = "intro" | "comfort" | "where" | "who" | "nice";
@@ -693,26 +694,21 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     );
   } else if (showModePicker) {
     screenKey = "choose-experience-mode";
-    const choices = [
-      {
-        id: "normal" as const,
-        label: t("normalMode"),
-        hint: t("normalModeHint"),
-        icon: Heart,
-      },
-      {
-        id: "focus" as const,
-        label: t("focusMode"),
-        hint: t("focusModeHint"),
-        icon: ArrowUp,
-      },
-      {
-        id: "dialogue" as const,
-        label: t("dialogueMode"),
-        hint: t("dialogueModeHint", { companion: name }),
-        icon: MessageCircle,
-      },
-    ];
+    const choices = EXPERIENCE_MODES.map((mode) => ({
+      ...mode,
+      label:
+        mode.id === "normal"
+          ? t("normalMode")
+          : mode.id === "focus"
+            ? t("focusMode")
+            : t("dialogueMode"),
+      hint:
+        mode.id === "normal"
+          ? t("normalModeHint")
+          : mode.id === "focus"
+            ? t("focusModeHint")
+            : t("dialogueModeHint", { companion: name }),
+    }));
     screen = (
       <div className="wos-center wos-mode-picker">
         <SlidersHorizontal size={27} aria-hidden="true" />
@@ -720,7 +716,6 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         <small className="wos-mode-notice">{t("modeChangeNotice")}</small>
         <div className="watch-controls wos-list">
           {choices.map((choice) => {
-            const Icon = choice.icon;
             const selected = experienceMode === choice.id;
             return (
               <button
@@ -734,8 +729,8 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
                   setShowModePicker(false);
                 }}
               >
-                <span className="wos-mode-choice-icon">
-                  <Icon size={17} />
+                <span className="wos-mode-choice-icon" aria-hidden="true">
+                  {choice.emoji}
                 </span>
                 <span>
                   <strong>{choice.label}</strong>
@@ -943,7 +938,9 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
                   className="wos-mode-button"
                   onClick={() => setShowModePicker(true)}
                 >
-                  <SlidersHorizontal size={14} />
+                  <span aria-hidden="true">
+                    {experienceModeOption(experienceMode).emoji}
+                  </span>
                   {t("modeButton", { mode: experienceModeLabel })}
                 </button>
               )}
