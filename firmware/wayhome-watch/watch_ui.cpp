@@ -129,7 +129,10 @@ void trigger_sos() {
 // widget is checked first: a NULL label once froze the watch at start-up.
 void refresh_landmark_widgets() {
   uint8_t stop = watch.remoteLandmark;
-  if (stop != lastLandmark) {
+  // Only touch the widgets when the stop changes: re-setting the same
+  // 360x200 photo forces a full redraw on every Bluetooth update (lag).
+  if (stop == lastLandmark) return;
+  {
     lastLandmark = stop;
     USBSerial.printf("[UI] landmark stop %u\n", stop == UINT8_MAX
                                                     ? (unsigned)255
@@ -503,8 +506,7 @@ void build_route_screen() {
   imgLandmark = lv_image_create(scrRoute);
   lv_obj_set_pos(imgLandmark, 25, 18);
   lv_obj_set_size(imgLandmark, 360, 200);
-  lv_obj_set_style_radius(imgLandmark, 14, 0);
-  lv_obj_set_style_clip_corner(imgLandmark, true, 0);
+  // No rounded clipping: masking a 360x200 photo every frame is slow.
   lv_obj_clear_flag(imgLandmark, LV_OBJ_FLAG_SCROLLABLE);
 
   // Place name from the web stop byte, ≤ 5 words, centred under the photo.
