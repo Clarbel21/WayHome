@@ -210,6 +210,12 @@ interface State {
   dismissAcknowledgment: () => void;
   checkIn: CheckIn | null;
   checkInHistory: CheckIn[];
+  /**
+   * Set when a caregiver asks for a check-in while the watch is offline.
+   * An offline watch cannot receive the question, so the request waits here
+   * and is delivered as a normal check-in the next time the watch connects.
+   */
+  queuedCheckIn: number | null;
   familyRequest: FamilyRequest | null;
   interactionNote: string;
   returnToCheckIn: () => void;
@@ -295,6 +301,7 @@ const defaults = () => ({
   guidanceActive: false,
   checkIn: null as CheckIn | null,
   checkInHistory: [] as CheckIn[],
+  queuedCheckIn: null as number | null,
   familyRequest: null as FamilyRequest | null,
   interactionNote: "",
   mode: "NORMAL" as Mode,
@@ -695,16 +702,19 @@ export const useStore = create<State>()(
             ? { guidanceActive: event === "GUIDE" }
             : {}),
           ...(event === "CHECK" && s.mode !== "EMERGENCY_SIMULATED"
-            ? {
-                checkIn: {
-                  id: crypto.randomUUID(),
-                  stage: "question" as const,
-                  repeats: 0,
-                  deadline:
-                    Date.now() + s.settings.checkInTimeoutSeconds * 1000,
-                },
-                interactionNote: "",
-              }
+            ? s.connected
+              ? {
+                  checkIn: {
+                    id: crypto.randomUUID(),
+                    stage: "question" as const,
+                    repeats: 0,
+                    deadline:
+                      Date.now() + s.settings.checkInTimeoutSeconds * 1000,
+                  },
+                  queuedCheckIn: null,
+                  interactionNote: "",
+                }
+              : { queuedCheckIn: Date.now() }
             : {}),
           ...(["SOS", "POLICE", "WALK", "GUIDE", "LOST", "HELP"].includes(event)
             ? {
@@ -1059,6 +1069,20 @@ export const useStore = create<State>()(
           wearStatus: "unknown",
           worn: false,
           wearObservedAt: null,
+          ...(s.queuedCheckIn !== null
+            ? {
+                mode: "CHECK_IN" as Mode,
+                queuedCheckIn: null,
+                checkIn: {
+                  id: crypto.randomUUID(),
+                  stage: "question" as const,
+                  repeats: 0,
+                  deadline:
+                    Date.now() + s.settings.checkInTimeoutSeconds * 1000,
+                },
+                interactionNote: "",
+              }
+            : {}),
           alerts: [
             {
               id: crypto.randomUUID(),
@@ -1211,6 +1235,19 @@ export const useStore = create<State>()(
           ...defaults(),
           attachment: s.attachment,
           wearInputs: wearPreset(s.attachment, "likely_worn"),
+          ...(s.queuedCheckIn !== null
+            ? {
+                mode: "CHECK_IN" as Mode,
+                checkIn: {
+                  id: crypto.randomUUID(),
+                  stage: "question" as const,
+                  repeats: 0,
+                  deadline:
+                    Date.now() + s.settings.checkInTimeoutSeconds * 1000,
+                },
+                interactionNote: "",
+              }
+            : {}),
         });
         resetListeners.forEach((listener) => listener());
       },

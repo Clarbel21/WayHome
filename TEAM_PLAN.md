@@ -63,7 +63,7 @@ the watch **and** the phone, and the green bar below.
   the board's flash (the 9.9 MB FAT partition or compiled-in LVGL images), and send the
   current stop number in the watch-state mirror so the watch knows which photo to show.
   Caregiver-uploaded photos can follow later (sent over Bluetooth in small chunks).
-- [ ] **Step 3 — "Loses signal".** Today the offline watch still shows the caregiver's
+- [x] **Step 3 — "Loses signal".** *(22 Nov, Clarine.)* Today the offline watch still shows the caregiver's
   check-in, which it could not have received. Done when: the watch shows an "Offline" screen
   whose Home / Call / SOS still work, and the phone shows "Watch offline · last seen near home"
   with the check-in waiting until the watch reconnects.

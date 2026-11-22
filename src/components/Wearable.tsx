@@ -293,6 +293,34 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         <ResolveSOSButton short />
       </div>
     );
+  } else if (!s.connected) {
+    // An offline watch cannot receive anything. Show one calm line and only
+    // the actions that still work on the band itself: Home, Call and SOS.
+    screenKey = "offline";
+    screen = (
+      <div className="wos-center wos-offline">
+        <div className="wos-offline-icon" aria-hidden="true">
+          <WifiOff size={30} />
+        </div>
+        {speech(t("offlineWatchLine"))}
+        <div className="wos-offline-actions">
+          <button
+            className="watch-action wos-primary"
+            aria-label={t("goHome")}
+            onClick={() => s.chooseAssistance("home")}
+          >
+            <House size={18} /> {t("goHome")}
+          </button>
+          <button
+            className="watch-action"
+            aria-label={t("callFamily")}
+            onClick={() => s.chooseAssistance("family")}
+          >
+            <Phone size={18} /> {t("callFamily")}
+          </button>
+        </div>
+      </div>
+    );
   } else if (zonePrompt) {
     screenKey = `zone-${z.promptAt}`;
     screen = (

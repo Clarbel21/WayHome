@@ -538,6 +538,7 @@ function PhoneToday() {
   const wearer = s.settings.wearer;
   const first = wearer.split(" ")[0];
   const isEmergency = s.mode === "EMERGENCY_SIMULATED";
+  const offline = !s.connected;
   const waiting = !!s.familyRequest && s.familyRequest.status !== "responded";
   const findings = evaluateSignals(s.signals);
   const emergency = s.alerts.find(
@@ -545,6 +546,10 @@ function PhoneToday() {
   );
   const approved = s.landmarks.filter(navigable);
   const zone = useZone();
+  const shortLocation =
+    zone.distanceM > 0
+      ? t("routeLeft", { m: Math.round(zone.distanceM) })
+      : t("nearHome");
   const tone =
     isEmergency || (zone.active && zone.level >= 3)
       ? "urgent"
@@ -560,20 +565,25 @@ function PhoneToday() {
         : status[s.mode];
   const subtitle = isEmergency
     ? t("sosSub")
-    : zone.active && s.mode !== "GUIDED_RETURN"
-      ? t("zoneFor", {
-          min: Math.floor(zone.vmin),
-          km: (zone.distanceM / 1000).toFixed(2),
+    : offline
+      ? t("offlineLastSeen", {
+          where:
+            shortLocation.charAt(0).toLowerCase() + shortLocation.slice(1),
         })
-      : s.mode === "GUIDED_RETURN"
-        ? t("walkingHome", { wearer: first })
-        : s.checkIn?.stage === "question"
-          ? t("waitingAnswer", { wearer: first })
-          : waiting
-            ? t("familySub")
-            : s.mode === "NORMAL" && !findings.length
-              ? t("calmSub")
-              : t("changedSub");
+      : zone.active && s.mode !== "GUIDED_RETURN"
+        ? t("zoneFor", {
+            min: Math.floor(zone.vmin),
+            km: (zone.distanceM / 1000).toFixed(2),
+          })
+        : s.mode === "GUIDED_RETURN"
+          ? t("walkingHome", { wearer: first })
+          : s.checkIn?.stage === "question"
+            ? t("waitingAnswer", { wearer: first })
+            : waiting
+              ? t("familySub")
+              : s.mode === "NORMAL" && !findings.length
+                ? t("calmSub")
+                : t("changedSub");
   const sendCheckIn = () => {
     s.event("CHECK");
     // A paired watch shows the same question; the simulated one renders below.
@@ -594,10 +604,6 @@ function PhoneToday() {
   const ack = emergency?.emergency?.acknowledgedAt;
   const routeActive = s.mode === "GUIDED_RETURN" && approved.length > 0;
   const guiding = s.mode === "GUIDED_RETURN" && zone.guideStartM !== null;
-  const shortLocation =
-    zone.distanceM > 0
-      ? t("routeLeft", { m: Math.round(zone.distanceM) })
-      : t("nearHome");
   return (
     <div className={`cph-today ${alerting ? "cph-today-alert" : ""}`}>
       {/* 1 + 2 — who we are looking after, and whether anything needs us. */}
@@ -671,6 +677,7 @@ function PhoneToday() {
             {find.ringing ? <BellOff size={16} /> : <BellRing size={16} />}
             <span>{find.ringing ? t("findStop") : t("findBand")}</span>
           </button>
+          {offline && <p>{t("checkInWillWait")}</p>}
           {waiting && <p>{t("respondFirst")}</p>}
           {find.ringing && (
             <p className="phone-find-note" role="status">
