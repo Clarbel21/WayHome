@@ -178,6 +178,16 @@ void sos_set_holding_visual(bool holding) {
     lv_obj_set_style_text_color(lblSosHint, lv_color_hex(holding ? SURFACE : SOS_TEXT), 0);
   if (sosHoldBar != nullptr)
     lv_obj_set_style_bg_color(sosHoldBar, lv_color_hex(holding ? 0xa44f56 : SOS_BORDER), 0);
+  // Show the progress bar only while holding, in place of the hint text.
+  if (sosHoldBar != nullptr && lblSosHint != nullptr) {
+    if (holding) {
+      lv_obj_clear_flag(sosHoldBar, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_add_flag(lblSosHint, LV_OBJ_FLAG_HIDDEN);
+    } else {
+      lv_obj_add_flag(sosHoldBar, LV_OBJ_FLAG_HIDDEN);
+      lv_obj_clear_flag(lblSosHint, LV_OBJ_FLAG_HIDDEN);
+    }
+  }
 }
 
 // Sprout mascot avatar: sage disc with a two-leaf sprout.
@@ -416,22 +426,27 @@ void build_home_screen() {
   scrHome = new_screen(CREAM);
 
   // Status bar (.watch-status): time | greeting | dot + battery
+  // The 2.06" AMOLED has rounded corners: anything within ~48 px of a corner
+  // is cut off, so the status row sits inward and the greeting gets its own line.
   lblClock = add_label(scrHome, "--:--", &lv_font_montserrat_16, INK);
-  lv_obj_align(lblClock, LV_ALIGN_TOP_LEFT, 16, 10);
+  lv_obj_align(lblClock, LV_ALIGN_TOP_LEFT, 67, 14);
 
   // "Hi Alex! I'm Sprout." once the web sends the wearer's first name.
-  lblName = add_label(scrHome, "I'm Sprout.", &lv_font_montserrat_16, INK);
-  lv_obj_align(lblName, LV_ALIGN_TOP_MID, 0, 10);
+  lblName = add_label(scrHome, "I'm Sprout.", &lv_font_montserrat_18, INK);
+  lv_label_set_long_mode(lblName, LV_LABEL_LONG_DOT);
+  lv_obj_set_width(lblName, 300);
+  lv_obj_set_style_text_align(lblName, LV_TEXT_ALIGN_CENTER, 0);
+  lv_obj_align(lblName, LV_ALIGN_TOP_MID, 0, 36);
 
   lblBattery = add_label(scrHome, "--%", &lv_font_montserrat_14, MUTED);
-  lv_obj_align(lblBattery, LV_ALIGN_TOP_RIGHT, -14, 12);
+  lv_obj_align(lblBattery, LV_ALIGN_TOP_RIGHT, -70, 15);
 
   lblBatteryIcon = add_label(scrHome, LV_SYMBOL_BATTERY_EMPTY, &lv_font_montserrat_16, MUTED);
-  lv_obj_align(lblBatteryIcon, LV_ALIGN_TOP_RIGHT, -58, 10);
+  lv_obj_align(lblBatteryIcon, LV_ALIGN_TOP_RIGHT, -112, 14);
 
   dotBle = lv_obj_create(scrHome);
   lv_obj_set_size(dotBle, 11, 11);
-  lv_obj_align(dotBle, LV_ALIGN_TOP_RIGHT, -90, 14);
+  lv_obj_align(dotBle, LV_ALIGN_TOP_RIGHT, -142, 18);
   lv_obj_set_style_radius(dotBle, LV_RADIUS_CIRCLE, 0);
   lv_obj_set_style_bg_color(dotBle, lv_color_hex(0x4a5568), 0);
   lv_obj_set_style_border_width(dotBle, 0, 0);
@@ -447,7 +462,7 @@ void build_home_screen() {
     int col = i % 2;
     int row = i / 2;
     lv_obj_t *tile =
-        add_button(scrHome, 16 + col * 194, 52 + row * 166, 178, 150, SURFACE, 16);
+        add_button(scrHome, 22 + col * 188, 64 + row * 160, 178, 148, SURFACE, 16);
     lv_obj_set_style_border_color(tile, lv_color_hex(PALE), 0);
     lv_obj_set_style_border_width(tile, 2, 0);
     lv_obj_t *icon = add_label(tile, tileIcons[i], &lv_font_montserrat_42, tileIconColors[i]);
@@ -458,7 +473,7 @@ void build_home_screen() {
   }
 
   // Wide SOS bar (.sos-hold): hold 3 seconds to send, like the web watch.
-  sosBtn = add_button(scrHome, 16, 392, 378, 96, SOS_BG, 16);
+  sosBtn = add_button(scrHome, 34, 388, 342, 88, SOS_BG, 18);
   lv_obj_set_style_border_color(sosBtn, lv_color_hex(SOS_BORDER), 0);
   lv_obj_set_style_border_width(sosBtn, 1, 0);
   lblSosTitle = add_label(sosBtn, "SOS", &lv_font_montserrat_22, SOS_TEXT);
@@ -477,6 +492,7 @@ void build_home_screen() {
   lv_obj_set_style_bg_opa(sosHoldBar, LV_OPA_COVER, 0);
   lv_obj_set_style_bg_color(sosHoldBar, lv_color_hex(SOS_LIVE), LV_PART_INDICATOR);
   lv_obj_set_style_radius(sosHoldBar, 4, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+  lv_obj_add_flag(sosHoldBar, LV_OBJ_FLAG_HIDDEN);
 }
 
 void build_route_screen() {
@@ -616,10 +632,10 @@ void build_settings_screen() {
   scrSettings = new_screen(CREAM);
 
   lv_obj_t *title = add_label(scrSettings, "Settings", &lv_font_montserrat_24, INK);
-  lv_obj_align(title, LV_ALIGN_TOP_LEFT, 16, 24);
+  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 28);
 
-  lv_obj_t *section = add_label(scrSettings, "Attachment", &lv_font_montserrat_14, MUTED);
-  lv_obj_align(section, LV_ALIGN_TOP_LEFT, 16, 70);
+  lv_obj_t *section = add_label(scrSettings, "Attachment", &lv_font_montserrat_16, MUTED);
+  lv_obj_align(section, LV_ALIGN_TOP_LEFT, 40, 70);
 
   const char *names[3] = {"Wristwatch", "Pendant", "Clothing clip"};
   for (int i = 0; i < 3; i++) {
