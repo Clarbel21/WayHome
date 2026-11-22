@@ -5,8 +5,12 @@ import { useStore } from "../store";
 export function CheckInRuntime() {
   const mode = useStore((s) => s.mode);
   const c = useStore((s) => s.checkIn);
+  const connected = useStore((s) => s.connected);
   useEffect(() => {
     if (mode !== "CHECK_IN") return;
+    // An offline watch cannot receive a question, so nothing is created
+    // until the connection is restored (reconnect or demo reset).
+    if (!connected) return;
     if (!c) {
       const s = useStore.getState();
       // Rendering a pending device review must not revoke caregiver verification.
@@ -28,7 +32,7 @@ export function CheckInRuntime() {
       Math.max(0, c.deadline - Date.now()),
     );
     return () => window.clearTimeout(timer);
-  }, [mode, c]);
+  }, [mode, c, connected]);
   return null;
 }
 export function FamilyResponse() {

@@ -189,12 +189,18 @@ test("watchScreenCode maps every mirrored watch state", () => {
   const code = () => watchScreenCode(state());
   expect(code()).toBe(0); // NORMAL → home
 
+  // An offline watch cannot receive a check-in (the request waits instead),
+  // so the watch is connected here to mirror the question/answer screens.
+  useStore.setState({ connected: true });
   state().event("CHECK");
   expect(code()).toBe(1); // question
 
   state().answerCheckIn("help");
   expect(code()).toBe(2); // help options
 
+  // Keep a non-connection verification blocker so "okay" lands on the
+  // acknowledged screen instead of clearing straight back to NORMAL.
+  useStore.setState({ wearStatus: "unknown" });
   state().event("CHECK");
   state().answerCheckIn("okay");
   expect(code()).toBe(5); // answered/acknowledged

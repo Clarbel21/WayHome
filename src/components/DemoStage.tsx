@@ -135,8 +135,8 @@ export function DemoStage() {
       id: "offline",
       label: { en: "Loses signal", id: "Sinyal hilang" },
       watch: {
-        en: "Watch shows Offline. Phone keeps the last known location.",
-        id: "Jam menunjukkan Offline. Ponsel menyimpan lokasi terakhir.",
+        en: "The watch drops to a calm Offline screen — Home, Call and SOS still work, and no check-in arrives. The phone shows the last known place and holds a check-in until the watch reconnects.",
+        id: "Jam masuk ke layar Offline yang tenang — Home, Call, dan SOS tetap bekerja, dan tidak ada sapaan yang masuk. Ponsel menampilkan lokasi terakhir dan menahan sapaan sampai jam tersambung lagi.",
       },
       icon: WifiOff,
       run: () => s.event("DISCONNECT"),
