@@ -47,13 +47,32 @@ Device name **`Sprout Watch`**. Service and characteristic UUIDs must match
 | Wear motion | `5a9c1f2e-4a05-4c31-9a48-d1b7f30e6c21` | `uint8`: 0 unknown, 1 yes, 2 no | read, notify |
 | Attachment | `5a9c1f2e-4a06-4c31-9a48-d1b7f30e6c21` | string `wristwatch\|pendant\|clip` | read, write, notify |
 | Companion command | `5a9c1f2e-4a07-4c31-9a48-d1b7f30e6c21` | byte0: web→watch `0x01` show check-in; watch→web `0x02` "I'm okay", `0x03` "I'd like some help", `0x04` assistance (byte1: 0 home, 1 family, 2 confused), `0x05` back, `0x06` "Help me home", `0x07` "I see it" / walked a step (byte1: new step 0–6), `0x08` "Not yet", `0x09` "I see it now" | read, write, notify |
-| Watch state mirror | `5a9c1f2e-4a08-4c31-9a48-d1b7f30e6c21` | byte0: web watch screen (0 home, 1 check-in question, 2 help options, 3 guided route, 4 emergency, 5 acknowledged, 6 other, 7 "Not yet" during guidance); byte1: route position 0–6; bytes 2+: `Wearer|Companion` first names (ASCII, ≤ 18 bytes) for the "Hi Amy! I'm Momo." greeting | read, write |
+| Watch state mirror | `5a9c1f2e-4a08-4c31-9a48-d1b7f30e6c21` | byte0: web watch screen (0 home, 1 check-in question, 2 help options, 3 guided route, 4 emergency, 5 acknowledged, 6 other, 7 "Not yet" during guidance); byte1: route position 0–6; byte2: current landmark stop 0–3 (255 = no built-in photo); bytes 3+: `Wearer|Companion` first names (ASCII, ≤ 17 bytes) for the "Hi Amy! I'm Momo." greeting | read, write |
 | *(service)* | `5a9c1f2e-4a01-4c31-9a48-d1b7f30e6c21` | — | — |
 
-All payloads fit the default 20-byte ATT payload. On connect the device re-pushes a
+All payloads fit the default 20-byte ATT payload: 3 header bytes + 17 name bytes.
+Payloads from older web builds that put the names at byte2 are still parsed; they
+simply leave the landmark photo at the first stop. On connect the device re-pushes a
 full snapshot (the web store resets wear observations on reconnect). Wear-motion
 notifications are rate-limited to one per minute because the web app logs an alert
 for every wear event.
+
+### Landmark photos
+
+The four built-in photos are compiled into flash as 360x200 RGB565 LVGL images in
+`landmark_images.cpp` (~144 KB each, ~576 KB total). The stop byte selects them in
+`initialLandmarks` order from `src/store.ts`:
+
+| Byte2 | Name | Source SVG |
+|---|---|---|
+| 0 | Community garden | `public/images/garden.svg` |
+| 1 | Neighborhood bakery | `public/images/bakery.svg` |
+| 2 | Local library | `public/images/library.svg` |
+| 3 | Home | `public/images/home.svg` |
+
+Regenerate them after changing an SVG with
+`CHROMIUM_PATH=/path/to/chrome.exe node firmware/tools/make_landmark_images.mjs`.
+Caregiver-uploaded photos are not sent over BLE yet.
 
 ## Pairing with the web app
 
@@ -71,10 +90,12 @@ for every wear event.
 | Talk | Four topics with Sprout's short replies (on-device, like the web watch). |
 | Game | Memory Garden: five gentle prompts, one at a time, with Next and Back. |
 
-Wording follows TEAM_PLAN v4: one idea per screen, at most 3 words per button.
+Wording follows TEAM_PLAN v5: one idea per screen, at most 3 words per button.
 
-During guided return the watch offers **I see it**, **Not yet** and **Back**. "Not yet"
-pauses directions on both screens; the watch then shows **I see it now** and **Call family**.
+During guided return the route screen shows the current stop's photo on top, the
+place name, and **I see it** / **Not yet** / **Back** buttons (text ≥ 15 px, buttons
+≥ 44 px). "Not yet" pauses directions on both screens; the watch then shows
+**I see it now** and **Call family**.
 
 ## Connecting (troubleshooting)
 

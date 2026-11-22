@@ -2,6 +2,7 @@
 #include "watch_state.h"
 #include "watch_hal.h"
 #include "ble_service.h"
+#include "landmark_images.h"
 #include <HWCDC.h>
 
 extern HWCDC USBSerial;  // defined in wayhome-watch.ino
@@ -62,10 +63,9 @@ lv_obj_t *sosHoldBar = nullptr;
 lv_obj_t *lblSosTitle = nullptr;
 lv_obj_t *lblSosHint = nullptr;
 
-// Route widgets
-lv_obj_t *lblRouteProgress = nullptr;
-lv_obj_t *barRoute = nullptr;
-lv_obj_t *lblArrived = nullptr;
+// Route widgets: photo first, then the place name and three big buttons.
+lv_obj_t *imgLandmark = nullptr;
+lv_obj_t *lblLandmarkName = nullptr;
 
 // Talk / Game / Call widgets
 lv_obj_t *lblTalkReply = nullptr;
@@ -84,7 +84,7 @@ bool sosHolding = false;
 
 // Cached state for sync()
 uint8_t lastBattery = UINT8_MAX;
-uint8_t lastGps = 255;
+uint8_t lastLandmark = UINT8_MAX;
 uint8_t lastAttachment = 255;
 bool lastBleConnected = false;
 
@@ -125,16 +125,34 @@ void trigger_sos() {
 
 // --- Home screen pieces (mirroring .wos-home in upgrade.css) ---
 
-void refresh_route_widgets() {
-  static char buf[24];
-  snprintf(buf, sizeof(buf), "%u / 6", (unsigned)watch.gpsProgress);
-  lv_label_set_text(lblRouteProgress, buf);
-  lv_bar_set_value(barRoute, watch.gpsProgress * 100 / 6, LV_ANIM_OFF);
-  lv_obj_set_style_text_opa(lblArrived, watch.gpsProgress >= 6 ? LV_OPA_COVER : LV_OPA_TRANSP, 0);
+// Show the same landmark photo as the web watch for the current stop. Every
+// widget is checked first: a NULL label once froze the watch at start-up.
+void refresh_landmark_widgets() {
+  uint8_t stop = watch.remoteLandmark;
+  if (stop != lastLandmark) {
+    lastLandmark = stop;
+    USBSerial.printf("[UI] landmark stop %u\n", stop == UINT8_MAX
+                                                    ? (unsigned)255
+                                                    : (unsigned)stop);
+  }
+  bool known = stop < BUILTIN_LANDMARK_COUNT;
+  if (imgLandmark != nullptr) {
+    if (known) {
+      lv_image_set_src(imgLandmark, whLandmarkImages[stop].image);
+      lv_obj_clear_flag(imgLandmark, LV_OBJ_FLAG_HIDDEN);
+    } else {
+      lv_obj_add_flag(imgLandmark, LV_OBJ_FLAG_HIDDEN);
+    }
+  }
+  if (lblLandmarkName != nullptr) {
+    lv_label_set_text(lblLandmarkName,
+                      known ? whLandmarkImages[stop].name : "Look around");
+  }
 }
 
 void refresh_attachment_buttons() {
   for (int i = 0; i < 3; i++) {
+    if (btnAttachment[i] == nullptr) continue;
     bool selected = ((uint8_t)watch.attachment() == i);
     lv_obj_set_style_bg_color(btnAttachment[i],
                               lv_color_hex(selected ? FOREST : PALE), 0);
@@ -152,10 +170,14 @@ const char *battery_symbol(uint8_t percent) {
 }
 
 void sos_set_holding_visual(bool holding) {
-  lv_obj_set_style_bg_color(sosBtn, lv_color_hex(holding ? SOS_HOLD_BG : SOS_BG), 0);
-  lv_obj_set_style_text_color(lblSosTitle, lv_color_hex(holding ? SURFACE : SOS_TEXT), 0);
-  lv_obj_set_style_text_color(lblSosHint, lv_color_hex(holding ? SURFACE : SOS_TEXT), 0);
-  lv_obj_set_style_bg_color(sosHoldBar, lv_color_hex(holding ? 0xa44f56 : SOS_BORDER), 0);
+  if (sosBtn != nullptr)
+    lv_obj_set_style_bg_color(sosBtn, lv_color_hex(holding ? SOS_HOLD_BG : SOS_BG), 0);
+  if (lblSosTitle != nullptr)
+    lv_obj_set_style_text_color(lblSosTitle, lv_color_hex(holding ? SURFACE : SOS_TEXT), 0);
+  if (lblSosHint != nullptr)
+    lv_obj_set_style_text_color(lblSosHint, lv_color_hex(holding ? SURFACE : SOS_TEXT), 0);
+  if (sosHoldBar != nullptr)
+    lv_obj_set_style_bg_color(sosHoldBar, lv_color_hex(holding ? 0xa44f56 : SOS_BORDER), 0);
 }
 
 // Sprout mascot avatar: sage disc with a two-leaf sprout.
@@ -206,17 +228,18 @@ void tile_cb(lv_event_t *e) {
       // Tell the web app to start guided return (it applies its own
       // safety gates); the watch opens the route screen right away.
       ble::publishCheckIn(0x06, 0);
-      refresh_route_widgets();
+      refresh_landmark_widgets();
       load_screen(scrRoute);
       break;
     case 1:
       // Same as the web "Call family": the caregiver phone gets the request.
       ble::publishCheckIn(0x04, 1);
-      lv_label_set_text(lblCallStatus, "Waiting...");
+      if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Waiting...");
       load_screen(scrCall);
       break;
     case 2:
-      lv_label_set_text(lblTalkReply, "I'm here with you.");
+      if (lblTalkReply != nullptr)
+        lv_label_set_text(lblTalkReply, "I'm here with you.");
       load_screen(scrTalk);
       break;
     default:
@@ -231,7 +254,7 @@ void back_cb(lv_event_t *e) {
   load_screen(scrHome);
 }
 
-void walk_step_cb(lv_event_t *e) {
+void see_it_cb(lv_event_t *e) {
   LV_UNUSED(e);
   if (watch.gpsProgress < 6) {
     watch.gpsProgress++;
@@ -239,8 +262,8 @@ void walk_step_cb(lv_event_t *e) {
     // safety gates, so the web reacts to the companion command instead.
     ble::syncGpsValue();
     ble::publishCheckIn(0x07, watch.gpsProgress);
-    refresh_route_widgets();
   }
+  // The web advances guideIndex and mirrors the next photo back to us.
 }
 
 void not_yet_cb(lv_event_t *e) {
@@ -251,7 +274,6 @@ void not_yet_cb(lv_event_t *e) {
 void seen_now_cb(lv_event_t *e) {
   LV_UNUSED(e);
   ble::publishCheckIn(0x09, 0);  // web resumes the walk → code 3
-  refresh_route_widgets();
   load_screen(scrRoute);
 }
 
@@ -289,7 +311,7 @@ void checkin_assist_cb(lv_event_t *e) {
   int which = (int)(intptr_t)lv_event_get_user_data(e);
   ble::publishCheckIn(0x04, (uint8_t)which);
   if (which == 1) {
-    lv_label_set_text(lblCallStatus, "Waiting...");
+    if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Waiting...");
     load_screen(scrCall);
   } else {
     load_screen(scrHome);
@@ -299,7 +321,7 @@ void checkin_assist_cb(lv_event_t *e) {
 void missed_call_cb(lv_event_t *e) {
   LV_UNUSED(e);
   ble::publishCheckIn(0x04, 1);
-  lv_label_set_text(lblCallStatus, "Waiting...");
+  if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Waiting...");
   load_screen(scrCall);
 }
 
@@ -312,7 +334,7 @@ void talk_cb(lv_event_t *e) {
       "I'm glad you're here.",
   };
   int which = (int)(intptr_t)lv_event_get_user_data(e);
-  lv_label_set_text(lblTalkReply, replies[which & 3]);
+  if (lblTalkReply != nullptr) lv_label_set_text(lblTalkReply, replies[which & 3]);
 }
 
 // Memory moments: one gentle prompt at a time, no scores.
@@ -327,10 +349,11 @@ const char *const gamePrompts[GAME_COUNT] = {
 
 void game_show() {
   static char step[12];
-  lv_label_set_text(lblGamePrompt, gamePrompts[gameIndex % GAME_COUNT]);
+  if (lblGamePrompt != nullptr)
+    lv_label_set_text(lblGamePrompt, gamePrompts[gameIndex % GAME_COUNT]);
   snprintf(step, sizeof(step), "%u / %u", (unsigned)(gameIndex % GAME_COUNT) + 1,
            (unsigned)GAME_COUNT);
-  lv_label_set_text(lblGameStep, step);
+  if (lblGameStep != nullptr) lv_label_set_text(lblGameStep, step);
 }
 
 void game_next_cb(lv_event_t *e) {
@@ -360,7 +383,7 @@ void sos_btn_event_cb(lv_event_t *e) {
   } else if (code == LV_EVENT_RELEASED || code == LV_EVENT_PRESS_LOST) {
     // Releasing early cancels; the 3 s trigger fires from the timer.
     sosHolding = false;
-    lv_bar_set_value(sosHoldBar, 0, LV_ANIM_OFF);
+    if (sosHoldBar != nullptr) lv_bar_set_value(sosHoldBar, 0, LV_ANIM_OFF);
     sos_set_holding_visual(false);
   }
 }
@@ -369,10 +392,11 @@ void sos_hold_timer_cb(lv_timer_t *timer) {
   LV_UNUSED(timer);
   if (!sosHolding) return;
   uint32_t held = lv_tick_elaps(sosPressStart);
-  lv_bar_set_value(sosHoldBar, LV_MIN(held * 100 / SOS_HOLD_MS, 100), LV_ANIM_OFF);
+  if (sosHoldBar != nullptr)
+    lv_bar_set_value(sosHoldBar, LV_MIN(held * 100 / SOS_HOLD_MS, 100), LV_ANIM_OFF);
   if (held >= SOS_HOLD_MS) {
     sosHolding = false;
-    lv_bar_set_value(sosHoldBar, 0, LV_ANIM_OFF);
+    if (sosHoldBar != nullptr) lv_bar_set_value(sosHoldBar, 0, LV_ANIM_OFF);
     sos_set_holding_visual(false);
     trigger_sos();
   }
@@ -458,44 +482,40 @@ void build_home_screen() {
 void build_route_screen() {
   scrRoute = new_screen(CREAM);
 
-  lv_obj_t *title = add_label(scrRoute, "Going home", &lv_font_montserrat_26, INK);
-  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 34);
+  // One idea per screen: the landmark photo is the largest thing on screen,
+  // just like the web watch's guide screen.
+  imgLandmark = lv_image_create(scrRoute);
+  lv_obj_set_pos(imgLandmark, 25, 18);
+  lv_obj_set_size(imgLandmark, 360, 200);
+  lv_obj_set_style_radius(imgLandmark, 14, 0);
+  lv_obj_set_style_clip_corner(imgLandmark, true, 0);
+  lv_obj_clear_flag(imgLandmark, LV_OBJ_FLAG_SCROLLABLE);
 
-  lblRouteProgress = add_label(scrRoute, "0 / 6", &lv_font_montserrat_42, INK);
-  lv_obj_align(lblRouteProgress, LV_ALIGN_TOP_MID, 0, 84);
+  // Place name from the web stop byte, ≤ 5 words, centred under the photo.
+  lblLandmarkName = add_label(scrRoute, "Community garden",
+                              &lv_font_montserrat_22, INK);
+  lv_obj_set_width(lblLandmarkName, 360);
+  lv_obj_set_style_text_align(lblLandmarkName, LV_TEXT_ALIGN_CENTER, 0);
+  lv_obj_align(lblLandmarkName, LV_ALIGN_TOP_MID, 0, 228);
 
-  barRoute = lv_bar_create(scrRoute);
-  lv_obj_set_size(barRoute, 340, 16);
-  lv_obj_align(barRoute, LV_ALIGN_TOP_MID, 0, 160);
-  lv_bar_set_range(barRoute, 0, 100);
-  lv_obj_set_style_bg_color(barRoute, lv_color_hex(PALE), 0);
-  lv_obj_set_style_bg_opa(barRoute, LV_OPA_COVER, 0);
-  lv_obj_set_style_bg_color(barRoute, lv_color_hex(FOREST), LV_PART_INDICATOR);
-  lv_obj_set_style_radius(barRoute, 8, LV_PART_INDICATOR | LV_STATE_DEFAULT);
-
-  lv_obj_t *caption = add_label(scrRoute, "Demo - simulated GPS",
-                                &lv_font_montserrat_14, MUTED);
-  lv_obj_align(caption, LV_ALIGN_TOP_MID, 0, 190);
-
-  lblArrived = add_label(scrRoute, "You're home " LV_SYMBOL_OK, &lv_font_montserrat_22, MINT_TEXT);
-  lv_obj_align(lblArrived, LV_ALIGN_TOP_MID, 0, 226);
-  lv_obj_set_style_text_opa(lblArrived, LV_OPA_TRANSP, 0);
-
-  lv_obj_t *walk = add_button(scrRoute, 35, 278, 340, 72, FOREST, 17);
-  lv_obj_set_style_bg_grad_color(walk, lv_color_hex(FOREST_LIGHT), 0);
-  lv_obj_set_style_bg_grad_dir(walk, LV_GRAD_DIR_VER, 0);
-  lv_obj_t *walkText = add_label(walk, LV_SYMBOL_OK " I see it", &lv_font_montserrat_22, SURFACE);
-  lv_obj_center(walkText);
-  lv_obj_add_event_cb(walk, walk_step_cb, LV_EVENT_CLICKED, nullptr);
+  // Three big buttons, primary first (all ≥ 44 px tall).
+  lv_obj_t *see = add_button(scrRoute, 25, 276, 360, 76, FOREST, 18);
+  lv_obj_set_style_bg_grad_color(see, lv_color_hex(FOREST_LIGHT), 0);
+  lv_obj_set_style_bg_grad_dir(see, LV_GRAD_DIR_VER, 0);
+  lv_obj_t *seeText = add_label(see, LV_SYMBOL_OK " I see it",
+                                &lv_font_montserrat_24, SURFACE);
+  lv_obj_center(seeText);
+  lv_obj_add_event_cb(see, see_it_cb, LV_EVENT_CLICKED, nullptr);
 
   // "Not yet": the web pauses directions and offers "I see it now".
-  lv_obj_t *notYet = add_button(scrRoute, 35, 366, 165, 64, PALE, 14);
+  lv_obj_t *notYet = add_button(scrRoute, 25, 368, 176, 68, PALE, 14);
   lv_obj_t *notYetText = add_label(notYet, "Not yet", &lv_font_montserrat_20, FOREST);
   lv_obj_center(notYetText);
   lv_obj_add_event_cb(notYet, not_yet_cb, LV_EVENT_CLICKED, nullptr);
 
-  lv_obj_t *back = add_button(scrRoute, 210, 366, 165, 64, PALE, 14);
-  lv_obj_t *backText = add_label(back, LV_SYMBOL_LEFT " Back", &lv_font_montserrat_20, FOREST);
+  lv_obj_t *back = add_button(scrRoute, 209, 368, 176, 68, PALE, 14);
+  lv_obj_t *backText = add_label(back, LV_SYMBOL_LEFT " Back",
+                                 &lv_font_montserrat_20, FOREST);
   lv_obj_center(backText);
   lv_obj_add_event_cb(back, back_cb, LV_EVENT_CLICKED, nullptr);
 }
@@ -736,7 +756,7 @@ bool init() {
   lv_timer_create(sos_hold_timer_cb, 50, nullptr);
   lv_timer_create(clock_timer_cb, 1000, nullptr);
 
-  refresh_route_widgets();
+  refresh_landmark_widgets();
   refresh_attachment_buttons();
   load_screen(scrHome);
   return true;
@@ -754,18 +774,16 @@ void sync() {
     uint8_t pos = watch.remotePosition;
     if (pos != watch.gpsProgress) {
       watch.gpsProgress = pos;
-      refresh_route_widgets();
       ble::syncGpsValue();
     }
+    // byte2 can change with any mirror write: keep the route photo ready.
+    refresh_landmark_widgets();
     if (code != 4) watch.sosActive = false;  // leaving the emergency screen
     switch (code) {
       case 0: load_screen(scrHome); break;
       case 1: load_screen(scrCheckQ); break;
       case 2: load_screen(scrCheckH); break;
-      case 3:
-        refresh_route_widgets();
-        load_screen(scrRoute);
-        break;
+      case 3: load_screen(scrRoute); break;
       case 4:
         watch.sosActive = true;
         load_screen(scrSos);
@@ -777,7 +795,8 @@ void sync() {
         // keep the wearer on Call / Talk / Game rather than a generic screen.
         lv_obj_t *now = lv_screen_active();
         if (now == scrCall) {
-          lv_label_set_text(lblCallStatus, "Your family knows.");
+          if (lblCallStatus != nullptr)
+            lv_label_set_text(lblCallStatus, "Your family knows.");
         } else if (now != scrTalk && now != scrMemories) {
           load_screen(scrMirror);
         }
@@ -795,7 +814,7 @@ void sync() {
       snprintf(hello, sizeof(hello), "Hi %s! I'm %s.", watch.wearerName, companion);
     else
       snprintf(hello, sizeof(hello), "I'm %s.", companion);
-    lv_label_set_text(lblName, hello);
+    if (lblName != nullptr) lv_label_set_text(lblName, hello);
   }
 
   // A check-in request (BLE 0x01) takes over the screen, like CHECK_IN mode
@@ -813,21 +832,23 @@ void sync() {
     static char buf[8];
     if (watch.batteryValid) {
       snprintf(buf, sizeof(buf), "%u%%", (unsigned)watch.batteryPercent);
-      lv_label_set_text(lblBatteryIcon, battery_symbol(watch.batteryPercent));
+      if (lblBatteryIcon != nullptr)
+        lv_label_set_text(lblBatteryIcon, battery_symbol(watch.batteryPercent));
       bool low = watch.batteryPercent <= 20;
-      lv_obj_set_style_text_color(lblBattery, lv_color_hex(low ? SOS_TEXT : MUTED), 0);
-      lv_obj_set_style_text_color(lblBatteryIcon, lv_color_hex(low ? SOS_TEXT : MUTED), 0);
+      if (lblBattery != nullptr)
+        lv_obj_set_style_text_color(lblBattery, lv_color_hex(low ? SOS_TEXT : MUTED), 0);
+      if (lblBatteryIcon != nullptr)
+        lv_obj_set_style_text_color(lblBatteryIcon, lv_color_hex(low ? SOS_TEXT : MUTED), 0);
     } else {
       snprintf(buf, sizeof(buf), "--%%");
-      lv_label_set_text(lblBatteryIcon, LV_SYMBOL_BATTERY_EMPTY);
+      if (lblBatteryIcon != nullptr)
+        lv_label_set_text(lblBatteryIcon, LV_SYMBOL_BATTERY_EMPTY);
     }
-    lv_label_set_text(lblBattery, buf);
+    if (lblBattery != nullptr) lv_label_set_text(lblBattery, buf);
   }
 
-  if (watch.gpsProgress != lastGps) {
-    lastGps = watch.gpsProgress;
-    refresh_route_widgets();
-  }
+  // Route progress lives in watch.gpsProgress for BLE only; the route screen
+  // shows the landmark photo instead of a progress bar.
 
   if ((uint8_t)watch.attachment() != lastAttachment) {
     lastAttachment = (uint8_t)watch.attachment();
@@ -836,16 +857,17 @@ void sync() {
 
   if (watch.bleConnected != lastBleConnected) {
     lastBleConnected = watch.bleConnected;
-    lv_obj_set_style_bg_color(dotBle,
-                              lv_color_hex(watch.bleConnected ? OK_GREEN : 0x9aa89b),
-                              0);
+    if (dotBle != nullptr)
+      lv_obj_set_style_bg_color(dotBle,
+                                lv_color_hex(watch.bleConnected ? OK_GREEN : 0x9aa89b),
+                                0);
   }
 }
 
 void showHome() { load_screen(scrHome); }
 
 void showRoute() {
-  refresh_route_widgets();
+  refresh_landmark_widgets();
   load_screen(scrRoute);
 }
 

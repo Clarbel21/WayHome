@@ -41,6 +41,10 @@ const CMD_LANDMARK_MISSED = 0x08; // watch → web: "Not yet" (landmark not seen
 const CMD_LANDMARK_SEEN_NOW = 0x09; // watch → web: "I see it now"
 const ASSISTANCE_CHOICES = ["home", "family", "confused"] as const;
 
+// Built-in landmark photos compiled into the ESP32, in initialLandmarks order.
+// Must match WH_LANDMARK_COUNT in firmware/wayhome-watch/landmark_images.h.
+export const WATCH_LANDMARK_COUNT = 4;
+
 /**
  * Map the web watch's current state to the physical watch's mirror screen
  * (byte0 of the watch_state characteristic; firmware watch_ui.cpp applies it):
@@ -72,27 +76,32 @@ export function watchScreenCode(s: {
 
 /**
  * "Wearer|Companion" first names for the watch greeting ("Hi Amy! I'm Momo."),
- * ASCII only and at most 18 bytes so the whole payload fits one 20-byte write.
+ * ASCII only and at most 17 bytes so the whole payload fits one 20-byte write.
  */
 export function watchNames(wearer: string, companion: string) {
   const ascii = (t: string) =>
     t.replace(/[^\x20-\x7e]/g, "").replace(/\|/g, "");
   const first = ascii(wearer.trim().split(/\s+/)[0] ?? "").slice(0, 9);
-  const comp = ascii(companion.trim()).slice(0, 17 - first.length);
+  const comp = ascii(companion.trim()).slice(0, 16 - first.length);
   return comp ? `${first}|${comp}` : first;
 }
 
-/** byte0 screen code, byte1 route position, bytes 2+ the names. */
+/**
+ * byte0 screen code, byte1 route position, byte2 current landmark stop,
+ * bytes 3+ the names. Three header bytes + 17 name bytes = 20 total.
+ */
 export function watchStatePayload(
   code: number,
   position: number,
+  landmark: number,
   names: string,
 ) {
-  const text = new TextEncoder().encode(names).slice(0, 18);
-  const payload = new Uint8Array(2 + text.length);
+  const text = new TextEncoder().encode(names).slice(0, 17);
+  const payload = new Uint8Array(3 + text.length);
   payload[0] = code;
   payload[1] = position;
-  payload.set(text, 2);
+  payload[2] = landmark;
+  payload.set(text, 3);
   return payload;
 }
 
@@ -179,6 +188,7 @@ export class BleDevice implements DeviceService {
   private stateWriteQueued = false;
   private lastSentCode = -1;
   private lastSentPosition = -1;
+  private lastSentLandmark = -1;
   private lastSentNames = "";
   // Web Bluetooth allows one GATT operation at a time on many platforms
   // (Chrome on Windows/Android: "GATT operation already in progress"), so
@@ -251,6 +261,7 @@ export class BleDevice implements DeviceService {
     // Keep the AMOLED mirroring the web watch: broadcast screen changes.
     this.lastSentCode = -1;
     this.lastSentPosition = -1;
+    this.lastSentLandmark = -1;
     this.lastSentNames = "";
     this.unsubscribeStore = useStore.subscribe(() => this.queueWatchState());
     await this.sendWatchState().catch(() => {});
@@ -285,9 +296,9 @@ export class BleDevice implements DeviceService {
   }
 
   /**
-   * Push the web watch's current screen + route position to the paired
-   * watch, so the AMOLED mirrors the on-screen watch. Collapsed writes:
-   * store bursts produce at most one in-flight write.
+   * Push the web watch's current screen, route position and landmark stop to
+   * the paired watch, so the AMOLED mirrors the on-screen watch. Collapsed
+   * writes: store bursts produce at most one in-flight write.
    */
   private queueWatchState() {
     if (this.stateWriteQueued) return;
@@ -303,18 +314,26 @@ export class BleDevice implements DeviceService {
     const s = useStore.getState();
     const code = watchScreenCode(s);
     const position = Math.max(0, Math.min(6, Math.round(s.position)));
+    // The web watch's photo is approved[guideIndex]; the physical watch only
+    // carries the four built-in photos, so clamp custom-landmark indices.
+    const landmark = Math.max(
+      0,
+      Math.min(WATCH_LANDMARK_COUNT - 1, Math.round(s.guideIndex)),
+    );
     const names = watchNames(s.settings.wearer, s.settings.companionName);
     if (
       code === this.lastSentCode &&
       position === this.lastSentPosition &&
+      landmark === this.lastSentLandmark &&
       names === this.lastSentNames
     )
       return;
     this.lastSentCode = code;
     this.lastSentPosition = position;
+    this.lastSentLandmark = landmark;
     this.lastSentNames = names;
     await this.gatt(() =>
-      watchState.writeValue(watchStatePayload(code, position, names)),
+      watchState.writeValue(watchStatePayload(code, position, landmark, names)),
     );
   }
 

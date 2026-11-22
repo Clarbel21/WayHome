@@ -89,20 +89,29 @@ class CompanionCallbacks : public NimBLECharacteristicCallbacks {
 
 class WatchStateCallbacks : public NimBLECharacteristicCallbacks {
   // Web → device screen mirror: byte0 = screen code, byte1 = route position,
-  // bytes 2+ = optional wearer first name (ASCII) for the home greeting.
+  // byte2 = current landmark stop, bytes 3+ = "Wearer|Companion" names.
+  // Older web payloads had names at byte2; those remain readable.
   void onWrite(NimBLECharacteristic *chr, NimBLEConnInfo &connInfo) override {
     NimBLEAttValue value = chr->getValue();
     if (value.size() >= 1) {
-      USBSerial.printf("[BLE] web -> watch: screen %u, step %u\n", (unsigned)value[0],
-                       value.size() >= 2 ? (unsigned)value[1] : 0u);
+      USBSerial.printf("[BLE] web -> watch: screen %u, step %u, stop %u\n",
+                       (unsigned)value[0],
+                       value.size() >= 2 ? (unsigned)value[1] : 0u,
+                       value.size() >= 3 ? (unsigned)value[2] : 0u);
       watch.remoteScreen = value[0];
       if (value.size() >= 2 && value[1] <= 6) {
         watch.remotePosition = value[1];
       }
-      if (value.size() > 2) {
-        // Bytes 2+ = "Wearer|Companion" (or just "Wearer" from older web).
-        const uint8_t *text = value.data() + 2;
-        size_t len = value.size() - 2;
+      if (value.size() >= 3) {
+        watch.remoteLandmark = value[2] < BUILTIN_LANDMARK_COUNT
+                                   ? value[2]
+                                   : UINT8_MAX;
+      }
+      size_t nameOffset = value.size() >= 3 ? 3 : 2;
+      if (value.size() > nameOffset) {
+        // "Wearer|Companion" (or just "Wearer" from older web).
+        const uint8_t *text = value.data() + nameOffset;
+        size_t len = value.size() - nameOffset;
         size_t bar = len;
         for (size_t i = 0; i < len; i++) {
           if (text[i] == '|') { bar = i; break; }
