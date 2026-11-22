@@ -8,6 +8,10 @@ enum class WearMotion : uint8_t { Unknown = 0, Yes = 1, No = 2 };
 // Attachment kinds, indexed to match the WayHome web app strings.
 enum class Attachment : uint8_t { Wristwatch = 0, Pendant = 1, Clip = 2 };
 
+// Built-in landmark photos compiled into the firmware, in initialLandmarks
+// order. Byte2 of watch_state selects one of these; 255 means "no photo".
+constexpr uint8_t BUILTIN_LANDMARK_COUNT = 4;
+
 inline const char *attachmentName(Attachment a) {
   switch (a) {
     case Attachment::Pendant: return "pendant";
@@ -37,8 +41,11 @@ struct WatchState {
   // during guidance (offer "I see it now"), 255 none yet.
   volatile uint8_t remoteScreen = 255;
   volatile uint8_t remotePosition = 0;
+  // Current landmark stop (0-3) sent in watch_state byte2, so the route
+  // screen shows the same photo as the web watch. Starts at the first stop.
+  volatile uint8_t remoteLandmark = 0;
   volatile bool watchStatePending = false;
-  // Wearer first name from the web (watch_state payload, bytes 2+). The UI
+  // Wearer first name from the web (watch_state payload, bytes 3+). The UI
   // greets "Hello, <name>." like the web watch home.
   char wearerName[16] = "";
   // Companion name ("Sprout" unless the caregiver renamed it), same payload

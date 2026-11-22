@@ -216,6 +216,7 @@ test("watchScreenCode maps every mirrored watch state", () => {
 });
 
 test("the paired watch receives mirror broadcasts on state changes", async () => {
+  useStore.setState({ guideIndex: 2 });
   const { chars } = installFakeBluetooth();
   const ble = new BleDevice();
   await ble.connect();
@@ -228,9 +229,13 @@ test("the paired watch receives mirror broadcasts on state changes", async () =>
     chars.watchState.writeValue.mock.calls[
       chars.watchState.writeValue.mock.calls.length - 1
     ];
-  // [code, position, ...wearer first name bytes]
-  expect(Array.from(lastCall[0]).slice(0, 2)).toEqual([4, expect.any(Number)]);
-  expect(lastCall[0].length).toBeGreaterThan(2);
+  // [screen code, route position, current landmark stop, ...name bytes]
+  expect(Array.from(lastCall[0]).slice(0, 3)).toEqual([
+    4,
+    expect.any(Number),
+    2,
+  ]);
+  expect(lastCall[0].length).toBeGreaterThan(3);
 });
 
 // --- BleDevice against a fake Web Bluetooth stack ---
@@ -346,14 +351,15 @@ test("watch 'Not yet' and 'I see it now' drive the same walk as the web watch", 
   expect(watchScreenCode(state())).toBe(3);
 });
 
-test("watch greeting names fit one 20-byte write", () => {
+test("watch greeting names and landmark stop fit one 20-byte write", () => {
   expect(watchNames("Amy Tan", "Momo")).toBe("Amy|Momo");
   expect(watchNames("Alex", "")).toBe("Alex");
   const long = watchNames("Maximiliano Rodriguez", "Sproutington the Great");
-  expect(long.length).toBeLessThanOrEqual(18);
+  expect(long.length).toBeLessThanOrEqual(17);
   expect(long.startsWith("Maximilia|")).toBe(true);
-  const payload = watchStatePayload(3, 2, long);
+  const payload = watchStatePayload(3, 2, 1, long);
   expect(payload.length).toBeLessThanOrEqual(20);
-  expect([payload[0], payload[1]]).toEqual([3, 2]);
+  expect([payload[0], payload[1], payload[2]]).toEqual([3, 2, 1]);
+  expect(new TextDecoder().decode(payload.slice(3))).toBe(long);
   expect(watchNames("Zoë", "Momo|x")).toBe("Zo|Momox");
 });
