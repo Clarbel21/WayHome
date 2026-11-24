@@ -34,7 +34,7 @@
    (Wearable.tsx no longer renders the companion name or the percent
    while the battery is healthy; the greeting speaks the name.) */
 html .watch-area .watch .watch-screen.wh-screen.wos .watch-status {
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 650;
   letter-spacing: 0.2px;
   color: #43594d;
@@ -48,7 +48,7 @@ html
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 650;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-live {
@@ -83,7 +83,7 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-hello .sprout {
   height: 38px;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-hello .speech {
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 650;
   line-height: 1.25;
   margin: 0;
@@ -156,11 +156,11 @@ html
   .wos-footer
   .wos-mode-button {
   width: 100%;
-  min-height: 40px;
+  min-height: 44px;
   justify-content: center;
   gap: 6px;
   padding: 4px 10px;
-  font-size: 12px;
+  font-size: 15px;
   letter-spacing: 0.1px;
 }
 html
@@ -171,7 +171,7 @@ html
   .wos-footer-cancel {
   width: 100%;
   min-height: 44px;
-  font-size: 12.5px;
+  font-size: 15px;
 }
 
 /* ---------------------------------------------- SOS hold bar */
@@ -200,7 +200,7 @@ html
   button.sos-hold
   > span,
 html .watch-area .watch .watch-screen.wh-screen.wos .sos-hold > span {
-  font-size: 11.5px;
+  font-size: 15px;
   font-weight: 650;
   letter-spacing: 0.2px;
   opacity: 0.95;
@@ -246,7 +246,7 @@ html
   .wos-body[data-screen^="talk-"]
   .wos-bubble {
   padding: 6px 9px;
-  font-size: 12.5px;
+  font-size: 15px;
   line-height: 1.25;
 }
 html
@@ -263,8 +263,8 @@ html
   .watch-screen.wh-screen.wos
   .wos-body[data-screen^="talk-"]
   .wos-chip {
-  min-height: 40px;
-  font-size: 12.5px;
+  min-height: 44px;
+  font-size: 15px;
 }
 html
   .watch-area
@@ -272,7 +272,7 @@ html
   .watch-screen.wh-screen.wos
   .wos-body[data-screen^="talk-"]
   .wos-back {
-  min-height: 38px;
+  min-height: 44px;
 }
 
 /* ---------------------------------------------- caregiver handover */
@@ -283,19 +283,19 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-handover .avatar {
   margin: 0 auto;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-handover > p {
-  font-size: 12px;
+  font-size: 15px;
   line-height: 1.3;
   margin: 2px 0;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-handover .speech {
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.2;
   margin: 2px auto 2px;
 }
 /* The simulation disclosure stays (a shared test and the "facts stay
    factual" rule both read it); it is simply set smaller. */
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-handover > small {
-  font-size: 9.5px;
+  font-size: 15px;
   line-height: 1.25;
   display: block;
   margin: 2px 0;
@@ -307,14 +307,14 @@ html
   .wos-handover
   .wos-steps
   li {
-  font-size: 10px;
+  font-size: 15px;
   padding: 2px 6px;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-handover .wos-steps {
   margin: 3px 0;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-handover .wos-back {
-  min-height: 38px;
+  min-height: 44px;
   margin-top: 2px;
 }
 
@@ -337,11 +337,11 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-steps {
   margin: 4px 0;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-steps li {
-  font-size: 10.5px;
+  font-size: 15px;
   padding: 3px 7px;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-sos-who {
-  font-size: 12px;
+  font-size: 15px;
   margin: 0 0 2px;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .sos-message {
@@ -349,18 +349,18 @@ html .watch-area .watch .watch-screen.wh-screen.wos .sos-message {
   margin: 2px 0;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .sos-message p {
-  font-size: 11px;
+  font-size: 15px;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .sos-message small {
-  font-size: 9px;
+  font-size: 15px;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-calm {
-  font-size: 12px;
+  font-size: 15px;
   margin: 2px 0;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .resolve-sos-button {
   min-height: 44px;
-  font-size: 12.5px;
+  font-size: 15px;
   margin-top: 2px;
 }
 
@@ -405,149 +405,6 @@ html
   font-size: 15px;
 }
 
-/* ---------------------------------------------- guided return */
-/* The photo, the place name and the "I see it" question are the
-   guidance; the long explanation paragraph repeats what the companion
-   already says aloud (focus mode drops it for the same reason). The
-   recognition question itself is never touched.
-   While walking — with the direction block, and sometimes a status
-   note or the paused-guidance warning, on the same screen — every row
-   is compact so the words can never clip. When a note or warning does
-   join, the photo strip yields its row to it. */
-html
-  .watch-area
-  .watch
-  .watch-screen.wh-screen.wos
-  .wos-body[data-screen^="guide-"]
-  .wos-guide
-  .wos-photo
-  img {
-  height: 44px;
-}
-html
-  .watch-area
-  .watch
-  .watch-screen.wh-screen.wos
-  .wos-body[data-screen^="guide-"]
-  .wos-guide:has(.wos-note)
-  .wos-photo,
-html
-  .watch-area
-  .watch
-  .watch-screen.wh-screen.wos
-  .wos-body[data-screen^="guide-"]
-  .wos-guide:has(.wos-warn)
-  .wos-photo {
-  display: none;
-}
-html
-  .watch-area
-  .watch
-  .watch-screen.wh-screen.wos
-  .wos-guide
-  > p:not(.wos-question) {
-  display: none;
-}
-html
-  .watch-area
-  .watch
-  .watch-screen.wh-screen.wos
-  .wos-guide
-  .recognition-cue {
-  display: none;
-}
-html
-  .watch-area
-  .watch
-  .watch-screen.wh-screen.wos
-  .wos-body[data-screen^="guide-"]
-  .wos-guide
-  > strong {
-  font-size: 16px;
-}
-html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide .wos-question {
-  font-size: 15.5px;
-  line-height: 1.2;
-}
-html
-  .watch-area
-  .watch
-  .watch-screen.wh-screen.wos
-  .wos-body[data-screen^="guide-"]
-  .wos-note,
-html
-  .watch-area
-  .watch
-  .watch-screen.wh-screen.wos
-  .wos-body[data-screen^="guide-"]
-  .wos-warn {
-  font-size: 10.5px;
-  line-height: 1.25;
-  padding: 3px 6px;
-  margin: 2px 0 0;
-}
-html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide-top {
-  margin: 0 0 2px;
-  font-size: 10px;
-}
-html
-  .watch-area
-  .watch
-  .watch-screen.wh-screen.wos
-  .wos-body[data-screen^="guide-"]
-  .wos-direction {
-  min-height: 32px;
-  margin-bottom: 2px;
-  padding: 4px 7px;
-  gap: 7px;
-}
-html
-  .watch-area
-  .watch
-  .watch-screen.wh-screen.wos
-  .wos-body[data-screen^="guide-"]
-  .wos-direction
-  b {
-  font-size: 14px;
-}
-html
-  .watch-area
-  .watch
-  .watch-screen.wh-screen.wos
-  .wos-body[data-screen^="guide-"]
-  .wos-direction
-  small {
-  font-size: 10.5px;
-}
-html
-  .watch-area
-  .watch
-  .watch-screen.wh-screen.wos
-  .wos-body[data-screen^="guide-"]
-  .wos-direction
-  svg {
-  width: 18px;
-  height: 18px;
-}
-html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide .wos-primary {
-  margin-top: 2px;
-}
-html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide .wos-secondary {
-  margin-top: 2px;
-}
-html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide .wos-row {
-  margin-top: 2px;
-}
-html
-  .watch-area
-  .watch
-  .watch-screen.wh-screen.wos
-  .wos-guide
-  .wos-row
-  .wos-ghost {
-  min-height: 34px;
-}
-
 /* ---------------------------------------------- reorientation (calm) */
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-breathe {
   width: 44px;
@@ -559,7 +416,7 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-breathe span {
   height: 20px;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-calm-screen .speech {
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.2;
   margin: 2px auto 4px;
 }
@@ -577,7 +434,7 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-missed-name {
   margin: 2px 0;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-calm-screen > p {
-  font-size: 12px;
+  font-size: 15px;
   margin: 2px 0;
 }
 html
@@ -595,7 +452,7 @@ html
   .watch-screen.wh-screen.wos
   .wos-calm-screen
   .wos-secondary {
-  min-height: 42px;
+  min-height: 44px;
   margin-top: 4px;
 }
 html
@@ -604,7 +461,7 @@ html
   .watch-screen.wh-screen.wos
   .wos-calm-screen
   .wos-ghost {
-  min-height: 38px;
+  min-height: 44px;
 }
 
 /* ---------------------------------------------- check-in help options */
@@ -628,7 +485,7 @@ html
   .watch-controls
   .wos-back {
   grid-column: 1 / -1;
-  min-height: 36px;
+  min-height: 44px;
 }
 html
   .watch-area
@@ -638,7 +495,7 @@ html
   .watch-action {
   min-height: 48px;
   padding: 6px;
-  font-size: 12px;
+  font-size: 15px;
   line-height: 1.2;
   white-space: normal;
   text-align: center;
@@ -669,7 +526,7 @@ html
   .watch-screen.wh-screen.wos
   .wos-body[data-screen="help-options"]
   .speech {
-  font-size: 14px;
+  font-size: 15px;
   margin: 0 auto 2px;
 }
 html
@@ -678,7 +535,7 @@ html
   .watch-screen.wh-screen.wos
   .wos-body[data-screen="help-options"]
   .wos-note {
-  font-size: 11px;
+  font-size: 15px;
   padding: 4px 6px;
   margin: 2px 0;
 }
@@ -712,7 +569,7 @@ html
   .watch-screen.wh-screen.wos
   .wos-body[data-screen="CHECK_IN"]
   .wos-kicker {
-  font-size: 11px;
+  font-size: 15px;
   margin: 0 0 3px;
 }
 html
@@ -721,7 +578,7 @@ html
   .watch-screen.wh-screen.wos
   .wos-body[data-screen="CHECK_IN"]
   .wos-note {
-  font-size: 11px;
+  font-size: 15px;
   line-height: 1.25;
   padding: 3px 6px;
   margin: 2px 0;
@@ -767,7 +624,7 @@ html
   .wos-body[data-screen="choose-experience-mode"]
   .wos-mode-choice {
   min-height: 44px;
-  font-size: 13px;
+  font-size: 15px;
 }
 html
   .watch-area
@@ -784,7 +641,7 @@ html
   .watch-screen.wh-screen.wos
   .wos-body[data-screen="choose-experience-mode"]
   .wos-back {
-  min-height: 34px;
+  min-height: 44px;
 }
 
 /* ---------------------------------------------- large-text restores */
@@ -839,7 +696,7 @@ html .large-text .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
     height: 28px;
   }
   html .watch-area .watch .watch-screen.wh-screen.wos .wos-hello .speech {
-    font-size: 12.5px;
+    font-size: 15px;
     line-height: 1.2;
   }
   html .watch-area .watch .watch-screen.wh-screen.wos .wos-emoji-grid {
@@ -863,7 +720,7 @@ html .large-text .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
     .watch-screen.wh-screen.wos
     .wos-footer
     .wos-mode-button {
-    min-height: 34px;
+    min-height: 44px;
   }
   /* Dense screens give up a little more on the smallest stage. */
   html .watch-area .watch .watch-screen.wh-screen.wos .sprout {
@@ -905,25 +762,6 @@ html .large-text .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
-    .wos-body[data-screen^="guide-"]
-    .wos-guide-top {
-    display: none;
-  }
-  html .watch-area .watch .watch-screen.wh-screen.wos .wos-direction small {
-    display: none;
-  }
-  html
-    .watch-area
-    .watch
-    .watch-screen.wh-screen.wos
-    .wos-body[data-screen^="guide-"]
-    .wos-direction {
-    min-height: 30px;
-  }
-  html
-    .watch-area
-    .watch
-    .watch-screen.wh-screen.wos
     .wos-calm-screen
     .wos-photo
     img {
@@ -943,7 +781,7 @@ html .large-text .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
     .watch-screen.wh-screen.wos
     .wos-body[data-screen^="talk-"]
     .wos-chip {
-    min-height: 38px;
+    min-height: 44px;
   }
   html
     .watch-area
@@ -969,7 +807,7 @@ html .large-text .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
     .watch-screen.wh-screen.wos
     .wos-body[data-screen="CHECK_IN"]
     .speech {
-    font-size: 13px;
+    font-size: 15px;
   }
   html
     .watch-area
@@ -977,7 +815,7 @@ html .large-text .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
     .watch-screen.wh-screen.wos
     .wos-body[data-screen="CHECK_IN"]
     .wos-note {
-    font-size: 10px;
+    font-size: 15px;
     padding: 2px 5px;
   }
   html
@@ -998,7 +836,7 @@ html .large-text .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
     .wos-body[data-screen="CHECK_IN"]
     .wos-answer
     .watch-action {
-    font-size: 12.5px;
+    font-size: 15px;
     line-height: 1.15;
   }
   html
@@ -1007,7 +845,7 @@ html .large-text .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
     .watch-screen.wh-screen.wos
     .wos-body[data-screen="choose-experience-mode"]
     .wos-mode-choice {
-    min-height: 38px;
+    min-height: 44px;
   }
   html
     .watch-area
@@ -1025,7 +863,7 @@ html .large-text .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
     .watch-screen.wh-screen.wos
     .wos-body[data-screen="choose-experience-mode"]
     .wos-back {
-    min-height: 30px;
+    min-height: 44px;
   }
   html .watch-area .watch .watch-screen.wh-screen.wos .wos-footer .sos-hold,
   html .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
@@ -1114,12 +952,12 @@ html
   .watch-screen.wh-screen.wos
   .wos-guide2
   .cancel-guidance {
-  min-height: 30px;
-  font-size: 13px;
+  min-height: 44px;
+  font-size: 15px;
   margin: 0;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-warn {
-  font-size: 13px;
+  font-size: 15px;
   margin: 0;
 }
 /* Calm "Not yet" screen: the missed place stays big too. */
@@ -1157,12 +995,12 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-bubble {
     font-size: 15px;
   }
   html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-primary {
-    min-height: 38px;
+    min-height: 50px;
     font-size: 15px;
   }
   html .watch-area .watch .watch-screen.wh-screen.wos .wos-row2 .wos-secondary {
-    min-height: 34px;
-    font-size: 13px;
+    min-height: 44px;
+    font-size: 15px;
   }
   html
     .watch-area
@@ -1170,8 +1008,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-bubble {
     .watch-screen.wh-screen.wos
     .wos-guide2
     .cancel-guidance {
-    min-height: 24px;
-    font-size: 12px;
+    min-height: 44px;
+    font-size: 15px;
   }
   html
     .watch-area
@@ -1183,7 +1021,7 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-bubble {
     height: 44px;
   }
   html .watch-area .watch .watch-screen.wh-screen.wos .wos-bubble {
-    font-size: 13px;
+    font-size: 15px;
   }
 }
 
@@ -1293,7 +1131,7 @@ html
     min-height: 42px;
   }
   html .watch-area .watch .watch-screen.wh-screen.wos .wos-row2 .wos-secondary {
-    min-height: 38px;
+    min-height: 44px;
   }
   html
     .watch-area
@@ -1301,12 +1139,12 @@ html
     .watch-screen.wh-screen.wos
     .wos-guide2
     > .cancel-guidance {
-    min-height: 26px;
+    min-height: 44px;
   }
 }
 @media (min-width: 860px) and (max-width: 1023px) and (min-height: 640px) {
   html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-primary {
-    min-height: 40px;
+    min-height: 50px;
   }
   html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-photo2 {
     min-height: 28px;
@@ -1360,7 +1198,7 @@ html
   min-height: 44px;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-steps li {
-  font-size: 14px;
+  font-size: 15px;
 }
 html
   .watch-area
@@ -1377,7 +1215,7 @@ html
   .watch-screen.wh-screen.wos.wos.wos
   .wos-handover
   small {
-  font-size: 12px;
+  font-size: 15px;
 }
 /* Taller watches have room for full-size guide buttons. */
 @media (min-height: 801px) {
@@ -1420,4 +1258,212 @@ html
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 5px;
+}
+
+/* ============================================================
+   rule-6 floors (ZCode) — production-safe re-assertion
+   The big-print block above enforces sizes with `.wos.wos.wos`
+   compound classes. CSS minifiers dedupe repeated compound classes,
+   so in the production bundle those selectors quietly lose their
+   extra specificity (dev ≠ prod). The floors below use `html` +
+   `[data-screen]` scoping instead: identical power in dev and prod.
+   They guarantee TEAM_PLAN v5 rule 6 on every screen:
+   text ≥ 15px, buttons ≥ 44px tall, nothing clipped.
+   ============================================================ */
+html .watch-area .watch .watch-screen.wh-screen.wos .watch-status,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .watch-status
+  .watch-signal {
+  font-size: 15px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .sos-hold > span,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .watch-status
+  .watch-signal
+  > span {
+  font-size: 15px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen]
+  .wos-note,
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-honest,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen]
+  .wos-handover
+  > small,
+html .watch-area .watch .watch-screen.wh-screen.wos .sos-message small,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen="EMERGENCY_SIMULATED"]
+  .sos-message
+  .wos-honest {
+  font-size: 15px;
+  line-height: 1.15;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen]
+  .wos-steps
+  li {
+  font-size: 15px;
+  padding: 3px 8px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen]
+  .sos-message
+  p,
+html .watch-area .watch .watch-screen.wh-screen.wos .sos-message p,
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-sos-who,
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-calm,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen]
+  .wos-handover
+  > p {
+  font-size: 15px;
+  line-height: 1.2;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .resolve-sos-button {
+  min-height: 50px;
+  font-size: 15px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen]
+  .wos-guide2
+  .wos-warn {
+  font-size: 15px;
+}
+/* Button floors: 44px everywhere, 50px for primary actions. */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-chip,
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-back,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen]
+  .wos-mode-button,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen]
+  .wos-list
+  .watch-action,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen]
+  .wos-row2
+  .wos-secondary,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen]
+  button.cancel-guidance,
+html .watch-area .watch .watch-screen.wh-screen.wos button.cancel-guidance {
+  min-height: 44px;
+  font-size: 15px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen]
+  .wos-primary,
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
+  min-height: 50px;
+}
+/* 880x700-class stage: rule 6 is 44px flat, and the walk screen needs
+   the photo's rows — primaries drop to the same floor there. */
+@media (min-width: 860px) and (max-width: 1023px) and (min-height: 640px) {
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen]
+    .wos-primary,
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
+    min-height: 44px;
+  }
+}
+
+/* ---------------------------------------------- short stages */
+/* Rule 5: the long "on their way" sentence is phone material; the
+   honesty note stays. Space, not type size, absorbs the difference. */
+@media (max-height: 720px) {
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen="EMERGENCY_SIMULATED"]
+    .sos-message
+    p {
+    display: none;
+  }
+}
+
+/* 880x700-class stage: rule floors hold at 44px (rule 6) — the SOS bar
+   and primary buttons included; spacing above absorbs the difference. */
+@media (min-width: 860px) and (max-width: 1023px) and (min-height: 640px) {
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-footer .sos-hold,
+  html .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
+    min-height: 44px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide2 .wos-primary {
+    min-height: 44px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
+    min-height: 44px;
+  }
+}
+
+@media (min-width: 860px) and (max-width: 1023px) and (min-height: 640px) {
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen="CAREGIVER_HANDOVER"]
+    .avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 3px #b6cbb7;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-body[data-screen="CAREGIVER_HANDOVER"]
+    .wos-steps
+    li {
+    padding: 2px 6px;
+  }
 }
