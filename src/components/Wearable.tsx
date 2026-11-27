@@ -321,6 +321,18 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         </div>
       </div>
     );
+  } else if (
+    s.wearStatus === "not_worn" &&
+    !(s.mode === "CHECK_IN" &&
+      (s.checkIn?.stage === "question" || s.checkIn?.stage === "help_options"))
+  ) {
+    screenKey = "watch-taken-off";
+    screen = (
+      <div className="wos-center">
+        <Sprout small />
+        {speech(t("putWatchOn"))}
+      </div>
+    );
   } else if (zonePrompt) {
     screenKey = `zone-${z.promptAt}`;
     screen = (

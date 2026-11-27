@@ -50,13 +50,15 @@ export const WATCH_LANDMARK_COUNT = 4;
  * (byte0 of the watch_state characteristic; firmware watch_ui.cpp applies it):
  * 0 home, 1 check-in question, 2 help options, 3 guided route, 4 emergency,
  * 5 acknowledged, 6 anything else (generic "check the app" screen),
- * 7 "Not yet" during guidance (the watch offers "I see it now").
+ * 7 "Not yet" during guidance, 8 watch taken off.
  */
 export function watchScreenCode(s: {
   mode: string;
   checkIn?: { stage?: string } | null;
   incident?: { stage: string } | null;
   missedLandmark?: unknown;
+  connected?: boolean;
+  wearStatus?: string;
 }): number {
   if (
     s.mode === "EMERGENCY_SIMULATED" ||
@@ -66,8 +68,9 @@ export function watchScreenCode(s: {
   if (s.mode === "CHECK_IN") {
     if (s.checkIn?.stage === "help_options") return 2;
     if (s.checkIn?.stage === "question") return 1;
-    return 5;
   }
+  if (s.connected && s.wearStatus === "not_worn") return 8;
+  if (s.mode === "CHECK_IN") return 5;
   if (s.mode === "GUIDED_RETURN") return 3;
   if (s.mode === "REORIENTATION" && s.missedLandmark) return 7;
   if (s.mode === "NORMAL") return 0;
@@ -288,6 +291,7 @@ export class BleDevice implements DeviceService {
    * sends a check-in while a real watch is paired. No-op when unpaired.
    */
   async sendCheckInRequest() {
+    if (useStore.getState().wearStatus === "not_worn") return;
     const companion = this.chars.get(COMPANION_UUID);
     if (!this.server || !companion) return;
     await this.gatt(() =>

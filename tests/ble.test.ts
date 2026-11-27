@@ -21,6 +21,16 @@ beforeEach(() => {
 
 const view = (bytes: number[]) => new DataView(new Uint8Array(bytes).buffer);
 
+test("taking the watch off mirrors a wear prompt without opening a family request", () => {
+  useStore.setState({ connected: true });
+  state().event("REMOVE");
+  expect(state().mode).toBe("NORMAL");
+  expect(state().familyRequest).toBeNull();
+  expect(watchScreenCode(state())).toBe(8);
+  state().event("SOS");
+  expect(watchScreenCode(state())).toBe(4);
+});
+
 // --- payload mappers ---
 
 test("battery payload maps percent and ignores the no-battery marker", () => {

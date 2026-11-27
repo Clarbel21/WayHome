@@ -13,6 +13,16 @@ const phone = (page: import("@playwright/test").Page) =>
 const moments = (page: import("@playwright/test").Page) =>
   page.getByRole("toolbar", { name: "Demo moments" });
 
+test("taking the watch off shows a wear prompt and keeps Find My available", async ({
+  page,
+}) => {
+  await moments(page).getByRole("button", { name: "Takes it off" }).click();
+  await expect(watch(page).getByText("Put me on?")).toBeVisible();
+  await expect(phone(page).getByRole("heading", { name: "Watch taken off" })).toBeVisible();
+  await phone(page).getByRole("button", { name: "Find My", exact: true }).click();
+  await expect(watch(page).getByRole("button", { name: /stop ringing/i })).toBeVisible();
+});
+
 test("leaving the safe zone buzzes the watch, escalates, then guides home landmark by landmark", async ({
   page,
 }) => {

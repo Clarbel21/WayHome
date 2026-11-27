@@ -74,6 +74,14 @@ Regenerate them after changing an SVG with
 `CHROMIUM_PATH=/path/to/chrome.exe node firmware/tools/make_landmark_images.mjs`.
 Caregiver-uploaded photos are not sent over BLE yet.
 
+### Watch taken off
+
+Screen mirror code 8 shows **Put me on?** and keeps the three-second SOS bar.
+The **Takes it off** demo control supplies simulated wear observations. The
+board reports motion, which does not confirm whether the watch is on a wrist.
+Open this sketch in Arduino IDE, verify and upload it before testing mirror
+code 8 with the matching web build.
+
 ## Pairing with the web app
 
 1. Open the WayHome app (GitHub Pages or `npm run dev` — Web Bluetooth needs HTTPS or localhost; Chrome/Edge/Android only, not iOS Safari).

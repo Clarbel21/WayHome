@@ -99,6 +99,9 @@ const en: Dict = {
   offline: "Offline",
   // watch: calm offline screen (one short line; an offline watch receives nothing)
   offlineWatchLine: "No signal right now",
+  putWatchOn: "Put me on?",
+  watchTakenOff: "Watch taken off",
+  watchTakenOffDetail: "Wear status is inferred.",
   // phone
   allCalm: "All calm",
   needsAttention: "Needs attention",
@@ -279,6 +282,9 @@ const id: Dict = {
   nearHome: "Dekat rumah",
   offline: "Offline",
   offlineWatchLine: "Sinyal hilang sementara",
+  putWatchOn: "Pakai aku lagi?",
+  watchTakenOff: "Jam dilepas",
+  watchTakenOffDetail: "Status pemakaian adalah perkiraan.",
   allCalm: "Semua tenang",
   needsAttention: "Perlu perhatian",
   urgent: "Mendesak",
