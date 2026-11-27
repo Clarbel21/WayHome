@@ -124,8 +124,8 @@ export function DemoStage() {
       id: "remove",
       label: { en: "Takes it off", id: "Dilepas" },
       watch: {
-        en: "Watch offers to contact family. Phone asks for a caregiver review.",
-        id: "Jam menawarkan menghubungi keluarga. Ponsel meminta pemeriksaan.",
+        en: "Watch asks to be put back on. Phone offers Find My.",
+        id: "Jam meminta dipakai lagi. Ponsel menawarkan Find My.",
       },
       icon: Watch,
       run: () => s.event("REMOVE"),
