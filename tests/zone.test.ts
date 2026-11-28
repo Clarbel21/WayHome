@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   DEFAULT_ZONE,
+  activeLadderStep,
   clampRadius,
   ladderLevel,
   legTarget,
@@ -19,6 +20,12 @@ describe("safe-zone simulation", () => {
     expect(ladderLevel(5, DEFAULT_ZONE)).toBe(2);
     expect(ladderLevel(10, DEFAULT_ZONE)).toBe(3);
     expect(ladderLevel(20, DEFAULT_ZONE)).toBe(4);
+  });
+  it("shows one shared ladder step on both devices while outside", () => {
+    expect(activeLadderStep({ active: false, level: 3 })).toBe(0);
+    expect(activeLadderStep({ active: true, level: 0 })).toBe(1);
+    expect(activeLadderStep({ active: true, level: 2 })).toBe(2);
+    expect(activeLadderStep({ active: true, level: 4 })).toBe(4);
   });
   it("splits the walk home evenly across landmarks and ends at home", () => {
     expect(legTarget(600, 0, 4)).toBe(450);
