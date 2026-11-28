@@ -79,7 +79,7 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
   greets and listens by herself (no buttons, **no typing**), answers by voice, listens
   again. 7 s with no reply → back home (saves battery). *(ZCode #38; hands-free + 7 s by
   Claude.)* ESP32: same screen and 7 s timeout; on-chip speech recognition is a later step.
-- [ ] **T2 — Guide me home by voice.** Saying "take me home" starts H1.
+- [x] **T2 — Guide me home by voice.** Saying "take me home" starts H1. *(22 Nov, ZCode — step-t2-home-by-voice. Also "go home", "I want to go home" and Indonesian "pulang" / "antar saya pulang"; Momo answers “Okay, let’s go home.” and the walk starts after she says it.)*
 
 **Game — memory game**
 - [x] **G1 — Familiar landmarks.** Show a photo, pick its name from 2 big choices.

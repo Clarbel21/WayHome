@@ -21,6 +21,33 @@ test("Talk listens by itself, answers, and has no typing", async ({ page }) => {
   await expect(watch(page).getByText("“Where am I?”")).toBeVisible();
 });
 
+test('saying "take me home" starts the guided walk (T2)', async ({ page }) => {
+  await watch(page).getByRole("button", { name: "Let's talk", exact: true }).click();
+  await expect(
+    watch(page).getByRole("status").filter({ hasText: "Listening…" }),
+  ).toBeVisible();
+  await sayToMomo(page, "Take me home");
+  // Momo confirms out loud and on screen...
+  await expect(watch(page).getByText("Okay, let's go home.")).toBeVisible();
+  // ...then hands over to the guide-home screen (H1): photo + I see it.
+  await expect(
+    watch(page).getByRole("button", { name: "I see it", exact: true }),
+  ).toBeVisible({ timeout: 10000 });
+  await expect(watch(page).locator(".wos-talk")).toHaveCount(0);
+});
+
+test('saying "pulang" (Indonesian) also starts the guided walk', async ({ page }) => {
+  await watch(page).getByRole("button", { name: "Let's talk", exact: true }).click();
+  await expect(
+    watch(page).getByRole("status").filter({ hasText: "Listening…" }),
+  ).toBeVisible();
+  await sayToMomo(page, "Aku mau pulang");
+  await expect(watch(page).getByText("Okay, let's go home.")).toBeVisible();
+  await expect(
+    watch(page).getByRole("button", { name: "I see it", exact: true }),
+  ).toBeVisible({ timeout: 10000 });
+});
+
 test("7 seconds of silence returns home", async ({ page }) => {
   await watch(page).getByRole("button", { name: "Let's talk", exact: true }).click();
   await expect(watch(page).locator(".wos-talk")).toBeVisible();
