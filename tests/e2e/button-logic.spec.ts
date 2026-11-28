@@ -38,7 +38,7 @@ test("help has a working way back and a blocked check-in offers recovery", async
   ).toBeVisible();
   await page.getByRole("button", { name: "I'm okay", exact: true }).click();
   await expect(
-    page.getByText("Thank you for telling me. I'm here with you.", {
+    page.getByText("I'm here with you.", {
       exact: true,
     }),
   ).toBeVisible();
@@ -128,7 +128,7 @@ test("withdrawing a landmark stops recognition across tabs instead of silently s
     .click();
   await expect(
     page.getByText(
-      "This landmark was withdrawn. Directions have stopped. Please contact your family.",
+      "Let's call family.",
       { exact: true },
     ),
   ).toBeVisible();

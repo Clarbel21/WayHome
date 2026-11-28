@@ -179,7 +179,7 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
     .click();
   await page.getByRole("button", { name: "I'm okay", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Look at my memories", exact: true }),
+    page.getByRole("button", { name: "My memories", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Maybe later", exact: true }).click();
   await page.getByRole("button", { name: "Let's talk", exact: true }).click();
@@ -225,7 +225,7 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
   ).toHaveCount(0);
   await expect(
     page.getByText(
-      "Guidance cancelled. Your caregiver can help with any remaining concern.",
+      "We've stopped the walk.",
       { exact: true },
     ),
   ).toBeVisible();

@@ -21,14 +21,14 @@ test("ring, no answer, try the next person, answered", async ({ page }) => {
   await page.screenshot({ path: "docs/lane-call-c2/ringing.png" });
 
   await incoming.getByRole("button", { name: "Decline" }).click();
-  await expect(watch(page).getByText("No answer.", { exact: true })).toBeVisible();
+  await expect(watch(page).getByText("No answer · Demo", { exact: true })).toBeVisible();
   await page.waitForTimeout(700);
   await page.screenshot({ path: "docs/lane-call-c2/no-answer.png" });
 
   await watch(page).getByRole("button", { name: "Try Mei" }).click();
   await expect(incoming).toContainText("Alex is calling Mei");
   await incoming.getByRole("button", { name: "Answer" }).click();
-  await expect(watch(page).getByText("Mei replied.", { exact: true })).toBeVisible();
+  await expect(watch(page).getByText("Mei replied · Demo", { exact: true })).toBeVisible();
   await page.waitForTimeout(700);
   await page.screenshot({ path: "docs/lane-call-c2/answered.png" });
 });

@@ -12,7 +12,9 @@ test("caregiver simulation, landmark editing, settings and persistence", async (
     .getByRole("link", { name: "Demo control center", exact: true })
     .click();
   await page.getByRole("button", { name: /Simulate Disorientation/ }).click();
-  await expect(page.getByText("It's okay. I'm here with you.")).toBeVisible();
+  await expect(
+    page.getByText("I'm here with you.", { exact: true }),
+  ).toBeVisible();
   await page.getByRole("button", { name: /Trigger Simulated SOS/ }).click();
   await expect(page.getByText("Help is coming. · Demo")).toBeVisible();
   await page
@@ -140,5 +142,5 @@ test("wearer recognition returns home, empty approval offers help, and a short S
   await page.getByRole("button", { name: "Help me home" }).click();
   await expect(page.getByText("No approved landmarks yet.")).toBeVisible();
   await page.getByRole("button", { name: "Call family" }).click();
-  await expect(page.getByText("Demo — no real call.")).toBeVisible();
+  await expect(page.getByText("No real call · Demo")).toBeVisible();
 });

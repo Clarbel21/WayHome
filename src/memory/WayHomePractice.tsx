@@ -126,10 +126,12 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
     return (
       <div className="wp-practice">
         <p className="memory-notice" role="status">
-          Practice is paused while a safety check is open. Your place is kept.
+          {watch
+            ? "Let's pause practice."
+            : "Practice is paused while a safety check is open. Your place is kept."}
         </p>
         <button className="memory-choice quiet" onClick={onExit}>
-          Back to my memories
+          {watch ? "My memories" : "Back to my memories"}
         </button>
       </div>
     );
@@ -139,11 +141,12 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
       <div className="wp-practice">
         <h1>Your walk home</h1>
         <p>
-          Your caregiver hasn't chosen the places on your walk home yet. They
-          can add them under Familiar landmarks.
+          {watch
+            ? "My walk isn't ready."
+            : "Your caregiver hasn't chosen the places on your walk home yet. They can add them under Familiar landmarks."}
         </p>
         <button className="memory-choice quiet" onClick={onExit}>
-          Back to my memories
+          {watch ? "My memories" : "Back to my memories"}
         </button>
       </div>
     );
@@ -315,12 +318,12 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
   const total = stage.queue.length;
   const prompt = watch
     ? q.kind === "spot"
-      ? `Find the ${target.name}`
+      ? `Find ${target.name}`
       : q.kind === "next"
         ? q.afterId === "start"
           ? "Which comes first?"
-          : `After the ${byId(q.afterId).name}?`
-        : `Which way at the ${target.name}?`
+          : `After ${byId(q.afterId).name}?`
+        : "Which way here?"
     : q.kind === "spot"
       ? `Which one is the ${target.name}?`
       : q.kind === "next"
@@ -417,7 +420,7 @@ export function WayHomePractice({ onExit }: { onExit: () => void }) {
             ? q.kind === "turn"
               ? wrongPick
                 ? "Tap the glowing arrow."
-                : "Think of the next place."
+                : "Think of what's next."
               : wrongPick
                 ? "Tap the glowing one."
                 : `Look for ${target.cue}.`

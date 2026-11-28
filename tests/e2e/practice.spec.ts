@@ -5,7 +5,7 @@ async function openPractice(page: Page) {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.getByRole("button", { name: "Let's begin" }).click();
-  await page.getByRole("button", { name: "Practice my way home" }).click();
+  await page.getByRole("button", { name: "Practice my walk" }).click();
 }
 
 async function pickPhoto(page: Page, match: (src: string) => boolean) {
@@ -46,7 +46,7 @@ test("errorless practice: a wrong pick shows the right place with its clue, then
   await openPractice(page);
   await page.getByRole("button", { name: "Practice with me" }).click();
   await expect(
-    page.getByRole("heading", { name: "Find the Community garden" }),
+    page.getByRole("heading", { name: "Find Community garden" }),
   ).toBeVisible();
   await pickPhoto(page, (src) => !src.includes("garden"));
   await expect(page.getByText("Tap the glowing one.")).toBeVisible();
@@ -58,7 +58,7 @@ test("errorless practice: a wrong pick shows the right place with its clue, then
   await page.getByRole("button", { name: "Next", exact: true }).click();
 
   await expect(
-    page.getByRole("heading", { name: "Find the Neighborhood bakery" }),
+    page.getByRole("heading", { name: "Find Neighborhood bakery" }),
   ).toBeVisible();
   await pickPhoto(page, (src) => src.includes("bakery"));
   await expect(page.getByText("Yes!", { exact: true })).toBeVisible();
@@ -88,7 +88,7 @@ test("finishing a walk grows a flower and shows how familiar each place feels", 
     } else {
       const prompt = await page.locator("h1.wp-prompt").innerText();
       const order = ["garden", "bakery", "library", "home"];
-      const after = /After the (.+?)\?/.exec(prompt)?.[1] ?? "";
+      const after = /After (.+?)\?/.exec(prompt)?.[1] ?? "";
       const named = order.find((o) => new RegExp(o, "i").test(after || prompt));
       const target = /first/.test(prompt)
         ? "garden"

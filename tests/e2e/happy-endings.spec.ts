@@ -72,7 +72,7 @@ test("Family calls back closes the request on both screens", async ({
       .getByRole("button", { name: "Family calls back", exact: true })
       .click();
     await expect(
-      watch(page).getByText("Jamie Chen replied.", { exact: true }),
+      watch(page).getByText("Jamie Chen replied · Demo", { exact: true }),
     ).toBeVisible();
     await expect(
       phone(page).getByRole("heading", { name: "Request done", exact: true }),

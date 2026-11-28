@@ -39,7 +39,7 @@ test("demo moments drive both devices and SOS disables unsafe moments", async ({
   ).toBeVisible();
   await expect(caregiver(page).getByText("Route deviation")).toBeVisible();
   await expect(
-    wearer(page).getByText("It's okay. I'm here with you.", { exact: true }),
+    wearer(page).getByText("I'm here with you.", { exact: true }),
   ).toBeVisible();
 
   await bar.getByRole("button", { name: "Low battery" }).click();

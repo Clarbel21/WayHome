@@ -148,12 +148,12 @@ export const status: Record<Mode, string> = {
   EMERGENCY_SIMULATED: "Simulated SOS",
 };
 export const messages = (name: string): Record<Mode, string> => ({
-  NORMAL: `Hi! I'm ${name}. I'm here with you.`,
+  NORMAL: `Hi! I'm ${name}.`,
   CHECK_IN: "How are you feeling?",
-  GUIDED_RETURN: "Let's find our way together.",
-  REORIENTATION: "It's okay. I'm here with you.",
-  CAREGIVER_HANDOVER: "Let's contact someone you trust.",
-  EMERGENCY_SIMULATED: "Help request sent — simulation",
+  GUIDED_RETURN: "I'll guide you home.",
+  REORIENTATION: "I'm here with you.",
+  CAREGIVER_HANDOVER: "Shall we call family?",
+  EMERGENCY_SIMULATED: "I asked for help · Demo",
 });
 export function transition(current: Mode, event: Event): Mode {
   if (current === "EMERGENCY_SIMULATED") return current;

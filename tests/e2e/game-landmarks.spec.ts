@@ -139,7 +139,7 @@ test("four landmark rounds use gentle words, big choices and one frame", async (
   await quiz.getByRole("button", { name: /^home$/i }).click();
   await expect(quiz).toHaveAttribute("data-result", "gentle");
   await expect(quiz.locator(".wos-game-result")).toHaveText(
-    "That's the library. Next one?",
+    "That's the library.",
   );
   expect((await quiz.innerText()).toLowerCase()).not.toContain("wrong");
   await expectBigAndTappable(page);

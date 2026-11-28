@@ -55,7 +55,7 @@ test("Familiar Faces shows a realistic person first and can return to the watch 
   await screen.getByRole("button", { name: "Familiar Faces" }).click();
   await expect(screen.locator('img[src*="memory-jamie"]')).toBeVisible();
   await screen.getByRole("button", { name: "Tell me more" }).click();
-  await expect(screen.getByText(/This is your son, Jamie/)).toBeVisible();
+  await expect(screen.getByText("Your son, Jamie.")).toBeVisible();
   // On the watch the activity ends with "I'm done" (no separate Back step).
   await screen.getByRole("button", { name: "I'm done" }).click();
   await screen.getByRole("button", { name: "Close", exact: true }).click();

@@ -90,7 +90,7 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
     .click();
   await expect(page.getByText("Jamie", { exact: true })).not.toBeVisible();
   await page.getByRole("button", { name: "Tell me more", exact: true }).click();
-  await expect(page.getByText(/This is your son, Jamie/)).toBeVisible();
+  await expect(page.getByText("Your son, Jamie.", { exact: true })).toBeVisible();
   // The garden picture lives on the full page; the watch keeps the count.
   await expect
     .poll(() =>
@@ -152,7 +152,7 @@ test("all five activities, gentle choices, progress persistence, and caregiver h
   await page
     .getByRole("button", { name: "Memory Garden", exact: true })
     .click();
-  await page.getByRole("button", { name: "Plant a little tree" }).click();
+  await page.getByRole("button", { name: "Plant a tree" }).click();
   // The garden picture lives on the full page; the watch keeps the count.
   await expect
     .poll(() =>
@@ -251,7 +251,9 @@ test("library approval, image/audio persistence, previews, edit/delete, metadata
     .click();
   await expect(page.getByText(/Juniper/)).not.toBeVisible();
   await page.getByRole("button", { name: "Tell me more", exact: true }).click();
-  await expect(page.getByText(/This is your aunt, Aunt Juniper/)).toBeVisible();
+  await expect(
+    page.getByText("Your aunt, Aunt Juniper.", { exact: true }),
+  ).toBeVisible();
   await page.goto("/#/caregiver/library");
   await page.getByRole("button", { name: "Add memory", exact: true }).click();
   await page.getByLabel("Activity type").selectOption("music");
@@ -440,7 +442,7 @@ test("sample presentation, mobile keyboard play, and immediate in-game SOS", asy
   await page.getByRole("button", { name: "Resume activity" }).click();
   await page.getByRole("button", { name: "Tell me more", exact: true }).focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByText(/This is your daughter, Mei/)).toBeVisible();
+  await expect(page.getByText("Your daughter, Mei.", { exact: true })).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

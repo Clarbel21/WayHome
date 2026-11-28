@@ -1268,13 +1268,13 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
               <span className="wos-find-icon" aria-hidden="true">
                 <BellRing size={28} />
               </span>
-              <strong>{t("findTitle", { companion: name })}</strong>
+              <strong>{t("findTitle")}</strong>
               <p>{t("findBody", { caregiver: ringing.by })}</p>
               <button
                 className="wos-stop"
                 onClick={() => useFind.getState().stop()}
               >
-                <BellOff size={17} /> {t("findStop")}
+                <BellOff size={17} /> {t("watchFindStop")}
               </button>
             </div>
           )}
