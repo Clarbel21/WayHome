@@ -68,9 +68,8 @@ test("every +8 min ladder step shows on the watch and the phone together", async
 
   await moments(page).getByRole("button", { name: "+8 min" }).click();
   await expect(
-    watch(page).getByText("Help request sent — simulation", { exact: true }),
+    watch(page).getByText("Help is coming. · Demo", { exact: true }),
   ).toBeVisible();
-  await expect(watch(page).getByText("Step 4 of 4")).toBeVisible();
   await expect(phone(page).getByText("Urgent", { exact: true })).toBeVisible();
   await expect
     .poll(async () =>

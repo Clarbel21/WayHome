@@ -14,7 +14,9 @@ import {
   WifiOff,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
+  Mic,
+  Keyboard,
+  Send,
   HandHelping,
   MapPin,
   SlidersHorizontal,
@@ -64,6 +66,17 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const [pickCall, setPickCall] = useState(false);
   const [showModePicker, setShowModePicker] = useState(false);
   const [arrived, setArrived] = useState(false);
+  // T1 Talk lane: Momo's chat. One exchange on screen (what the wearer said,
+  // what Momo answered), voice in via SpeechRecognition with a typed
+  // fallback, voice out via speechSynthesis (the Care tools voice toggle
+  // mutes her). No network, no medical content — kind keyword replies.
+  const [chat, setChat] = useState<{ you: string | null; momo: string | null }>(
+    { you: null, momo: null },
+  );
+  const [typing, setTyping] = useState(false);
+  const [listening, setListening] = useState(false);
+  const chatInputRef = useRef<HTMLInputElement>(null);
+  const recRef = useRef<any>(null);
   const prevMode = useRef(s.mode);
   useEffect(() => {
     if (s.mode !== "NORMAL") {
@@ -71,6 +84,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       setPickCall(false);
       setShowModePicker(false);
       setArrived(false);
+      stopListening();
     } else {
       // A guided walk ends at position 6 with the last landmark confirmed.
       // Read the recorded stop as well as the mode transition so a presenter
@@ -174,7 +188,16 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const [now, setNow] = useState(new Date());
   const approved = s.landmarks.filter(navigable);
   const landmark = approved[s.guideIndex];
+  const missedStop =
+    s.mode === "REORIENTATION"
+      ? approved.find((stop) => stop.id === s.missedLandmark?.id)
+      : undefined;
   const name = s.settings.companionName;
+  const watchMessage = s.mode === "EMERGENCY_SIMULATED"
+    ? t("sosHelpComing")
+    : missedStop
+      ? t("familyIsHelping")
+      : modeMessage(lang, s.mode, name);
   // The person being called: the face the wearer picked, else the caregiver.
   const caregiver = requestContact(s)?.name ?? s.settings.caregiver;
   const experienceMode = s.settings.experienceMode;
@@ -224,7 +247,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           ? guidanceBlocked || s.wearStatus !== "likely_worn"
             ? t("guidancePaused")
             : landmark?.spokenCue || landmark?.instruction || t("noLandmarks")
-          : modeMessage(lang, s.mode, name),
+          : watchMessage,
       );
       speech.lang = lang === "id" ? "id-ID" : "en-US";
       window.speechSynthesis.speak(speech);
@@ -234,7 +257,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   }, [
     s.mode,
     s.settings.voice,
-    name,
+    watchMessage,
     lang,
     landmark?.id,
     landmark?.spokenCue,
@@ -297,37 +320,83 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   let screen: React.ReactNode;
   let screenKey: string = s.mode;
 
+  // --- T1 Talk lane: Momo's chat (voice in/out, typed fallback). -------
+  const speechSupported =
+    typeof window !== "undefined" &&
+    ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
+  const stopListening = () => {
+    try {
+      recRef.current?.stop();
+    } catch {
+      /* already stopped */
+    }
+    setListening(false);
+  };
+  const speakOut = (text: string) => {
+    if (!s.settings.voice || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang === "id" ? "id-ID" : "en-US";
+    window.speechSynthesis.speak(utterance);
+  };
+  // Keyword replies reuse the established talk lines (rule 7 — the ESP32
+  // carries the same words). Kind, first person, ≤ 8 words, no advice.
+  const momoReply = (said: string): string => {
+    const q = said.toLowerCase();
+    const has = (...words: string[]) => words.some((w) => q.includes(w));
+    if (has("where", "di mana", "dimana")) return t("talkWhereReply");
+    if (has("who", "family", "keluarga", "siapa"))
+      return t("talkWhoReply", { caregiver });
+    if (has("comfort", "tenang", "takut", "ragu", "pelan"))
+      return t("talkComfort");
+    if (has("nice", "glad", "senang", "cerita"))
+      return t("talkSomethingNiceReply");
+    return t("talkIntro");
+  };
+  const handleWearerLine = (said: string) => {
+    const line = said.trim().slice(0, 60);
+    if (!line) return;
+    const reply = momoReply(line);
+    setChat({ you: line, momo: reply });
+    speakOut(reply);
+  };
+  const startListening = () => {
+    const Ctor =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
+    if (!Ctor || listening) return;
+    const rec = new Ctor();
+    rec.lang = lang === "id" ? "id-ID" : "en-US";
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = (event: any) =>
+      handleWearerLine(event.results?.[0]?.[0]?.transcript ?? "");
+    rec.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+    try {
+      rec.start();
+      recRef.current = rec;
+      setListening(true);
+    } catch {
+      setListening(false);
+    }
+  };
+  const closeTalk = () => {
+    stopListening();
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    setChat({ you: null, momo: null });
+    setTyping(false);
+    if (experienceMode === "dialogue") s.chooseAssistance("home");
+    else setTalk(null);
+  };
+
   if (s.mode === "EMERGENCY_SIMULATED") {
-    const sos = s.alerts.find((a) => a.emergency && !a.emergency.resolvedAt);
-    const seen = !!sos?.emergency?.acknowledgedAt;
     screen = (
       <div className="wos-sos">
         <div className="wos-sos-icon" aria-hidden="true">
           <ShieldAlert size={30} />
         </div>
-        {z.level >= 4 && (
-          <span className="wos-zone-step wos-sos-step" data-step="4">
-            {t("zoneStepOf", { n: 4 })}
-          </span>
-        )}
-        {speech(modeMessage(lang, s.mode, name))}
-        <ol className="wos-steps" aria-label="SOS progress">
-          <li className="done">
-            <Check size={13} /> {t("stepSent")}
-          </li>
-          <li className={seen ? "done" : "current"}>
-            {seen ? <Check size={13} /> : <span className="dot" />}{" "}
-            {t("stepSeen")}
-          </li>
-        </ol>
-        <p className="wos-sos-who">
-          {seen ? t("sosAcked", { caregiver }) : t("sosWaiting", { caregiver })}
-        </p>
-        <span className="sr-only">
-          {t("sosNotified", { caregiver, emergency: s.settings.emergency })}
-        </span>
-        <p className="wos-calm">{t("stayHere")}</p>
-        <small className="wos-honest">{t("sosNoReal")}</small>
+        {speech(watchMessage)}
         <ResolveSOSButton short />
       </div>
     );
@@ -522,13 +591,11 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       </div>
     );
   } else if (s.mode === "REORIENTATION") {
-    const missed = s.missedLandmark
-      ? approved.find((l) => l.id === s.missedLandmark?.id)
-      : undefined;
+    const missed = missedStop;
     screenKey = missed ? `missed-${missed.id}` : screenKey;
     screen = missed ? (
       <div className="wos-center wos-calm-screen">
-        {speech(t("familyIsHelping"))}
+        {speech(watchMessage)}
         <button
           className="watch-action wos-primary see-it-now"
           onClick={s.seeItNow}
@@ -539,7 +606,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           className="wos-secondary cancel-guidance"
           onClick={s.backToHome}
         >
-          {t("cancelGuidance")}
+          {t("endMissedGuidance")}
         </button>
       </div>
     ) : (
@@ -686,11 +753,16 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       </div>
     );
   } else if (s.mode === "CHECK_IN" && !acknowledged) {
+    // The walk's "simulated directions" note belongs to the walk, not to
+    // this question: drop it so one question + two answers always fit.
+    const walkNote = s.interactionNote.startsWith(
+      "These are simulated directions",
+    );
     screen = (
       <div className="wos-center">
         <Sprout small />
         {speech(modeMessage(lang, s.mode, name))}
-        {note}
+        {!walkNote && note}
         <div className="watch-controls wos-answer">
           <button
             className="watch-action wos-yes"
@@ -943,52 +1015,94 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       </div>
     );
   } else if (experienceMode === "dialogue" || talk) {
-    const activeTalk = talk ?? "intro";
-    screenKey = `talk-${activeTalk}`;
-    const reply =
-      activeTalk === "comfort"
-        ? t("talkComfort")
-        : activeTalk === "where"
-          ? t("talkWhereReply")
-          : activeTalk === "who"
-            ? t("talkWhoReply", { caregiver })
-            : activeTalk === "nice"
-              ? t("talkSomethingNiceReply")
-              : t("talkIntro");
+    // T1: Momo's character + chat. Her face is the biggest thing, her line
+    // is the one line on screen; the wearer answers by voice or by typing.
+    screenKey = "talk-chat";
+    const reply = chat.momo ?? t("talkIntro");
     screen = (
       <div className="wos-talk">
         {experienceMode === "dialogue" && (
           <span className="wos-profile-label">DIALOGUE MODE</span>
         )}
-        <div className="wos-talk-head">
+        <div className="wos-momo" aria-hidden="true">
           <Sprout small />
-          <p className="wos-bubble">{reply}</p>
         </div>
-        <div className="watch-controls wos-list">
-          <button className="wos-chip" onClick={() => setTalk("where")}>
-            {t("talkWhere")}
-          </button>
-          <button className="wos-chip" onClick={() => setTalk("who")}>
-            {t("talkWho")}
-          </button>
-          <button className="wos-chip" onClick={() => setTalk("comfort")}>
-            <Sparkles size={15} /> {t("somethingComforting")}
-          </button>
-          <button className="wos-chip" onClick={() => setTalk("nice")}>
-            <MessageCircle size={15} /> {t("talkSomethingNice")}
-          </button>
-          {experienceMode === "dialogue" ? (
-            <button
-              className="wos-back"
-              onClick={() => s.chooseAssistance("home")}
+        <p className="wos-bubble" aria-live="polite">
+          {reply}
+        </p>
+        {chat.you && <p className="wos-you-said">“{chat.you}”</p>}
+        <div className="wos-chat-actions">
+          {typing ? (
+            <form
+              className="wos-type-row"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const value = chatInputRef.current?.value ?? "";
+                handleWearerLine(value);
+                if (chatInputRef.current) chatInputRef.current.value = "";
+              }}
             >
-              <House size={16} /> {t("focusHome")}
-            </button>
+              <input
+                ref={chatInputRef}
+                className="wos-input"
+                type="text"
+                aria-label={lang === "id" ? "Ketik ke Momo" : "Type to Momo"}
+                placeholder={lang === "id" ? "Ketik ke Momo" : "Type to Momo"}
+                autoComplete="off"
+                autoFocus
+              />
+              {/* Icon-only so the field keeps its width on the small watch. */}
+              <button
+                className="watch-action wos-send"
+                type="submit"
+                aria-label={lang === "id" ? "Kirim" : "Send"}
+              >
+                <Send size={20} aria-hidden="true" />
+              </button>
+            </form>
           ) : (
-            <button className="wos-back" onClick={() => setTalk(null)}>
-              <ChevronLeft size={16} /> {t("backHome")}
-            </button>
+            <>
+              {speechSupported && (
+                <button
+                  className={`watch-action wos-mic ${listening ? "listening" : ""}`}
+                  aria-label={
+                    listening
+                      ? lang === "id"
+                        ? "Berhenti mendengarkan"
+                        : "Stop listening"
+                      : lang === "id"
+                        ? "Bicara ke Momo"
+                        : "Speak to Momo"
+                  }
+                  data-caregiver-action="Spoke to Momo"
+                  onClick={startListening}
+                >
+                  <Mic size={18} aria-hidden="true" />
+                  {listening
+                    ? lang === "id"
+                      ? "Mendengarkan…"
+                      : "Listening…"
+                    : lang === "id"
+                      ? "Bicara"
+                      : "Speak"}
+                </button>
+              )}
+              <button
+                className="watch-action"
+                onClick={() => {
+                  setTyping(true);
+                  stopListening();
+                }}
+              >
+                <Keyboard size={18} aria-hidden="true" />
+                {lang === "id" ? "Ketik" : "Type"}
+              </button>
+            </>
           )}
+          <button className="wos-back" onClick={closeTalk}>
+            <ChevronLeft size={16} aria-hidden="true" />
+            {experienceMode === "dialogue" ? t("focusHome") : t("backHome")}
+          </button>
         </div>
       </div>
     );

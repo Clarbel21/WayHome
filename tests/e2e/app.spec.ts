@@ -14,7 +14,7 @@ test("caregiver simulation, landmark editing, settings and persistence", async (
   await page.getByRole("button", { name: /Simulate Disorientation/ }).click();
   await expect(page.getByText("It's okay. I'm here with you.")).toBeVisible();
   await page.getByRole("button", { name: /Trigger Simulated SOS/ }).click();
-  await expect(page.getByText("Help request sent — simulation")).toBeVisible();
+  await expect(page.getByText("Help is coming. · Demo")).toBeVisible();
   await page
     .getByRole("link", { name: /Alerts/, exact: false })
     .first()
@@ -59,7 +59,7 @@ test("SOS hold synchronizes companion and caregiver browser tabs", async ({
   await page.keyboard.down("Space");
   await page.waitForTimeout(3300);
   await page.keyboard.up("Space");
-  await expect(page.getByText("Help request sent — simulation")).toBeVisible();
+  await expect(page.getByText("Help is coming. · Demo")).toBeVisible();
   await expect(
     caregiver.getByText("Simulated SOS · help request received"),
   ).toBeVisible();
@@ -71,7 +71,7 @@ test("guided presentation completes all eight steps and route works offline", as
   await page.getByRole("button", { name: "Begin story" }).click();
   for (let i = 0; i < 7; i++)
     await page.getByRole("button", { name: "Next", exact: true }).click();
-  await expect(page.getByText("Help request sent — simulation")).toBeVisible();
+  await expect(page.getByText("Help is coming. · Demo")).toBeVisible();
   await page.goto("/#/caregiver/emergency");
   await resolveIncident(page);
   await page.goto("/#/guided");
@@ -131,7 +131,7 @@ test("wearer recognition returns home, empty approval offers help, and a short S
   await page.waitForTimeout(150);
   await page.keyboard.up("Space");
   await expect(
-    page.getByText("Help request sent — simulation"),
+    page.getByText("Help is coming. · Demo"),
   ).not.toBeVisible();
   await page.goto("/#/caregiver/landmarks");
   for (const checkbox of await page.getByRole("checkbox").all())

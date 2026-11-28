@@ -4,7 +4,7 @@ async function sos(page: import("@playwright/test").Page) {
   await page.keyboard.down("Space");
   await page.waitForTimeout(3300);
   await page.keyboard.up("Space");
-  await expect(page.getByText("Help request sent — simulation")).toBeVisible();
+  await expect(page.getByText("Help is coming. · Demo")).toBeVisible();
 }
 test("resolved SOS can return to the companion with confirmation while preserving history", async ({
   page,
@@ -18,7 +18,7 @@ test("resolved SOS can return to the companion with confirmation while preservin
     modal.getByRole("button", { name: "Keep SOS active" }),
   ).toBeFocused();
   await modal.getByRole("button", { name: "Keep SOS active" }).click();
-  await expect(page.getByText("Help request sent — simulation")).toBeVisible();
+  await expect(page.getByText("Help is coming. · Demo")).toBeVisible();
   await page.getByRole("button", { name: "Help is here", exact: true }).click();
   await modal
     .getByRole("button", {

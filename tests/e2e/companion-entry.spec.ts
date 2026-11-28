@@ -120,7 +120,7 @@ test("opening paused memories during SOS gives a review route without bypassing 
   await page
     .getByRole("link", { name: "Return to Memory Garden", exact: true })
     .click();
-  await expect(page.getByText("Help request sent — simulation")).toBeVisible();
+  await expect(page.getByText("Help is coming. · Demo")).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Let's begin", exact: true }),
   ).not.toBeVisible();

@@ -181,7 +181,10 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
   ).toBeVisible();
   await page.getByRole("button", { name: "Maybe later", exact: true }).click();
   await page.getByRole("button", { name: "Let's talk", exact: true }).click();
-  await page.getByRole("button", { name: "Comfort me", exact: true }).click();
+  // T1 talk: typing "Comfort me" asks the same thing the chip used to.
+  await page.getByRole("button", { name: "Type", exact: true }).click();
+  await page.getByRole("textbox", { name: "Type to Momo" }).fill("Comfort me");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect(
     page.getByText("Take your time. I'm here.", {
       exact: true,

@@ -123,9 +123,7 @@ for (const viewport of VIEWPORTS) {
     await watch
       .getByRole("button", { name: "Let's talk", exact: true })
       .click();
-    await expect(
-      watch.getByRole("button", { name: "Who's my family?", exact: true }),
-    ).toBeVisible();
+    await expect(watch.getByText("I'm here with you.")).toBeVisible();
     await expectWatchFits(page);
     await watch.getByRole("button", { name: "Back", exact: true }).click();
     await expect(
@@ -220,7 +218,7 @@ test("a quick SOS tap sends nothing; the 3-second hold still does", async ({
   const box = (await sos.boundingBox())!;
   const cx = box.x + box.width / 2;
   const cy = box.y + box.height / 2;
-  const alert = page.getByText("Help request sent — simulation", {
+  const alert = page.getByText("Help is coming. · Demo", {
     exact: true,
   });
 
