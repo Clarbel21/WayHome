@@ -103,7 +103,7 @@ test("staying outside long enough reaches the simulated emergency step", async (
   for (let i = 0; i < 3; i++)
     await moments(page).getByRole("button", { name: "+8 min" }).click();
   await expect(
-    watch(page).getByText("Help request sent — simulation", { exact: true }),
+    watch(page).getByText("Help is coming. · Demo", { exact: true }),
   ).toBeVisible({ timeout: 5_000 });
   await expect(phone(page).getByText("Urgent", { exact: true })).toBeVisible();
 });
@@ -168,6 +168,9 @@ test("a missed landmark offers the caregiver a demo police call and the wearer c
   });
   await watch(page).getByRole("button", { name: "Not yet" }).click();
   await expect(watch(page).getByText("Your family is helping.", { exact: true })).toBeVisible();
+  await expect(watch(page).locator(".wos-body")).toHaveText(
+    /^Your family is helping\.\s*See it now\s*End guidance$/,
+  );
   const caregiver = phone(page);
   await expect(caregiver.getByRole("heading", { name: "Call the police station?" })).toBeVisible();
   await expect(caregiver.getByText("Garden District Police Station")).toBeVisible();
@@ -183,7 +186,7 @@ test("a missed landmark offers the caregiver a demo police call and the wearer c
   await expect(caregiver.getByText("Demo call simulated. No real call made.")).toBeVisible();
   await expect(call).toBeDisabled();
   await expect(page).toHaveURL(currentUrl);
-  await watch(page).getByRole("button", { name: "I see it now" }).click();
+  await watch(page).getByRole("button", { name: "See it now" }).click();
   await expect(caregiver.getByRole("heading", { name: "Call the police station?" })).toHaveCount(0);
   await expect(
     watch(page).getByText("See the Neighborhood bakery?"),

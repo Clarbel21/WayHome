@@ -25,13 +25,13 @@ test("SOS overrides an open memory activity on the watch", async ({ page }) => {
   await garden.getByRole("button", { name: "Let's begin" }).click();
 
   await holdSos(page);
-  await expect(page.getByText("Help request sent — simulation")).toBeVisible();
+  await expect(page.getByText("Help is coming. · Demo")).toBeVisible();
   // The safety event takes over the watch screen.
   await expect(page.locator(".wos-memories")).toHaveCount(0);
   await expect(
     page
       .getByRole("region", { name: "A familiar friend." })
-      .getByText(/Help request sent|Stay where you are/)
+      .getByText("Help is coming. · Demo")
       .first(),
   ).toBeVisible();
 });
@@ -40,7 +40,7 @@ test("caregiver acknowledgment is receipt only; SOS needs explicit resolution", 
   page,
 }) => {
   await holdSos(page);
-  await expect(page.getByText("Help request sent — simulation")).toBeVisible();
+  await expect(page.getByText("Help is coming. · Demo")).toBeVisible();
 
   const phone = page.getByRole("region", { name: "A little closer." });
   await phone.getByRole("button", { name: "Acknowledge SOS alert" }).click();
@@ -51,7 +51,7 @@ test("caregiver acknowledgment is receipt only; SOS needs explicit resolution", 
   ).toBeVisible();
 
   // The watch is still in the emergency flow — acknowledgment did not end it.
-  await expect(page.getByText("Help request sent — simulation")).toBeVisible();
+  await expect(page.getByText("Help is coming. · Demo")).toBeVisible();
   await expect(
     page.getByRole("button", { name: /Help is here|resolve SOS/i }).first(),
   ).toBeVisible();
@@ -70,6 +70,6 @@ test("open memory activity survives a reload and still steps aside for safety", 
   await expect(page.locator(".wos-memories")).toBeVisible();
 
   await holdSos(page);
-  await expect(page.getByText("Help request sent — simulation")).toBeVisible();
+  await expect(page.getByText("Help is coming. · Demo")).toBeVisible();
   await expect(page.locator(".wos-memories")).toHaveCount(0);
 });

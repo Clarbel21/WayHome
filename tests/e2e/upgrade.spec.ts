@@ -48,7 +48,7 @@ test("demo moments drive both devices and SOS disables unsafe moments", async ({
 
   await bar.getByRole("button", { name: "SOS", exact: true }).click();
   await expect(
-    wearer(page).getByText("Help request sent — simulation", { exact: true }),
+    wearer(page).getByText("Help is coming. · Demo", { exact: true }),
   ).toBeVisible();
   await expect(bar.getByRole("button", { name: "Walk home" })).toBeDisabled();
   await expect(bar.getByRole("button", { name: "Reset demo" })).toBeDisabled();

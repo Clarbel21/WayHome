@@ -736,7 +736,7 @@ function PhoneToday() {
         ) : (
           <>
             <h3 className="cph-hero-title">{heading}</h3>
-            <p className="cph-hero-sub">{subtitle}</p>
+            <p className="cph-hero-sub">{offerPolice ? t("sosPoliceQuestion") : subtitle}</p>
           </>
         )}
         {offerPolice && emergency && (

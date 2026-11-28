@@ -225,7 +225,7 @@ test("a quick SOS tap sends nothing; the 3-second hold still does", async ({
   const box = (await sos.boundingBox())!;
   const cx = box.x + box.width / 2;
   const cy = box.y + box.height / 2;
-  const alert = page.getByText("Help request sent — simulation", {
+  const alert = page.getByText("Help is coming. · Demo", {
     exact: true,
   });
 
