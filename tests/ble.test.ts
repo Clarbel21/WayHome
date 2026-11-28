@@ -235,12 +235,11 @@ test("the paired watch receives mirror broadcasts on state changes", async () =>
     chars.watchState.writeValue.mock.calls[
       chars.watchState.writeValue.mock.calls.length - 1
     ];
-  // [screen code, route position, current landmark stop, ...name bytes]
-  expect(Array.from(lastCall[0]).slice(0, 3)).toEqual([
-    4,
-    expect.any(Number),
-    2,
-  ]);
+  // [screen code, route position, stop | turn << 4, ...name bytes]
+  const bytes = Array.from(lastCall[0]) as number[];
+  expect(bytes[0]).toBe(4);
+  expect(bytes[2] & 0x0f).toBe(2); // landmark stop 2
+  expect(bytes[2] >> 4).toBe(1); // stop 2 is a left turn on the shared route
   expect(lastCall[0].length).toBeGreaterThan(3);
 });
 
@@ -368,4 +367,24 @@ test("watch greeting names and landmark stop fit one 20-byte write", () => {
   expect([payload[0], payload[1], payload[2]]).toEqual([3, 2, 1]);
   expect(new TextDecoder().decode(payload.slice(3))).toBe(long);
   expect(watchNames("Zoë", "Momo|x")).toBe("Zo|Momox");
+  // Turn rides in bits 4–5 of byte2: left = 1, right = 2.
+  expect(watchStatePayload(3, 2, 1, "A", 1)[2]).toBe(0x11);
+  expect(watchStatePayload(3, 2, 3, "A", 2)[2]).toBe(0x23);
+});
+
+test("two quick store updates both reach the watch (Not yet → missed screen)", async () => {
+  const { chars } = installFakeBluetooth();
+  const ble = new BleDevice();
+  await ble.connect();
+  useStore.setState({ ...useStore.getInitialState(), connected: true });
+  applyDeviceEvent({ type: "go_home" });
+  expect(state().mode).toBe("GUIDED_RETURN");
+  await new Promise((r) => setTimeout(r, 0));
+  chars.watchState.writeValue.mockClear();
+  // "Not yet" changes the mode, then sets the missed landmark right after.
+  applyDeviceEvent({ type: "landmark_missed" });
+  for (let i = 0; i < 5; i++) await new Promise((r) => setTimeout(r, 0));
+  const calls = chars.watchState.writeValue.mock.calls;
+  expect(calls.length).toBeGreaterThan(0);
+  expect((calls[calls.length - 1][0] as Uint8Array)[0]).toBe(7);
 });
