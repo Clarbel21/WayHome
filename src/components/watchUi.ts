@@ -11,25 +11,39 @@ export type WatchGameDeck = "landmarks" | "faces" | "places";
  */
 export const useWatchUi = create<{
   memories: boolean;
+  /** The Game tile first offers a deck choice (Places / Faces, later Happy places). */
+  gamePicker: boolean;
   game: WatchGameDeck | null;
   openMemories: () => void;
   closeMemories: () => void;
+  openGamePicker: () => void;
+  closeGamePicker: () => void;
   openGame: (deck: WatchGameDeck) => void;
   closeGame: () => void;
 }>()(
   persist(
     (set) => ({
       memories: false,
+      gamePicker: false,
       game: null,
-      openMemories: () => set({ memories: true, game: null }),
+      openMemories: () =>
+        set({ memories: true, gamePicker: false, game: null }),
       closeMemories: () => set({ memories: false }),
-      openGame: (deck) => set({ game: deck, memories: false }),
-      closeGame: () => set({ game: null }),
+      openGamePicker: () =>
+        set({ gamePicker: true, game: null, memories: false }),
+      closeGamePicker: () => set({ gamePicker: false }),
+      openGame: (deck) =>
+        set({ game: deck, gamePicker: false, memories: false }),
+      closeGame: () => set({ game: null, gamePicker: false }),
     }),
     {
       name: "wayhome-watch-ui-v1",
       storage: createJSONStorage(() => sessionStorage),
-      partialize: (s) => ({ memories: s.memories, game: s.game }),
+      partialize: (s) => ({
+        memories: s.memories,
+        gamePicker: s.gamePicker,
+        game: s.game,
+      }),
     },
   ),
 );

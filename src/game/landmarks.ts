@@ -1,22 +1,8 @@
 import type { PhotoQuizCard, PhotoQuizDeck } from "./PhotoQuiz";
+import type { GameTranslator } from "./translator";
 
-/** Text keys the quiz decks need; the shared i18n hook satisfies this shape. */
-export type GameTranslator = (
-  key:
-    | "gameWhichPlace"
-    | "gameRound"
-    | "gameYes"
-    | "gameLearn"
-    | "gameNext"
-    | "gameWellDone"
-    | "gameBackHome"
-    | "gamePhotoAlt"
-    | "gameNameGarden"
-    | "gameNameBakery"
-    | "gameNameLibrary"
-    | "gameNameHome",
-  vars?: Record<string, string | number>,
-) => string;
+// Kept here as a re-export so existing G1 tests and callers keep working.
+export type { GameTranslator } from "./translator";
 
 const IDS = ["garden", "bakery", "library", "home"] as const;
 type LandmarkId = (typeof IDS)[number];

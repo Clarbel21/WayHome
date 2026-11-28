@@ -26,12 +26,7 @@ import { activeLadderStep, useZone, legTarget } from "../zone/store";
 import { planRoute } from "../zone/route";
 import { useWatchUi } from "./watchUi";
 import { MemoryGardenExperience } from "../memory/MemoryPlayer";
-import {
-  useStore,
-  navigable,
-  requestContact,
-  nextContact,
-} from "../store";
+import { useStore, navigable, requestContact, nextContact } from "../store";
 import { RingTone, CallRecording } from "./RingTone";
 import { attachmentNames, wearLabels } from "../services/safety";
 import {
@@ -42,6 +37,7 @@ import {
 } from "../services/find";
 import { PhotoQuiz } from "../game/PhotoQuiz";
 import { landmarkQuizDeck } from "../game/landmarks";
+import { familyQuizDeck } from "../game/faces";
 import { LandmarkPhoto } from "./LandmarkPhoto";
 import { ResolveSOSButton } from "./ResolveSOSButton";
 import { SOSButton } from "./SOSButton";
@@ -126,12 +122,9 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     const ui = useWatchUi.getState();
     if (s.mode === "NORMAL") return;
     if (ui.memories) ui.closeMemories();
+    if (ui.gamePicker) ui.closeGamePicker();
     if (ui.game) ui.closeGame();
   }, [s.mode]);
-  // G2/G3 will register their builders before their deck can be opened.
-  useEffect(() => {
-    if (watchUi.game && watchUi.game !== "landmarks") watchUi.closeGame();
-  }, [watchUi.game]);
   // Bring the watch into view when the Memory Garden opens on it.
   const watchRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -840,10 +833,58 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         />
       </div>
     );
+  } else if (watchUi.gamePicker && s.mode === "NORMAL") {
+    // One screen, two big choices: G1 places and G2 faces. G3 can add a third
+    // deck later without changing the quiz shell or the home tile.
+    const quiet = { "data-caregiver-skip-notification": "true" } as const;
+    screenKey = "game-pick";
+    screen = (
+      <div className="wos-game-host">
+        <div className="wos-game wos-game-pick" data-phase="pick">
+          <strong className="wos-game-pick-title" role="status">
+            {t("gamePickTitle")}
+          </strong>
+          <div className="wos-game-choices">
+            <button
+              type="button"
+              className="wos-game-choice"
+              onClick={() => watchUi.openGame("landmarks")}
+              {...quiet}
+            >
+              {t("gamePickPlaces")}
+            </button>
+            <button
+              type="button"
+              className="wos-game-choice"
+              onClick={() => watchUi.openGame("faces")}
+              {...quiet}
+            >
+              {t("gamePickFaces")}
+            </button>
+          </div>
+          <button
+            type="button"
+            className="wos-game-back"
+            onClick={() => {
+              watchUi.closeGamePicker();
+              s.dismissAcknowledgment();
+            }}
+            {...quiet}
+          >
+            {t("gameBackHome")}
+          </button>
+        </div>
+      </div>
+    );
   } else if (watchUi.game && s.mode === "NORMAL") {
-    // The Game lane is a data-driven quiz. G2 (faces) and G3 (happy places)
-    // only need another deck builder here; PhotoQuiz handles the screens.
-    const deck = watchUi.game === "landmarks" ? landmarkQuizDeck(t) : null;
+    // The Game lane is a data-driven quiz. G2 (faces) uses the family list
+    // from the store; G3 (happy places) only needs another deck builder.
+    const deck =
+      watchUi.game === "landmarks"
+        ? landmarkQuizDeck(t)
+        : watchUi.game === "faces"
+          ? familyQuizDeck(t, s.familyContacts)
+          : null;
     screenKey = `game-${watchUi.game}`;
     screen = deck ? (
       <div className="wos-game-host">
@@ -1097,7 +1138,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           <button
             className="wos-emoji-tile"
             aria-label={t("game")}
-            onClick={() => watchUi.openGame("landmarks")}
+            onClick={watchUi.openGamePicker}
           >
             <span className="wos-emoji-symbol" aria-hidden="true">
               🎮
