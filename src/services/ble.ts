@@ -54,12 +54,13 @@ export const WATCH_LANDMARK_COUNT = 4;
  * (byte0 of the watch_state characteristic; firmware watch_ui.cpp applies it):
  * 0 home, 1 check-in question, 2 help options, 3 guided route, 4 emergency,
  * 5 acknowledged, 6 anything else (generic "check the app" screen),
- * 7 "Not yet" during guidance, 8 watch taken off.
+ * 7 "Not yet" during guidance, 8 watch taken off,
+ * 20 emergency after the caregiver's demo police call.
  */
 export function watchScreenCode(s: {
   mode: string;
   checkIn?: { stage?: string } | null;
-  incident?: { stage: string } | null;
+  incident?: { stage: string; demoPoliceCalledAt?: number } | null;
   missedLandmark?: unknown;
   connected?: boolean;
   wearStatus?: string;
@@ -69,7 +70,11 @@ export function watchScreenCode(s: {
     s.mode === "EMERGENCY_SIMULATED" ||
     (s.incident && s.incident.stage !== "resolved")
   )
-    return 4;
+    return s.incident &&
+      s.incident.stage !== "resolved" &&
+      s.incident.demoPoliceCalledAt !== undefined
+      ? 20
+      : 4;
   if (s.mode === "CHECK_IN") {
     if (s.checkIn?.stage === "help_options") return 2;
     if (s.checkIn?.stage === "question") return 1;

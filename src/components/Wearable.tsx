@@ -234,7 +234,13 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const name = s.settings.companionName;
   const watchMessage =
     s.mode === "EMERGENCY_SIMULATED"
-      ? t("sosHelpComing")
+      ? t(
+          s.incident &&
+            s.incident.stage !== "resolved" &&
+            s.incident.demoPoliceCalledAt !== undefined
+            ? "sosPoliceComing"
+            : "sosHelpComing",
+        )
       : missedStop
         ? t("familyIsHelping")
         : modeMessage(lang, s.mode, name);
