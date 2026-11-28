@@ -14,7 +14,9 @@ import {
   WifiOff,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
+  Mic,
+  Keyboard,
+  Send,
   HandHelping,
   MapPin,
   SlidersHorizontal,
@@ -68,6 +70,17 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const [pickCall, setPickCall] = useState(false);
   const [showModePicker, setShowModePicker] = useState(false);
   const [arrived, setArrived] = useState(false);
+  // T1 Talk lane: Momo's chat. One exchange on screen (what the wearer said,
+  // what Momo answered), voice in via SpeechRecognition with a typed
+  // fallback, voice out via speechSynthesis (the Care tools voice toggle
+  // mutes her). No network, no medical content — kind keyword replies.
+  const [chat, setChat] = useState<{ you: string | null; momo: string | null }>(
+    { you: null, momo: null },
+  );
+  const [typing, setTyping] = useState(false);
+  const [listening, setListening] = useState(false);
+  const chatInputRef = useRef<HTMLInputElement>(null);
+  const recRef = useRef<any>(null);
   const prevMode = useRef(s.mode);
   useEffect(() => {
     if (s.mode !== "NORMAL") {
@@ -75,6 +88,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       setPickCall(false);
       setShowModePicker(false);
       setArrived(false);
+      stopListening();
     } else {
       // A guided walk ends at position 6 with the last landmark confirmed.
       // Read the recorded stop as well as the mode transition so a presenter
@@ -312,6 +326,76 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
 
   let screen: React.ReactNode;
   let screenKey: string = s.mode;
+
+  // --- T1 Talk lane: Momo's chat (voice in/out, typed fallback). -------
+  const speechSupported =
+    typeof window !== "undefined" &&
+    ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
+  const stopListening = () => {
+    try {
+      recRef.current?.stop();
+    } catch {
+      /* already stopped */
+    }
+    setListening(false);
+  };
+  const speakOut = (text: string) => {
+    if (!s.settings.voice || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang === "id" ? "id-ID" : "en-US";
+    window.speechSynthesis.speak(utterance);
+  };
+  // Keyword replies reuse the established talk lines (rule 7 — the ESP32
+  // carries the same words). Kind, first person, ≤ 8 words, no advice.
+  const momoReply = (said: string): string => {
+    const q = said.toLowerCase();
+    const has = (...words: string[]) => words.some((w) => q.includes(w));
+    if (has("where", "di mana", "dimana")) return t("talkWhereReply");
+    if (has("who", "family", "keluarga", "siapa"))
+      return t("talkWhoReply", { caregiver });
+    if (has("comfort", "tenang", "takut", "ragu", "pelan"))
+      return t("talkComfort");
+    if (has("nice", "glad", "senang", "cerita"))
+      return t("talkSomethingNiceReply");
+    return t("talkIntro");
+  };
+  const handleWearerLine = (said: string) => {
+    const line = said.trim().slice(0, 60);
+    if (!line) return;
+    const reply = momoReply(line);
+    setChat({ you: line, momo: reply });
+    speakOut(reply);
+  };
+  const startListening = () => {
+    const Ctor =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
+    if (!Ctor || listening) return;
+    const rec = new Ctor();
+    rec.lang = lang === "id" ? "id-ID" : "en-US";
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = (event: any) =>
+      handleWearerLine(event.results?.[0]?.[0]?.transcript ?? "");
+    rec.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+    try {
+      rec.start();
+      recRef.current = rec;
+      setListening(true);
+    } catch {
+      setListening(false);
+    }
+  };
+  const closeTalk = () => {
+    stopListening();
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    setChat({ you: null, momo: null });
+    setTyping(false);
+    if (experienceMode === "dialogue") s.chooseAssistance("home");
+    else setTalk(null);
+  };
 
   if (s.mode === "EMERGENCY_SIMULATED") {
     screen = (
@@ -885,52 +969,90 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       </div>
     );
   } else if (experienceMode === "dialogue" || talk) {
-    const activeTalk = talk ?? "intro";
-    screenKey = `talk-${activeTalk}`;
-    const reply =
-      activeTalk === "comfort"
-        ? t("talkComfort")
-        : activeTalk === "where"
-          ? t("talkWhereReply")
-          : activeTalk === "who"
-            ? t("talkWhoReply", { caregiver })
-            : activeTalk === "nice"
-              ? t("talkSomethingNiceReply")
-              : t("talkIntro");
+    // T1: Momo's character + chat. Her face is the biggest thing, her line
+    // is the one line on screen; the wearer answers by voice or by typing.
+    screenKey = "talk-chat";
+    const reply = chat.momo ?? t("talkIntro");
     screen = (
       <div className="wos-talk">
         {experienceMode === "dialogue" && (
           <span className="wos-profile-label">DIALOGUE MODE</span>
         )}
-        <div className="wos-talk-head">
+        <div className="wos-momo" aria-hidden="true">
           <Sprout small />
-          <p className="wos-bubble">{reply}</p>
         </div>
-        <div className="watch-controls wos-list">
-          <button className="wos-chip" onClick={() => setTalk("where")}>
-            {t("talkWhere")}
-          </button>
-          <button className="wos-chip" onClick={() => setTalk("who")}>
-            {t("talkWho")}
-          </button>
-          <button className="wos-chip" onClick={() => setTalk("comfort")}>
-            <Sparkles size={15} /> {t("somethingComforting")}
-          </button>
-          <button className="wos-chip" onClick={() => setTalk("nice")}>
-            <MessageCircle size={15} /> {t("talkSomethingNice")}
-          </button>
-          {experienceMode === "dialogue" ? (
-            <button
-              className="wos-back"
-              onClick={() => s.chooseAssistance("home")}
+        <p className="wos-bubble" aria-live="polite">
+          {reply}
+        </p>
+        {chat.you && <p className="wos-you-said">“{chat.you}”</p>}
+        <div className="wos-chat-actions">
+          {typing ? (
+            <form
+              className="wos-type-row"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const value = chatInputRef.current?.value ?? "";
+                handleWearerLine(value);
+                if (chatInputRef.current) chatInputRef.current.value = "";
+              }}
             >
-              <House size={16} /> {t("focusHome")}
-            </button>
+              <input
+                ref={chatInputRef}
+                className="wos-input"
+                type="text"
+                aria-label={lang === "id" ? "Ketik ke Momo" : "Type to Momo"}
+                placeholder={lang === "id" ? "Ketik ke Momo" : "Type to Momo"}
+                autoComplete="off"
+                autoFocus
+              />
+              <button className="watch-action wos-send" type="submit">
+                <Send size={16} aria-hidden="true" />
+                {lang === "id" ? "Kirim" : "Send"}
+              </button>
+            </form>
           ) : (
-            <button className="wos-back" onClick={() => setTalk(null)}>
-              <ChevronLeft size={16} /> {t("backHome")}
-            </button>
+            <>
+              {speechSupported && (
+                <button
+                  className={`watch-action wos-mic ${listening ? "listening" : ""}`}
+                  aria-label={
+                    listening
+                      ? lang === "id"
+                        ? "Berhenti mendengarkan"
+                        : "Stop listening"
+                      : lang === "id"
+                        ? "Bicara ke Momo"
+                        : "Speak to Momo"
+                  }
+                  data-caregiver-action="Spoke to Momo"
+                  onClick={startListening}
+                >
+                  <Mic size={18} aria-hidden="true" />
+                  {listening
+                    ? lang === "id"
+                      ? "Mendengarkan…"
+                      : "Listening…"
+                    : lang === "id"
+                      ? "Bicara"
+                      : "Speak"}
+                </button>
+              )}
+              <button
+                className="watch-action"
+                onClick={() => {
+                  setTyping(true);
+                  stopListening();
+                }}
+              >
+                <Keyboard size={18} aria-hidden="true" />
+                {lang === "id" ? "Ketik" : "Type"}
+              </button>
+            </>
           )}
+          <button className="wos-back" onClick={closeTalk}>
+            <ChevronLeft size={16} aria-hidden="true" />
+            {experienceMode === "dialogue" ? t("focusHome") : t("backHome")}
+          </button>
         </div>
       </div>
     );
