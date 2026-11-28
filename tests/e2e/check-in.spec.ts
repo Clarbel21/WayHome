@@ -45,7 +45,7 @@ test("help, recognition and failed recognition stop guidance", async ({
   await page.getByRole("button", { name: "Not yet", exact: true }).click();
   // Directions stop, but the wearer can still say they spotted it after all.
   await expect(
-    page.getByRole("button", { name: "I see it now", exact: true }),
+    page.getByRole("button", { name: "See it now", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "I see it", exact: true }),
@@ -133,7 +133,7 @@ test("SOS interrupts help choices and okay cannot bypass the incident", async ({
   await page.waitForTimeout(3300);
   await page.keyboard.up("Space");
   await expect(
-    page.getByText("Help request sent — simulation", { exact: true }),
+    page.getByText("Help is coming. · Demo", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "I'm okay", exact: true }),
@@ -143,6 +143,6 @@ test("SOS interrupts help choices and okay cannot bypass the incident", async ({
     page.getByRole("button", { name: /Simulate Successful Reorientation/ }),
   ).toBeDisabled();
   await expect(
-    page.getByText("Help request sent — simulation", { exact: true }),
+    page.getByText("Help is coming. · Demo", { exact: true }),
   ).toBeVisible();
 });

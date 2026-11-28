@@ -84,7 +84,7 @@ test("same-screen caregiver response works and SOS stays separate from acknowled
     .getByRole("button", { name: "Acknowledge SOS alert", exact: true })
     .click();
   await expect(
-    wearer.getByText("Help request sent — simulation", { exact: true }),
+    wearer.getByText("Help is coming. · Demo", { exact: true }),
   ).toBeVisible();
   await expect(
     caregiver.getByRole("link", { name: "Review SOS", exact: true }),

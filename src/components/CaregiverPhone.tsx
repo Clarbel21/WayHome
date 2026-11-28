@@ -58,6 +58,7 @@ import { wearLabels } from "../services/safety";
 import { CheckInHistory, FamilyResponse } from "./CheckInSupport";
 import { bleDevice } from "../services/ble";
 import { nearestDemoPoliceStation } from "../zone/demoPolice";
+import { simulatePoliceNotification } from "./EmergencyAssistance";
 
 // Codex's shared list (src/experienceModes.ts, PR #8) is not on main yet.
 // Keep this single local copy of the agreed emoji + names; Codex will swap it
@@ -671,6 +672,14 @@ function PhoneToday() {
     });
   };
   const ack = emergency?.emergency?.acknowledgedAt;
+  const policeStation = emergency?.emergency?.policeStation;
+  const offerPolice =
+    isEmergency &&
+    s.incident?.stage === "active" &&
+    emergency?.emergency?.kind === "sos" &&
+    !emergency.emergency.policePromptDismissed
+      ? nearestDemoPoliceStation(emergency.emergency.routePosition ?? s.position)
+      : null;
   const routeActive = s.mode === "GUIDED_RETURN" && approved.length > 0;
   const guiding = s.mode === "GUIDED_RETURN" && zone.guideStartM !== null;
   const missedStop =
@@ -727,8 +736,43 @@ function PhoneToday() {
         ) : (
           <>
             <h3 className="cph-hero-title">{heading}</h3>
-            <p className="cph-hero-sub">{subtitle}</p>
+            <p className="cph-hero-sub">{offerPolice ? t("sosPoliceQuestion") : subtitle}</p>
           </>
+        )}
+        {offerPolice && emergency && (
+          <div className="cph-sos-police" aria-label={t("sosPoliceDemo")}>
+            <strong>{offerPolice.name}</strong>
+            <p className="cph-hero-sub">
+              {t("demoPoliceDistance", { metres: Math.round(offerPolice.distance) })}
+            </p>
+            <p className="cph-hero-sub">{t("sosPoliceDemo")}</p>
+            <div className="cph-sos-police-actions">
+              <button
+                type="button"
+                className="button"
+                onClick={() =>
+                  simulatePoliceNotification(
+                    `Caregiver simulated calling ${offerPolice.name} after an SOS`,
+                    { alertId: emergency.id, station: offerPolice.name },
+                  )
+                }
+              >
+                {t("sosCallPolice")}
+              </button>
+              <button
+                type="button"
+                className="button light"
+                onClick={() => s.dismissSosPolicePrompt(emergency.id)}
+              >
+                {t("sosPoliceNotNow")}
+              </button>
+            </div>
+          </div>
+        )}
+        {isEmergency && policeStation && (
+          <p role="status" className="cph-sos-police">
+            {t("sosPoliceCalling", { station: policeStation })}
+          </p>
         )}
         {s.mode === "CHECK_IN" && s.checkIn?.stage === "question" && (
           <span className="phone-live-dot" aria-hidden="true" />
@@ -834,7 +878,7 @@ function PhoneToday() {
       )}
 
       {isEmergency ? (
-        <section className="phone-action-card urgent cph-emergency">
+        <section className={`phone-action-card urgent cph-emergency ${offerPolice || policeStation ? "cph-emergency-compact" : ""}`}>
           <h3>{t("attention")}</h3>
           <ol className="phone-timeline" aria-label={t("sosTimeline")}>
             <li className="done">

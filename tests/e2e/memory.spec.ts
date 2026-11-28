@@ -299,7 +299,7 @@ test("library approval, image/audio persistence, previews, edit/delete, metadata
   await page.keyboard.down("Space");
   await page.waitForTimeout(3300);
   await page.keyboard.up("Space");
-  await expect(page.getByText("Help request sent — simulation")).toBeVisible();
+  await expect(page.getByText("Help is coming. · Demo")).toBeVisible();
   expect(
     await page.evaluate(
       () =>
@@ -381,7 +381,7 @@ test("cross-tab safety interrupts and preserves routine; renaming, skipping and 
   ).toBeVisible();
   await page.getByRole("button", { name: /Trigger Simulated SOS/ }).click();
   await expect(
-    wearer.getByText("Help request sent — simulation"),
+    wearer.getByText("Help is coming. · Demo"),
   ).toBeVisible();
   await page.goto("/#/caregiver/alerts");
   await expect(
@@ -430,7 +430,7 @@ test("sample presentation, mobile keyboard play, and immediate in-game SOS", asy
   await page.getByRole("button", { name: "Prepare sample demo" }).click();
   for (let i = 0; i < 9; i++)
     await page.getByRole("button", { name: "Next", exact: true }).click();
-  await expect(page.getByText("Help request sent — simulation")).toBeVisible();
+  await expect(page.getByText("Help is coming. · Demo")).toBeVisible();
   await page.getByRole("button", { name: "Back", exact: true }).click();
   await expect(page.getByText(/S5 stays active/)).toBeVisible();
   await page.goto("/#/caregiver/emergency");
@@ -451,5 +451,5 @@ test("sample presentation, mobile keyboard play, and immediate in-game SOS", asy
   await page.keyboard.down("Space");
   await page.waitForTimeout(3300);
   await page.keyboard.up("Space");
-  await expect(page.getByText("Help request sent — simulation")).toBeVisible();
+  await expect(page.getByText("Help is coming. · Demo")).toBeVisible();
 });
