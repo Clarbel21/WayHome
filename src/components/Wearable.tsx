@@ -86,8 +86,8 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   // one says goodbye and returns home.
   const [talkNudged, setTalkNudged] = useState(false);
   const recRef = useRef<any>(null);
-  const handoverRef = useRef({ go: false });
-  const prevMode = useRef(s.mode);
+  const talkEpoch = useRef(0);
+  const lastArrival = useRef<string | null>(null);
   useEffect(() => {
     if (s.mode !== "NORMAL") {
       setTalk(null);
@@ -95,24 +95,23 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       setShowModePicker(false);
       setArrived(false);
       stopListening();
+    } else if (s.position === 6) {
+      // Show each completion once, even if the phone later updates alert history.
+      const lastStop = s.landmarks.filter(navigable).at(-1);
+      const arrival =
+        lastStop &&
+        s.alerts.find(
+          (alert) =>
+            alert.title ===
+            `Landmark reached: ${lastStop.name} — wearer confirmed recognition`,
+        );
+      if (arrival && arrival.id !== lastArrival.current) {
+        lastArrival.current = arrival.id;
+        setArrived(true);
+      }
     } else {
-      // A guided walk ends at position 6 with the last landmark confirmed.
-      // Read the recorded stop as well as the mode transition so a presenter
-      // moment that completes several stops in one click still lands here.
-      const stops = s.landmarks.filter(navigable);
-      const lastStop = stops[stops.length - 1]?.name;
-      const finished =
-        s.position === 6 &&
-        (prevMode.current === "GUIDED_RETURN" ||
-          (!!lastStop &&
-            s.alerts.some(
-              (a) =>
-                a.title ===
-                `Landmark reached: ${lastStop} — wearer confirmed recognition`,
-            )));
-      setArrived(finished);
+      setArrived(false);
     }
-    prevMode.current = s.mode;
   }, [s.mode, s.position, s.alerts, s.landmarks]);
   const acknowledged =
     s.checkIn?.response === "okay" &&
@@ -352,7 +351,9 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang === "id" ? "id-ID" : "en-US";
+    const epoch = talkEpoch.current;
     utterance.onend = () => {
+      if (talkEpoch.current !== epoch) return;
       setTalkActivity(Date.now());
       then?.();
     };
@@ -389,9 +390,10 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       setTalkActivity(Date.now());
       // Voice on: hand over once the line has been spoken. Voice muted:
       // keep the confirmation readable for a moment, then start the walk.
-      handoverRef.current.go = true;
+      const epoch = ++talkEpoch.current;
       const startWalk = () => {
-        if (!handoverRef.current.go) return;
+        if (talkEpoch.current !== epoch) return;
+        talkEpoch.current++;
         s.chooseAssistance("home");
       };
       if ("speechSynthesis" in window && s.settings.voice) {
@@ -481,7 +483,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     speakOut(reply, startListening);
   }
   const closeTalk = () => {
-    handoverRef.current.go = false;
+    talkEpoch.current++;
     stopListening();
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     setChat({ you: null, momo: null });
@@ -507,6 +509,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       () => talkFns.current.startListening(),
     );
     return () => {
+      talkEpoch.current++;
       try {
         recRef.current?.stop();
       } catch {
