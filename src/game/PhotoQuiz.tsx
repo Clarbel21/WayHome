@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Photo } from "../components/Photo";
+import { Momo } from "../components/Momo";
 
 /**
  * Reusable watch quiz shell (Game lane). G1 feeds it landmark photos; G2
@@ -90,6 +91,7 @@ export function PhotoQuiz({
             alt={deck.photoAlt}
             mediaId={card.photoId}
           />
+          {correct && <Momo state="happy" className="wos-game-momo" />}
         </div>
         <p
           className={`wos-game-result${
