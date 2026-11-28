@@ -6,6 +6,7 @@ import "./interfaces.css";
 import {
   CheckInHistory,
   CheckInRuntime,
+  FamilyCallRuntime,
   CheckInDemo,
   FamilyResponse,
 } from "./components/CheckInSupport";
@@ -1249,6 +1250,7 @@ export default function App() {
       <RouteFocus />
       <UpdateNotice />
       <CheckInRuntime />
+      <FamilyCallRuntime />
       <ZoneRuntime />
       <CareRuntime />
       <Routes>

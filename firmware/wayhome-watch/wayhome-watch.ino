@@ -47,6 +47,7 @@
 #include "watch_hal.h"
 #include "ble_service.h"
 #include "watch_ui.h"
+#include "watch_audio.h"
 
 WatchState watch;
 
@@ -317,6 +318,9 @@ void setup() {
   } else {
     USBSerial.println("QMI8658 init failed - wear motion stays unknown");
   }
+
+  // Speaker (ES8311): set up now, while nothing else uses the I2C bus.
+  audio::begin();
 
   // First battery read so BLE reads/notifications start accurate.
   battery_task();

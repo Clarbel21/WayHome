@@ -418,3 +418,19 @@ test("Call → face (0x0b) on the physical watch asks that person", () => {
   applyDeviceEvent({ type: "call_contact", index: 9 }); // out of range: ignored
   expect(state().familyRequest?.contactId).toBe("sam");
 });
+
+test("calling a family member mirrors ringing → no answer → answered", () => {
+  useStore.setState({ ...useStore.getInitialState(), connected: true });
+  const code = () => watchScreenCode(state());
+  state().callContact("sam");
+  expect(code()).toBe(17); // ringing
+  state().missFamilyCall();
+  expect(code()).toBe(19); // no answer
+  state().callContact("mei"); // "Try Mei"
+  expect(state().familyRequest?.contactId).toBe("mei");
+  expect(code()).toBe(17);
+  state().answerFamilyCall();
+  expect(code()).toBe(18); // answered
+  // Contact rides in byte2 bits 6–7 (Mei = 3).
+  expect(watchStatePayload(18, 0, 0, "A", 0, 3)[2] >> 6).toBe(3);
+});

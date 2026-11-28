@@ -58,18 +58,14 @@ test("family handover acknowledgment and simulated response synchronize tabs", a
   await start(page);
   await page.getByRole("button", { name: "Help me", exact: true }).click();
   await page.getByRole("button", { name: "Call family", exact: true }).click();
-  await expect(page.getByText("Waiting…", { exact: true })).toBeVisible();
+  await expect(page.getByText("Ringing…", { exact: true })).toBeVisible();
   const caregiver = await context.newPage();
   await caregiver.goto("/#/caregiver/alerts");
   await caregiver
     .getByRole("button", { name: "Acknowledge family request", exact: true })
     .click();
-  // "Seen" ticks on the watch (Sent + Seen done).
-  await expect(
-    page
-      .getByRole("list", { name: "Family request progress" })
-      .locator("li.done"),
-  ).toHaveCount(2);
+  // Call lane C2: the watch keeps ringing until the call is answered.
+  await expect(page.getByText("Ringing…", { exact: true })).toBeVisible();
   await caregiver
     .getByRole("button", { name: "Simulate caregiver response", exact: true })
     .click();
@@ -116,7 +112,7 @@ test("real timeout repeats once then notifies without declaring lost", async ({
     ),
   ).toBeVisible();
   await page.clock.fastForward(30001);
-  await expect(page.getByText("Waiting…", { exact: true })).toBeVisible();
+  await expect(page.getByText("Ringing…", { exact: true })).toBeVisible();
   await page.goto("/#/caregiver/alerts");
   await expect(
     page.getByText(

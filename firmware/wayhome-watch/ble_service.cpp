@@ -107,6 +107,7 @@ class WatchStateCallbacks : public NimBLECharacteristicCallbacks {
         uint8_t stop = value[2] & 0x0f;
         watch.remoteLandmark = stop < BUILTIN_LANDMARK_COUNT ? stop : UINT8_MAX;
         watch.remoteTurn = (value[2] >> 4) & 0x03;
+        watch.remoteContact = (value[2] >> 6) & 0x03;
       }
       size_t nameOffset = value.size() >= 3 ? 3 : 2;
       if (value.size() > nameOffset) {
