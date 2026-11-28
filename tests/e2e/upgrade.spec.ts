@@ -26,7 +26,9 @@ test("home screen offers four large actions plus SOS", async ({ page }) => {
   await w.getByRole("button", { name: "Let's talk", exact: true }).click();
   // Talk listens by itself (no typing): the wearer just asks.
   await sayToMomo(page, "Who is my family?");
-  await expect(w.getByText("Jamie Chen is one tap away.")).toBeVisible();
+  await expect(
+    w.getByText("Call Jamie Chen anytime.", { exact: true }),
+  ).toBeVisible();
 });
 
 test("demo moments drive both devices and SOS disables unsafe moments", async ({
