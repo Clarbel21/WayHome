@@ -47,7 +47,7 @@ Device name **`Sprout Watch`**. Service and characteristic UUIDs must match
 | Wear motion | `5a9c1f2e-4a05-4c31-9a48-d1b7f30e6c21` | `uint8`: 0 unknown, 1 yes, 2 no | read, notify |
 | Attachment | `5a9c1f2e-4a06-4c31-9a48-d1b7f30e6c21` | string `wristwatch\|pendant\|clip` | read, write, notify |
 | Companion command | `5a9c1f2e-4a07-4c31-9a48-d1b7f30e6c21` | byte0: web→watch `0x01` show check-in; watch→web `0x02` "I'm okay", `0x03` "I'd like some help", `0x04` assistance (byte1: 0 home, 1 family, 2 confused), `0x05` back, `0x06` "Help me home", `0x07` "I see it" / walked a step (byte1: new step 0–6), `0x08` "Not yet", `0x09` "I see it now", `0x0A` "I know my way" | read, write, notify |
-| Watch state mirror | `5a9c1f2e-4a08-4c31-9a48-d1b7f30e6c21` | byte0: web watch screen (0 home, 1 check-in question, 2 help options, 3 guided route, 4 emergency, 5 acknowledged, 6 other, 7 "Not yet" during guidance); byte1: route position 0–6; byte2: current landmark stop 0–3 (255 = no built-in photo); bytes 3+: `Wearer|Companion` first names (ASCII, ≤ 17 bytes) for the "Hi Amy! I'm Momo." greeting | read, write |
+| Watch state mirror | `5a9c1f2e-4a08-4c31-9a48-d1b7f30e6c21` | byte0: web watch screen (0 home, 1 check-in question, 2 help options, 3 guided route, 4 emergency, 5 acknowledged, 6 other, 7 "Not yet" during guidance, 8 watch taken off); byte1: route position 0–6; byte2: landmark stop in bits 0–3 (0–3 select a built-in photo), turn in bits 4–5 (0 straight, 1 left, 2 right); bytes 3+: `Wearer\|Companion` first names (ASCII, ≤ 17 bytes) for the "Hi Amy! I'm Momo." greeting | read, write |
 | *(service)* | `5a9c1f2e-4a01-4c31-9a48-d1b7f30e6c21` | — | — |
 
 All payloads fit the default 20-byte ATT payload: 3 header bytes + 17 name bytes.
@@ -63,7 +63,7 @@ The four built-in photos are compiled into flash as 360x200 RGB565 LVGL images i
 `landmark_images.cpp` (~144 KB each, ~576 KB total). The stop byte selects them in
 `initialLandmarks` order from `src/store.ts`:
 
-| Byte2 | Name | Source SVG |
+| Byte2 bits 0–3 | Name | Source SVG |
 |---|---|---|
 | 0 | Community garden | `public/images/garden.svg` |
 | 1 | Neighborhood bakery | `public/images/bakery.svg` |
@@ -73,6 +73,14 @@ The four built-in photos are compiled into flash as 360x200 RGB565 LVGL images i
 Regenerate them after changing an SVG with
 `CHROMIUM_PATH=/path/to/chrome.exe node firmware/tools/make_landmark_images.mjs`.
 Caregiver-uploaded photos are not sent over BLE yet.
+
+### Watch taken off
+
+Screen mirror code 8 shows **Put me on?** and keeps the three-second SOS bar.
+The **Takes it off** demo control supplies simulated wear observations. The
+board reports motion, which does not confirm whether the watch is on a wrist.
+Open this sketch in Arduino IDE, verify and upload it before testing mirror
+code 8 with the matching web build.
 
 ## Pairing with the web app
 

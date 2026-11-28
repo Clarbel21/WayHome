@@ -39,6 +39,7 @@ constexpr int32_t SCREEN_W = 410;
 constexpr int32_t SCREEN_H = 502;
 
 lv_obj_t *scrHome = nullptr;
+lv_obj_t *scrTakenOff = nullptr;
 lv_obj_t *scrRoute = nullptr;
 lv_obj_t *scrCall = nullptr;
 lv_obj_t *scrTalk = nullptr;
@@ -463,6 +464,12 @@ void sos_btn_event_cb(lv_event_t *e) {
 void sos_hold_timer_cb(lv_timer_t *timer) {
   LV_UNUSED(timer);
   if (!sosHolding) return;
+  if (lv_obj_get_parent(sosBtn) != lv_screen_active()) {
+    sosHolding = false;
+    lv_bar_set_value(sosHoldBar, 0, LV_ANIM_OFF);
+    sos_set_holding_visual(false);
+    return;
+  }
   uint32_t held = lv_tick_elaps(sosPressStart);
   if (sosHoldBar != nullptr)
     lv_bar_set_value(sosHoldBar, LV_MIN(held * 100 / SOS_HOLD_MS, 100), LV_ANIM_OFF);
@@ -845,6 +852,12 @@ void build_checkin_screens() {
 
 // Mirror-only screens for web states the watch has no buttons for.
 void build_mirror_screens() {
+  scrTakenOff = new_screen(CREAM);
+  make_sprout_avatar(scrTakenOff, 182, 112);
+  lv_obj_t *wearPrompt = add_label(scrTakenOff, "Put me on?",
+                                   &lv_font_montserrat_26, INK);
+  lv_obj_align(wearPrompt, LV_ALIGN_TOP_MID, 0, 200);
+
   // Acknowledged: wearer answered "I'm okay" but safety checks block NORMAL.
   scrThanks = new_screen(CREAM);
   make_sprout_avatar(scrThanks, 182, 60);
@@ -914,6 +927,14 @@ void sync() {
     }
     // byte2 can change with any mirror write: keep the route photo ready.
     refresh_landmark_widgets();
+    lv_obj_t *sosScreen = code == 8 ? scrTakenOff : scrHome;
+    if (lv_obj_get_parent(sosBtn) != sosScreen) {
+      sosHolding = false;
+      lv_bar_set_value(sosHoldBar, 0, LV_ANIM_OFF);
+      sos_set_holding_visual(false);
+      lv_obj_set_parent(sosBtn, sosScreen);
+      lv_obj_set_pos(sosBtn, 34, 388);
+    }
     if (code != 4) watch.sosActive = false;  // leaving the emergency screen
     switch (code) {
       case 0: load_screen(scrHome); break;
@@ -926,6 +947,7 @@ void sync() {
         break;
       case 5: load_screen(scrThanks); break;
       case 7: load_screen(scrMissed); break;
+      case 8: load_screen(scrTakenOff); break;
       case 6: {
         // Family handover (and other web-only screens) arrive as code 6:
         // keep the wearer on Call / Talk / Game rather than a generic screen.
@@ -957,7 +979,7 @@ void sync() {
   // does on the web — except while an SOS is active, which wins on both ends.
   if (watch.checkInPending) {
     watch.checkInPending = false;
-    if (!watch.sosActive) {
+    if (!watch.sosActive && lv_screen_active() != scrTakenOff) {
       load_screen(scrCheckQ);
     }
   }

@@ -539,6 +539,7 @@ function PhoneToday() {
   const first = wearer.split(" ")[0];
   const isEmergency = s.mode === "EMERGENCY_SIMULATED";
   const offline = !s.connected;
+  const takenOff = s.connected && s.wearStatus === "not_worn";
   const waiting = !!s.familyRequest && s.familyRequest.status !== "responded";
   const findings = evaluateSignals(s.signals);
   const emergency = s.alerts.find(
@@ -553,12 +554,14 @@ function PhoneToday() {
   const tone =
     isEmergency || (zone.active && zone.level >= 3)
       ? "urgent"
-      : s.mode === "NORMAL" && !findings.length && s.connected && !zone.active
+      : s.mode === "NORMAL" && !findings.length && s.connected && !zone.active && !takenOff
         ? "calm"
         : "attention";
   const alerting = tone !== "calm";
   const heading =
-    zone.active && s.mode === "NORMAL"
+    takenOff && !isEmergency
+      ? t("watchTakenOff")
+      : zone.active && s.mode === "NORMAL"
       ? t("zoneOutside")
       : lang === "id"
         ? (statusId[status[s.mode]] ?? status[s.mode])
@@ -570,6 +573,8 @@ function PhoneToday() {
           where:
             shortLocation.charAt(0).toLowerCase() + shortLocation.slice(1),
         })
+      : takenOff
+        ? t("watchTakenOffDetail")
       : zone.active && s.mode !== "GUIDED_RETURN"
         ? t("zoneFor", {
             min: Math.floor(zone.vmin),
@@ -657,7 +662,7 @@ function PhoneToday() {
         >
           <button
             className="button cph-action-primary"
-            disabled={waiting}
+            disabled={waiting || takenOff}
             onClick={sendCheckIn}
           >
             <MessageCircle size={16} />

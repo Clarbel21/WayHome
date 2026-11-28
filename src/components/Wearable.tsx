@@ -337,6 +337,18 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         </div>
       </div>
     );
+  } else if (
+    s.wearStatus === "not_worn" &&
+    !(s.mode === "CHECK_IN" &&
+      (s.checkIn?.stage === "question" || s.checkIn?.stage === "help_options"))
+  ) {
+    screenKey = "watch-taken-off";
+    screen = (
+      <div className="wos-center">
+        <Sprout small />
+        {speech(t("putWatchOn"))}
+      </div>
+    );
   } else if (zoneStep) {
     // Every ladder step owns the watch until the wearer answers it. The
     // chip and the phone ladder carry the same step number; the words stay

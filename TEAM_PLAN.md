@@ -55,19 +55,14 @@ the watch **and** the phone, and the green bar below.
   `firmware/lvgl-config/lv_conf.h`), touch read directly over I2C, Bluetooth logs in the
   Serial Monitor. Still to tick in the smoke test below: each tile, check-in, Not yet → I
   see it now, SOS hold.
-- [ ] **Step 2 — Landmark pictures on the ESP32.** Today the physical watch shows the walk
-  home with text and a progress bar only; the landmark photos appear only on the web watch.
-  Done when: during guided return the ESP32 shows the same landmark photo as the web watch
-  for each stop (big, as on the web), plus the place name and "I see it" / "Not yet".
-  Suggested route: convert the built-in landmark photos to small RGB565 images stored in
-  the board's flash (the 9.9 MB FAT partition or compiled-in LVGL images), and send the
-  current stop number in the watch-state mirror so the watch knows which photo to show.
-  Caregiver-uploaded photos can follow later (sent over Bluetooth in small chunks).
+- [x] **Step 2 — Landmark pictures on the ESP32.** Merged in #19. The watch uses
+  compiled-in photos for the four built-in landmarks. Caregiver-uploaded photos
+  are a follow-up. Landmark update latency is tracked separately in #20.
 - [x] **Step 3 — "Loses signal".** *(22 Nov, Clarine.)* Today the offline watch still shows the caregiver's
   check-in, which it could not have received. Done when: the watch shows an "Offline" screen
   whose Home / Call / SOS still work, and the phone shows "Watch offline · last seen near home"
   with the check-in waiting until the watch reconnects.
-- [ ] **Step 4 — "Takes it off".** Today the phone says "Caregiver Assistance Requested",
+- [ ] **Step 4 — "Takes it off".** *(Codex, step-4-watch-taken-off.)* Today the phone says "Caregiver Assistance Requested",
   but nobody asked for help, and the watch shows a call screen to nobody. Done when: the
   phone says "Watch taken off" and offers Find My, the watch shows a quiet "Put me on?"
   screen, and no family request is created.
