@@ -193,7 +193,7 @@ test("faces quiz fits the small stage and safety takes over mid-round", async ({
   await expectOneFrame(page);
 
   await page.locator(".sos-hold").first().click({ delay: 3300 });
-  await expect(page.getByText("Help request sent — simulation")).toBeVisible();
+  await expect(page.getByText("Help is coming. · Demo").first()).toBeVisible();
   await expect(watch.locator(".wos-game")).toHaveCount(0);
   await expectOneFrame(page);
 });
