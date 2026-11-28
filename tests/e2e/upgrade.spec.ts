@@ -22,9 +22,13 @@ test("home screen offers four large actions plus SOS", async ({ page }) => {
     w.getByRole("button", { name: "SOS Hold for 3 seconds", exact: true }),
   ).toBeVisible();
   await w.getByRole("button", { name: "Let's talk", exact: true }).click();
+  // T1 talk: the wearer asks by voice or typing — the four fixed chips
+  // became free keyword chat, so this walks the typed path.
+  await w.getByRole("button", { name: "Type", exact: true }).click();
   await w
-    .getByRole("button", { name: "Who's my family?", exact: true })
-    .click();
+    .getByRole("textbox", { name: "Type to Momo" })
+    .fill("Who is my family?");
+  await w.getByRole("button", { name: "Send", exact: true }).click();
   await expect(w.getByText("Jamie Chen is one tap away.")).toBeVisible();
 });
 

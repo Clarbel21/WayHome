@@ -67,8 +67,11 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
   The phone shows the incoming call and can answer (demo, no real call). Web + ESP32.
 
 **Talk — talk with Momo**
-- [ ] **T1 — Momo's character + chat.** Momo's face on screen, talks back by voice
+- [x] **T1 — Momo's character + chat.** Momo's face on screen, talks back by voice
   (browser speech in/out, typed fallback). Short, kind replies; no medical advice.
+  *(22 Nov, ZCode — step-t1-momo-chat. The four fixed chips became free keyword chat:
+  the wearer speaks or types, Momo answers with the same lines; mic/type/send labels
+  are inline EN+ID until they get i18n keys.)*
 - [ ] **T2 — Guide me home by voice.** Saying "take me home" starts H1.
 
 **Game — memory game**
