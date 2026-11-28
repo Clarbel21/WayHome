@@ -1909,6 +1909,15 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-call-avatar {
   font-size: 17px;
   flex: none;
 }
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  img.wos-call-avatar {
+  display: block;
+  object-fit: cover;
+  background: #fff;
+}
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-call-name {
   flex: 1;
   text-align: left;

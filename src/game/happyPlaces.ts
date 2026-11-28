@@ -1,3 +1,4 @@
+import type { GameCardEdit } from "../store";
 import type { PhotoQuizCard, PhotoQuizDeck } from "./PhotoQuiz";
 import type { GameTranslator } from "./translator";
 
@@ -52,17 +53,22 @@ const PLACES: readonly Place[] = [
   },
 ];
 
-export function happyPlacesQuizDeck(t: GameTranslator): PhotoQuizDeck {
+export function happyPlacesQuizDeck(
+  t: GameTranslator,
+  edits: Record<string, GameCardEdit> = {},
+): PhotoQuizDeck {
   const cards: PhotoQuizCard[] = PLACES.map((place, i) => {
     const next = PLACES[(i + 1) % PLACES.length];
     const answer = t(place.name);
     const distractor = t(next.name);
+    const edit = edits[place.id] ?? {};
     return {
       id: place.id,
       photo: place.photo,
+      photoId: edit.photoId,
       answer,
       choices: i % 2 === 0 ? [answer, distractor] : [distractor, answer],
-      memory: t(place.memory),
+      memory: edit.memoryLine || t(place.memory),
     };
   });
 

@@ -188,6 +188,34 @@ export interface FamilyContact {
   relation: string;
   /** Soft tile colour for the face circle (watch + phone). */
   color: string;
+  /** G4: caregiver-written line shown after a Faces answer. */
+  memoryLine?: string;
+  /** G4: IndexedDB media id for an uploaded portrait. */
+  photoId?: string;
+}
+/** G4: one caregiver-written card override. Empty fields fall back to the built-in set. */
+export interface GameCardEdit {
+  memoryLine?: string;
+  photoId?: string;
+}
+export interface GameEdits {
+  /** G1 landmarks: garden, bakery, library, home. */
+  places: Record<string, GameCardEdit>;
+  /** G3 happy places: beach, bench, market, kitchen. */
+  happyPlaces: Record<string, GameCardEdit>;
+}
+export const emptyGameEdits = (): GameEdits => ({
+  places: {},
+  happyPlaces: {},
+});
+/** Watch lines stay short enough for one calm screen (≤ 8 words, ≤ 64 chars). */
+export function validWatchLine(line: string) {
+  const clean = line.trim();
+  return (
+    clean.length > 0 &&
+    clean.length <= 64 &&
+    clean.split(/\s+/).filter(Boolean).length <= 8
+  );
 }
 // Order matters: the ESP32 compiles the same three names in this order
 // (firmware/wayhome-watch/watch_ui.cpp CALL_CONTACTS), indexed by 0x0B.
@@ -231,6 +259,24 @@ interface State {
   closeDemo: () => void;
   dismissAcknowledgment: () => void;
   familyContacts: FamilyContact[];
+  /** G4: caregiver edits to Game cards, persisted with the main store. */
+  gameEdits: GameEdits;
+  /** G4: edit one of the three fixed Call/Faces people. */
+  updateFamilyContact: (
+    id: string,
+    patch: {
+      name?: string;
+      relation?: string;
+      memoryLine?: string;
+      photoId?: string | null;
+    },
+  ) => boolean;
+  /** G4: edit a G1 or G3 card's memory line and optional photo. */
+  updateGameCard: (
+    group: keyof GameEdits,
+    id: string,
+    patch: { memoryLine?: string; photoId?: string | null },
+  ) => boolean;
   /** Call → pick a face → ask that person (same path as "Call family"). */
   callContact: (contactId: string) => void;
   /** Call lane C2: the caregiver phone answers the ringing call (demo). */
@@ -329,6 +375,7 @@ function landmarkUpdate(s: State, landmarks: Landmark[]): Partial<State> {
 }
 const defaults = () => ({
   familyContacts: initialFamily,
+  gameEdits: emptyGameEdits(),
   guidanceActive: false,
   checkIn: null as CheckIn | null,
   checkInHistory: [] as CheckIn[],
@@ -1362,6 +1409,87 @@ export const useStore = create<State>()(
             s.landmarks.filter((l) => l.id !== id),
           ),
         ),
+      updateFamilyContact: (id, patch) => {
+        const s = get();
+        const person = s.familyContacts.find((c) => c.id === id);
+        if (!person) return false;
+        const name = (patch.name ?? person.name).trim();
+        const relation = (patch.relation ?? person.relation).trim();
+        const memoryLine =
+          patch.memoryLine === undefined
+            ? person.memoryLine
+            : patch.memoryLine.trim();
+        if (!name || name.length > 24 || !relation || relation.length > 32)
+          return false;
+        if (
+          memoryLine !== undefined &&
+          memoryLine !== "" &&
+          !validWatchLine(memoryLine)
+        )
+          return false;
+        if (
+          s.familyContacts.some(
+            (c) =>
+              c.id !== id && c.name.trim().toLowerCase() === name.toLowerCase(),
+          )
+        )
+          return false;
+        const next: FamilyContact = {
+          ...person,
+          name,
+          relation,
+          ...(memoryLine === undefined
+            ? {}
+            : memoryLine === ""
+              ? { memoryLine: undefined }
+              : { memoryLine }),
+          ...(patch.photoId === undefined
+            ? {}
+            : patch.photoId === null
+              ? { photoId: undefined }
+              : { photoId: patch.photoId }),
+        };
+        set({
+          familyContacts: s.familyContacts.map((c) =>
+            c.id === id ? next : c,
+          ),
+        });
+        return true;
+      },
+      updateGameCard: (group, id, patch) => {
+        const s = get();
+        const known =
+          group === "places"
+            ? ["garden", "bakery", "library", "home"].includes(id)
+            : group === "happyPlaces"
+              ? ["beach", "bench", "market", "kitchen"].includes(id)
+              : false;
+        if (
+          !known ||
+          (patch.memoryLine !== undefined &&
+            patch.memoryLine.trim() !== "" &&
+            !validWatchLine(patch.memoryLine))
+        )
+          return false;
+        const current = s.gameEdits[group][id] ?? {};
+        const next: GameCardEdit = { ...current };
+        if (patch.memoryLine !== undefined) {
+          const line = patch.memoryLine.trim();
+          if (line) next.memoryLine = line;
+          else delete next.memoryLine;
+        }
+        if (patch.photoId !== undefined) {
+          if (patch.photoId === null) delete next.photoId;
+          else next.photoId = patch.photoId;
+        }
+        set({
+          gameEdits: {
+            ...s.gameEdits,
+            [group]: { ...s.gameEdits[group], [id]: next },
+          },
+        });
+        return true;
+      },
       settingsUpdate: (patch) =>
         set((s) => ({ settings: { ...s.settings, ...patch } })),
       setExperienceMode: (mode, source = "caregiver") =>
@@ -1422,6 +1550,16 @@ export const useStore = create<State>()(
               ? { ...a, emergency: { ...a.emergency, incidentId: incident.id } }
               : a,
           ),
+          gameEdits: {
+            places: {
+              ...current.gameEdits.places,
+              ...(saved.gameEdits?.places ?? {}),
+            },
+            happyPlaces: {
+              ...current.gameEdits.happyPlaces,
+              ...(saved.gameEdits?.happyPlaces ?? {}),
+            },
+          },
           wearInputs: saved?.wearInputs ?? { ...unknownInputs },
           wearStatus: saved?.wearInputs
             ? inferWear(

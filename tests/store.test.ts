@@ -206,6 +206,91 @@ describe("emergency priority and personalization", () => {
   });
 });
 
+describe("G4 caregiver edits", () => {
+  it("edits the three fixed family contacts without changing BLE order", () => {
+    const s = useStore.getState();
+    expect(
+      s.updateFamilyContact("jamie", {
+        name: "Jules",
+        relation: "Oldest daughter",
+        memoryLine: "We bake cakes together.",
+        photoId: "portrait-1",
+      }),
+    ).toBe(true);
+    const contacts = useStore.getState().familyContacts;
+    expect(contacts.map((c) => c.id)).toEqual(["jamie", "sam", "mei"]);
+    expect(contacts[0]).toMatchObject({
+      name: "Jules",
+      relation: "Oldest daughter",
+      memoryLine: "We bake cakes together.",
+      photoId: "portrait-1",
+    });
+    expect(contacts[1].name).toBe("Sam");
+  });
+
+  it("rejects blank, long, duplicate or rambling watch lines", () => {
+    const s = useStore.getState();
+    expect(s.updateFamilyContact("sam", { name: "  " })).toBe(false);
+    expect(s.updateFamilyContact("sam", { relation: "" })).toBe(false);
+    expect(s.updateFamilyContact("sam", { name: "Mei" })).toBe(false);
+    expect(
+      s.updateFamilyContact("sam", {
+        memoryLine: "one two three four five six seven eight nine",
+      }),
+    ).toBe(false);
+    expect(
+      s.updateFamilyContact("sam", {
+        name: "Samuel",
+        memoryLine: "We fish by the river.",
+      }),
+    ).toBe(true);
+    expect(useStore.getState().familyContacts[1].name).toBe("Samuel");
+  });
+
+  it("stores place and happy-place overrides and can clear them", () => {
+    const s = useStore.getState();
+    expect(
+      s.updateGameCard("places", "bakery", {
+        memoryLine: "She loved the muffins.",
+        photoId: "bakery-photo",
+      }),
+    ).toBe(true);
+    expect(
+      s.updateGameCard("happyPlaces", "beach", {
+        memoryLine: "We watched the sunset.",
+      }),
+    ).toBe(true);
+    expect(useStore.getState().gameEdits.places.bakery).toEqual({
+      memoryLine: "She loved the muffins.",
+      photoId: "bakery-photo",
+    });
+    expect(useStore.getState().gameEdits.happyPlaces.beach.memoryLine).toBe(
+      "We watched the sunset.",
+    );
+    expect(
+      s.updateGameCard("places", "bakery", {
+        memoryLine: "",
+        photoId: null,
+      }),
+    ).toBe(true);
+    expect(useStore.getState().gameEdits.places.bakery).toEqual({});
+    expect(s.updateGameCard("places", "unknown", { memoryLine: "Hi" })).toBe(
+      false,
+    );
+  });
+
+  it("restores legacy state with empty game edits", () => {
+    const merge = useStore.persist.getOptions().merge!;
+    const restored = merge(
+      { familyContacts: [{ id: "jamie", name: "Jules", relation: "Daughter", color: "#fff" }] },
+      useStore.getInitialState(),
+    );
+    expect(restored.gameEdits.places).toEqual({});
+    expect(restored.gameEdits.happyPlaces).toEqual({});
+    expect(restored.familyContacts[0].name).toBe("Jules");
+  });
+});
+
 describe("backToHome wearer exit", () => {
   it("cancels a waiting family request and restores the home screen", () => {
     const s = useStore.getState();

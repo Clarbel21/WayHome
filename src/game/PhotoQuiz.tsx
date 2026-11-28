@@ -9,8 +9,10 @@ import { Photo } from "../components/Photo";
  */
 export interface PhotoQuizCard {
   id: string;
-  /** Built-in photo path or a caregiver-supplied media URL. */
+  /** Built-in drawing used until a caregiver upload is ready. */
   photo: string;
+  /** G4: IndexedDB id of an uploaded photo, if the caregiver supplied one. */
+  photoId?: string;
   /** The name the wearer should learn; shown in the gentle feedback line. */
   answer: string;
   /** Exactly two big name choices, answer included. */
@@ -83,7 +85,11 @@ export function PhotoQuiz({
           {deck.round(index + 1, deck.cards.length)}
         </span>
         <div className="wos-game-photo">
-          <Photo src={card.photo} alt={deck.photoAlt} />
+          <Photo
+            src={card.photo}
+            alt={deck.photoAlt}
+            mediaId={card.photoId}
+          />
         </div>
         <p
           className={`wos-game-result${
@@ -123,7 +129,7 @@ export function PhotoQuiz({
         {deck.round(index + 1, deck.cards.length)}
       </span>
       <div className="wos-game-photo">
-        <Photo src={card.photo} alt={deck.photoAlt} />
+        <Photo src={card.photo} alt={deck.photoAlt} mediaId={card.photoId} />
       </div>
       <p className="wos-game-prompt">{deck.prompt}</p>
       <div className="wos-game-choices">

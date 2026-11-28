@@ -7,6 +7,7 @@ import {
   Journeys,
 } from "../care/Tools";
 import { Landmarks } from "../care/Landmarks";
+import { FamilyMemories } from "../care/FamilyMemories";
 import {
   CaregiverMemoryLibrary,
   MemoryActivityHistory,
@@ -74,6 +75,7 @@ type PhoneView =
   | "today"
   | "updates"
   | "contacts"
+  | "family"
   | "policy"
   | "landmarks"
   | "library"
@@ -122,6 +124,12 @@ export function CaregiverPhone() {
       label: "Contacts",
       detail: "Your trusted circle",
       icon: Users,
+    },
+    {
+      id: "family",
+      label: t("careFamilyTitle"),
+      detail: t("careFamilyDetail"),
+      icon: Heart,
     },
     {
       id: "policy",
@@ -253,6 +261,8 @@ export function CaregiverPhone() {
               </header>
               {view === "contacts" ? (
                 <Contacts />
+              ) : view === "family" ? (
+                <FamilyMemories />
               ) : view === "policy" ? (
                 <SafetyPolicy />
               ) : view === "landmarks" ? (
