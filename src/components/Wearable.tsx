@@ -79,6 +79,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   // (nobody speaking, Momo not talking) returns home to save battery.
   const [talkActivity, setTalkActivity] = useState(0);
   const recRef = useRef<any>(null);
+  const handoverRef = useRef({ go: false });
   const prevMode = useRef(s.mode);
   useEffect(() => {
     if (s.mode !== "NORMAL") {
@@ -367,6 +368,31 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const handleWearerLine = (said: string) => {
     const line = said.trim().slice(0, 60);
     if (!line) return;
+    // T2: "take me home" starts the guided walk (H1). Momo confirms out
+    // loud, then hands over to the guidance screen once she has spoken —
+    // the voice toggle (Care tools) makes the handover instant.
+    if (
+      /(take me home|go home|want to go home|pulang|antar saya pulang)/i.test(
+        line,
+      )
+    ) {
+      const reply = lang === "id" ? "Oke, ayo pulang." : "Okay, let's go home.";
+      setChat({ you: line, momo: reply });
+      setTalkActivity(Date.now());
+      // Voice on: hand over once the line has been spoken. Voice muted:
+      // keep the confirmation readable for a moment, then start the walk.
+      handoverRef.current.go = true;
+      const startWalk = () => {
+        if (!handoverRef.current.go) return;
+        s.chooseAssistance("home");
+      };
+      if ("speechSynthesis" in window && s.settings.voice) {
+        speakOut(reply, startWalk);
+      } else {
+        window.setTimeout(startWalk, 1200);
+      }
+      return;
+    }
     const reply = momoReply(line);
     setChat({ you: line, momo: reply });
     setTalkActivity(Date.now());
@@ -394,6 +420,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     }
   }
   const closeTalk = () => {
+    handoverRef.current.go = false;
     stopListening();
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     setChat({ you: null, momo: null });
