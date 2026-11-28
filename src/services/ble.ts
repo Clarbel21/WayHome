@@ -40,6 +40,7 @@ const CMD_GO_HOME = 0x06; // watch → web: "Help me home" pressed
 const CMD_LANDMARK_STEP = 0x07; // watch → web, byte1: new step index 0–6
 const CMD_LANDMARK_MISSED = 0x08; // watch → web: "Not yet" (landmark not seen)
 const CMD_LANDMARK_SEEN_NOW = 0x09; // watch → web: "I see it now"
+const CMD_KNOW_MY_WAY = 0x0a; // watch → web: "I know my way" (end guidance)
 const ASSISTANCE_CHOICES = ["home", "family", "confused"] as const;
 
 // Built-in landmark photos compiled into the ESP32, in initialLandmarks order.
@@ -171,6 +172,8 @@ export function companionEvent(value: DataView): DeviceEvent | null {
       return { type: "landmark_missed" };
     case CMD_LANDMARK_SEEN_NOW:
       return { type: "landmark_seen_now" };
+    case CMD_KNOW_MY_WAY:
+      return { type: "know_my_way" };
     case CMD_LANDMARK_STEP: {
       if (value.byteLength < 2) return null;
       const step = value.getUint8(1);
