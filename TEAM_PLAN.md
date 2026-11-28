@@ -87,9 +87,11 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
   *(WorkBuddy #35; ESP32 copy by Claude with the built-in photos.)*
 - [x] **G2 — Familiar faces.** Show a family photo, pick the name. *(WorkBuddy #40; ESP32
   copy by Claude: "Which game?" Places / Faces with the same drawings.)*
-- [ ] **G3 — My happy places.** Places with memories, with a short line from the family.
+- [x] **G3 — My happy places.** Places with memories, with a short line from the family.
+  *(WorkBuddy #46.)* Every Game card now shows a short memory under the answer
+  ("Your favourite bakery. You love their muffins."). Web + ESP32.
 - Caregiver adds the photos for G1–G3 on the phone (Care tools).
-- **ESP32 flash is at 75 %.** Fine for now. Only if a new step no longer fits (G3, real
+- **ESP32 flash is at 83 %.** Fine for now. Only if a new step no longer fits (G3, real
   family photos, call recordings), add SD-card support: the board has a micro-SD slot,
   so pictures/sounds load from `wayhome/` on the card with the built-in ones as fallback.
 

@@ -30,6 +30,13 @@ export type GameTranslator = (
     | "gameMemoryBeach"
     | "gameMemoryBench"
     | "gameMemoryMarket"
-    | "gameMemoryKitchen",
+    | "gameMemoryKitchen"
+    | "gameMemoryGarden"
+    | "gameMemoryBakery"
+    | "gameMemoryLibrary"
+    | "gameMemoryHome"
+    | "gameMemoryJamie"
+    | "gameMemorySam"
+    | "gameMemoryMei",
   vars?: Record<string, string | number>,
 ) => string;
