@@ -78,6 +78,13 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
 - [ ] **G3 — My happy places.** Places with memories, with a short line from the family.
 - Caregiver adds the photos for G1–G3 on the phone (Care tools).
 
+**SOS — hold 3 seconds** (stays on every screen)
+- [ ] **S1 — SOS asks the caregiver "Call the police?"** After an SOS hold, the phone's
+  Today card shows the nearest police station (same simulated list as H2: name, distance)
+  with **Call police** and **Not now**. Call → "Calling … (demo, no real call)" and the
+  alert log records it. The watch stays on "Help is coming." Reuse the existing simulated
+  police notification in `EmergencyAssistance.tsx`; never imply real dispatch. Do after H2.
+
 **ESP32 parity (firmware lane)** — after each web step merges, copy it to the physical
 watch and add its Bluetooth command/screen code to `src/services/ble.ts` and
 `firmware/wayhome-watch/README.md`.
