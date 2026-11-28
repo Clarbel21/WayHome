@@ -11,13 +11,13 @@ import {
   MessageCircle,
   Phone,
   ShieldAlert,
+  SlidersHorizontal,
   WifiOff,
   ChevronLeft,
   ChevronRight,
   Mic,
   HandHelping,
   MapPin,
-  SlidersHorizontal,
   ArrowUp,
   CornerUpRight,
   CornerUpLeft,
@@ -1236,21 +1236,8 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             {screen}
           </div>
           <div className="wos-footer">
-            {/* Settings live on the four-button home only: safety screens and
-                activity screens keep the whole footer row for the SOS bar. */}
-            {s.mode === "NORMAL" &&
-              !watchUi.memories &&
-              !watchUi.game &&
-              !showModePicker &&
-              screenKey === "home" && (
-                <button
-                  className="wos-mode-button"
-                  onClick={() => setShowModePicker(true)}
-                >
-                  <SlidersHorizontal size={14} />
-                  {t("modeButton", { mode: experienceModeLabel })}
-                </button>
-              )}
+            {/* No mode button on the watch: the caregiver sets Normal / Focus /
+                Dialogue from the phone, so the wearer only sees the 4 buttons. */}
             {s.guidanceActive &&
               s.mode !== "GUIDED_RETURN" &&
               s.mode !== "EMERGENCY_SIMULATED" && (
