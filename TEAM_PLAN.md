@@ -84,9 +84,12 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
 **Game — memory game**
 - [x] **G1 — Familiar landmarks.** Show a photo, pick its name from 2 big choices.
   *(WorkBuddy #35; ESP32 copy by Claude with the built-in photos.)*
-- [ ] **G2 — Familiar faces.** Show a family photo, pick the name.
+- [x] **G2 — Familiar faces.** Show a family photo, pick the name. *(WorkBuddy #40; ESP32
+  copy by Claude: "Which game?" Places / Faces with the same drawings.)*
 - [ ] **G3 — My happy places.** Places with memories, with a short line from the family.
 - Caregiver adds the photos for G1–G3 on the phone (Care tools).
+- **ESP32 flash is at 75 %.** New pictures (G3, real family photos) go on the 9.9 MB FAT
+  partition and are read at run time, not compiled into the firmware.
 
 **SOS — hold 3 seconds** (stays on every screen)
 - [x] **S1 — SOS asks the caregiver "Call the police?"** *(Codex #36; ESP32 shows "Help is
