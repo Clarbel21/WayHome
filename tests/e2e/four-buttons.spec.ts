@@ -85,11 +85,15 @@ const call: Step[] = [
   },
 ];
 const talk: Step[] = [
-  { name: "listening", enter: press("Let's talk"), ready: show("Listening…") },
+  {
+    name: "opening question",
+    enter: press("Let's talk"),
+    ready: show("Hi! Want to chat with me?"),
+  },
   {
     name: "location reply",
     enter: hear("where am I"),
-    ready: show("I can guide you home."),
+    ready: show("Near home · Demo"),
   },
   {
     name: "home confirmation",
@@ -219,7 +223,11 @@ test("Talk answers, hands over to Home, and returns on Back or silence", async (
   await visit(page, talk.slice(0, 1));
   await page.clock.runFor(6999);
   await expect(talk[0].ready(page)).toBeVisible();
+  // First quiet spell: one gentle check, still on Talk.
   await page.clock.runFor(1);
+  await expect(show("Are you still there?")(page)).toBeVisible();
+  // Second quiet spell: back home.
+  await page.clock.runFor(7000);
   await expect(home(page)).toBeVisible();
 });
 

@@ -86,9 +86,12 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
   once; quiet again → home. ESP32: same question and buttons (byte0 bit 7 = outside the
   zone); on-chip speech recognition is a later step. *(ZCode #38, Claude)*
 - [x] **T2 — Guide me home by voice.** Saying "take me home" starts H1. *(22 Nov, ZCode — step-t2-home-by-voice. Also "go home", "I want to go home" and Indonesian "pulang" / "antar saya pulang"; Momo answers “Okay, let’s go home.” and the walk starts after she says it.)*
-- [ ] **T3 — Call by voice + a few more answers.** "Call Jamie" / "call my daughter" →
+- [x] **T3 — Call by voice + a few more answers.** "Call Jamie" / "call my daughter" →
   Call lane (C2 ringing). Momo also answers "what time is it?", "what day is it?",
   "where am I?" (simulated, near home) in ≤ 8 words. Still hands-free, 7 s timeout.
+  *(24 Nov, ZCode — step-t3-call-by-voice. Name and relation matching over the
+  caregiver's family list (Jamie / daughter, Sam / son, Mei / sister); where-am-I
+  answers “Near home · Demo”.)*
 
 **Game — memory game**
 - [x] **G1 — Familiar landmarks.** Show a photo, pick its name from 2 big choices.

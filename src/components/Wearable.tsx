@@ -202,11 +202,12 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       ? approved.find((stop) => stop.id === s.missedLandmark?.id)
       : undefined;
   const name = s.settings.companionName;
-  const watchMessage = s.mode === "EMERGENCY_SIMULATED"
-    ? t("sosHelpComing")
-    : missedStop
-      ? t("familyIsHelping")
-      : modeMessage(lang, s.mode, name);
+  const watchMessage =
+    s.mode === "EMERGENCY_SIMULATED"
+      ? t("sosHelpComing")
+      : missedStop
+        ? t("familyIsHelping")
+        : modeMessage(lang, s.mode, name);
   // The person being called: the face the wearer picked, else the caregiver.
   const caregiver = requestContact(s)?.name ?? s.settings.caregiver;
   const experienceMode = s.settings.experienceMode;
@@ -364,7 +365,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const momoReply = (said: string): string => {
     const q = said.toLowerCase();
     const has = (...words: string[]) => words.some((w) => q.includes(w));
-    if (has("where", "di mana", "dimana")) return t("talkWhereReply");
+    if (has("where", "di mana", "dimana")) return `${t("nearHome")} · Demo`;
     if (has("who", "family", "keluarga", "siapa"))
       return t("talkWhoReply", { caregiver });
     if (has("comfort", "tenang", "takut", "ragu", "pelan"))
@@ -377,6 +378,11 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     const line = said.trim().slice(0, 60);
     if (!line) return;
     setTalkNudged(false);
+    const answer = (reply: string) => {
+      setChat({ you: line, momo: reply });
+      setTalkActivity(Date.now());
+      speakOut(reply, startListening);
+    };
     // T2: "take me home" starts the guided walk (H1). Momo confirms out
     // loud, then hands over to the guidance screen once she has spoken —
     // the voice toggle (Care tools) makes the handover instant.
@@ -401,6 +407,49 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       } else {
         window.setTimeout(startWalk, 1200);
       }
+      return;
+    }
+    // T3: "call Jamie" / "call my daughter" → the call lane (C2 ringing).
+    const said2 = line.toLowerCase();
+    if (/\bcall\b/.test(said2)) {
+      const contact = s.familyContacts.find((c) => {
+        const name = c.name.toLowerCase();
+        const relation = c.relation.toLowerCase();
+        return (
+          said2.includes(name) ||
+          said2.includes(`my ${relation}`) ||
+          said2.includes(relation)
+        );
+      });
+      if (contact) {
+        const reply =
+          lang === "id"
+            ? `Menghubungi ${contact.name}.`
+            : `Calling ${contact.name}.`;
+        setChat({ you: line, momo: reply });
+        setTalkActivity(Date.now());
+        speakOut(reply);
+        s.callContact(contact.id);
+        return;
+      }
+    }
+    // T3: the clock and the day — real, short, no advice.
+    if (/(what time|time is it)/.test(said2)) {
+      const now = new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      answer(lang === "id" ? `Sekarang jam ${now}.` : `It's ${now}.`);
+      return;
+    }
+    if (/(what day|day is it)/.test(said2)) {
+      const day = new Date().toLocaleDateString(
+        lang === "id" ? "id-ID" : "en-US",
+        {
+          weekday: "long",
+        },
+      );
+      answer(lang === "id" ? `Hari ${day}.` : `It's ${day}.`);
       return;
     }
     // The opening question ("Shall I guide you home?" / "Want to chat?").
@@ -458,9 +507,11 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       // "Yes, guide me home" → the guided walk (H1), after Momo confirms.
       const reply = t("talkGoHome");
       setChat({ you: said ?? null, momo: reply });
-      handoverRef.current.go = true;
+      const epoch = ++talkEpoch.current;
       const startWalk = () => {
-        if (handoverRef.current.go) s.chooseAssistance("home");
+        if (talkEpoch.current !== epoch) return;
+        talkEpoch.current++;
+        s.chooseAssistance("home");
       };
       if ("speechSynthesis" in window && s.settings.voice)
         speakOut(reply, startWalk);
@@ -489,7 +540,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     setChat({ you: null, momo: null });
     if (experienceMode === "dialogue") s.chooseAssistance("home");
     else setTalk(null);
-  };  // Opening Talk is like answering a call: Momo greets, then listens.
+  }; // Opening Talk is like answering a call: Momo greets, then listens.
   const talkOpen = s.mode === "NORMAL" && talk !== null;
   const talkFns = useRef({
     startListening,
@@ -540,7 +591,6 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     );
     return () => window.clearTimeout(timer);
   }, [talkOpen, talkActivity, experienceMode, talkNudged]);
-
 
   if (s.mode === "EMERGENCY_SIMULATED") {
     screen = (
