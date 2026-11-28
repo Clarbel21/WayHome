@@ -109,12 +109,17 @@ test("four landmark rounds use gentle words, big choices and one frame", async (
   // Round 1: right answer stays cheerful, without saying "wrong" anywhere.
   await quiz.getByRole("button", { name: /^garden$/i }).click();
   await expect(quiz).toHaveAttribute("data-result", "right");
-  await expect(quiz.locator(".wos-game-result")).toHaveText(
+  await expect(quiz.locator(".wos-game-result")).toContainText(
     "Yes! That's the garden.",
   );
   expect((await quiz.innerText()).toLowerCase()).not.toContain("wrong");
   await expectBigAndTappable(page);
   await expectOneFrame(page);
+
+  // A short memory sits under the answer (like G3).
+  await expect(quiz.locator(".wos-game-memory")).toHaveText(
+    "I grow tomatoes here.",
+  );
 
   // Round 2: the exact happy line for the bakery.
   await quiz.getByRole("button", { name: "Next", exact: true }).click();
@@ -124,7 +129,7 @@ test("four landmark rounds use gentle words, big choices and one frame", async (
     /images\/quiz-bakery\.svg/,
   );
   await quiz.getByRole("button", { name: /^bakery$/i }).click();
-  await expect(quiz.locator(".wos-game-result")).toHaveText(
+  await expect(quiz.locator(".wos-game-result")).toContainText(
     "Yes! That's the bakery.",
   );
   await expectOneFrame(page);
@@ -138,7 +143,7 @@ test("four landmark rounds use gentle words, big choices and one frame", async (
   );
   await quiz.getByRole("button", { name: /^home$/i }).click();
   await expect(quiz).toHaveAttribute("data-result", "gentle");
-  await expect(quiz.locator(".wos-game-result")).toHaveText(
+  await expect(quiz.locator(".wos-game-reply")).toHaveText(
     "That's the library.",
   );
   expect((await quiz.innerText()).toLowerCase()).not.toContain("wrong");
@@ -153,7 +158,7 @@ test("four landmark rounds use gentle words, big choices and one frame", async (
     /images\/quiz-home\.svg/,
   );
   await quiz.getByRole("button", { name: /^home$/i }).click();
-  await expect(quiz.locator(".wos-game-result")).toHaveText(
+  await expect(quiz.locator(".wos-game-result")).toContainText(
     "Yes! That's the home.",
   );
   await quiz.getByRole("button", { name: "Next", exact: true }).click();

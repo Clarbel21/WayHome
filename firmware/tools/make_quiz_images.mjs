@@ -25,6 +25,10 @@ const pictures = [
   "face-jamie",
   "face-sam",
   "face-mei",
+  "place-beach",
+  "place-bench",
+  "place-market",
+  "place-kitchen",
 ];
 
 const browser = await chromium.launch({
@@ -61,7 +65,7 @@ for (const id of pictures) {
     },
     { uri, w: W, h: H },
   );
-  const name = id.replace("-", "_");
+  const name = id.replaceAll("-", "_");
   out.push(`alignas(4) static const uint16_t wh_quiz_${name}_px[${W * H}] = {`);
   for (let i = 0; i < px.length; i += 12)
     out.push(

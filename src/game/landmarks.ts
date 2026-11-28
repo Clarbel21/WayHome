@@ -17,6 +17,13 @@ const BUILT_IN: Record<LandmarkId, string> = {
   home: "/images/quiz-home.svg",
 };
 
+const MEMORY_KEY: Record<LandmarkId, Parameters<GameTranslator>[0]> = {
+  garden: "gameMemoryGarden",
+  bakery: "gameMemoryBakery",
+  library: "gameMemoryLibrary",
+  home: "gameMemoryHome",
+};
+
 const NAME_KEY: Record<LandmarkId, Parameters<GameTranslator>[0]> = {
   garden: "gameNameGarden",
   bakery: "gameNameBakery",
@@ -39,6 +46,8 @@ export function landmarkQuizDeck(t: GameTranslator): PhotoQuizDeck {
       photo: BUILT_IN[id],
       answer,
       choices: i % 2 === 0 ? [answer, distractor] : [distractor, answer],
+      // A short memory under the answer, like G3 ("You love their muffins.").
+      memory: t(MEMORY_KEY[id]),
     };
   });
 
