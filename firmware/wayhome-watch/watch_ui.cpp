@@ -63,9 +63,33 @@ lv_obj_t *sosHoldBar = nullptr;
 lv_obj_t *lblSosTitle = nullptr;
 lv_obj_t *lblSosHint = nullptr;
 
-// Route widgets: photo first, then the place name and three big buttons.
+// Route widgets, laid out like the web watch's guide screen: turn banner,
+// photo, place name, I see it, Not yet | Call, I know my way, SOS.
 lv_obj_t *imgLandmark = nullptr;
 lv_obj_t *lblLandmarkName = nullptr;
+lv_obj_t *lblTurn = nullptr;
+lv_obj_t *lineArrowShaft = nullptr;
+lv_obj_t *lineArrowHead = nullptr;
+lv_obj_t *lblRouteClock = nullptr;
+lv_obj_t *dotRouteBle = nullptr;
+
+// Each SOS bar (home and route) has its own parts; the one being pressed
+// becomes the active set used by the hold timer below.
+struct SosParts {
+  lv_obj_t *btn = nullptr;
+  lv_obj_t *title = nullptr;
+  lv_obj_t *hint = nullptr;
+  lv_obj_t *bar = nullptr;
+};
+SosParts sosHome, sosRoute;
+
+// Turn arrows (40x40 box), like the web's CornerUpLeft / CornerUpRight / ArrowUp.
+const lv_point_precise_t ARROW_LEFT_SHAFT[] = {{32, 35}, {32, 15}, {7, 15}};
+const lv_point_precise_t ARROW_LEFT_HEAD[] = {{16, 6}, {7, 15}, {16, 24}};
+const lv_point_precise_t ARROW_RIGHT_SHAFT[] = {{8, 35}, {8, 15}, {33, 15}};
+const lv_point_precise_t ARROW_RIGHT_HEAD[] = {{24, 6}, {33, 15}, {24, 24}};
+const lv_point_precise_t ARROW_UP_SHAFT[] = {{20, 36}, {20, 6}, {20, 6}};
+const lv_point_precise_t ARROW_UP_HEAD[] = {{10, 16}, {20, 6}, {30, 16}};
 
 // Talk / Game / Call widgets
 lv_obj_t *lblTalkReply = nullptr;
@@ -148,13 +172,22 @@ void refresh_landmark_widgets() {
       lv_obj_add_flag(imgLandmark, LV_OBJ_FLAG_HIDDEN);
     }
   }
-  // Like the web watch: say only the turn; the photo shows where.
   if (lblLandmarkName != nullptr) {
-    const char *text = !known      ? "Look around"
-                       : turn == 1 ? LV_SYMBOL_LEFT "  Turn left"
-                       : turn == 2 ? "Turn right  " LV_SYMBOL_RIGHT
-                                   : LV_SYMBOL_UP "  Go straight";
-    lv_label_set_text(lblLandmarkName, text);
+    lv_label_set_text(lblLandmarkName,
+                      known ? whLandmarkImages[stop].name : "Look around");
+  }
+  if (lblTurn != nullptr) {
+    lv_label_set_text(lblTurn, turn == 1   ? "Turn left"
+                               : turn == 2 ? "Turn right"
+                                           : "Go straight");
+  }
+  if (lineArrowShaft != nullptr && lineArrowHead != nullptr) {
+    lv_line_set_points(lineArrowShaft,
+                       turn == 1 ? ARROW_LEFT_SHAFT
+                       : turn == 2 ? ARROW_RIGHT_SHAFT : ARROW_UP_SHAFT, 3);
+    lv_line_set_points(lineArrowHead,
+                       turn == 1 ? ARROW_LEFT_HEAD
+                       : turn == 2 ? ARROW_RIGHT_HEAD : ARROW_UP_HEAD, 3);
   }
 }
 
@@ -274,14 +307,28 @@ void back_cb(lv_event_t *e) {
 
 void see_it_cb(lv_event_t *e) {
   LV_UNUSED(e);
-  if (watch.gpsProgress < 6) {
-    watch.gpsProgress++;
-    // No gps notify here: guided-return steps on the web must pass its
-    // safety gates, so the web reacts to the companion command instead.
-    ble::syncGpsValue();
-    ble::publishCheckIn(0x07, watch.gpsProgress);
-  }
+  // Always tell the web: after one full walk the position stays at 6, and
+  // skipping the command then made "I see it" dead on the second walk.
+  if (watch.gpsProgress < 6) watch.gpsProgress++;
+  // No gps notify here: guided-return steps on the web must pass its
+  // safety gates, so the web reacts to the companion command instead.
+  ble::syncGpsValue();
+  ble::publishCheckIn(0x07, watch.gpsProgress);
   // The web advances guideIndex and mirrors the next photo back to us.
+}
+
+// "I know my way": end guidance on the web too (it mirrors home back).
+void know_way_cb(lv_event_t *e) {
+  LV_UNUSED(e);
+  ble::publishCheckIn(0x0A, 0);
+  load_screen(scrHome);
+}
+
+void route_call_cb(lv_event_t *e) {
+  LV_UNUSED(e);
+  ble::publishCheckIn(0x04, 1);  // same as the home Call tile
+  if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Waiting...");
+  load_screen(scrCall);
 }
 
 void not_yet_cb(lv_event_t *e) {
@@ -395,6 +442,13 @@ void sos_ok_cb(lv_event_t *e) {
 void sos_btn_event_cb(lv_event_t *e) {
   lv_event_code_t code = lv_event_get_code(e);
   if (code == LV_EVENT_PRESSED) {
+    SosParts *p = (SosParts *)lv_event_get_user_data(e);
+    if (p != nullptr) {
+      sosBtn = p->btn;
+      lblSosTitle = p->title;
+      lblSosHint = p->hint;
+      sosHoldBar = p->bar;
+    }
     sosPressStart = lv_tick_get();
     sosHolding = true;
     sos_set_holding_visual(true);
@@ -425,10 +479,43 @@ void clock_timer_cb(lv_timer_t *timer) {
   // The emoji home (11 Nov) has no weekday label any more: updating a missing
   // label made LVGL halt one second after start-up (screen frozen, no touch).
   if (lblClock) lv_label_set_text(lblClock, hal_clock_text());
+  if (lblRouteClock) lv_label_set_text(lblRouteClock, hal_clock_text());
   if (lblWeekday) lv_label_set_text(lblWeekday, hal_weekday_text());
 }
 
 // ---- Screen construction ----
+
+// SOS hold bar. compact = one row ("SOS  Hold for 3 seconds") like the web
+// guide screen; otherwise two lines like the home screen.
+void make_sos(lv_obj_t *parent, int32_t x, int32_t y, int32_t w, int32_t h,
+              SosParts *p, bool compact) {
+  p->btn = add_button(parent, x, y, w, h, SOS_BG, 18);
+  lv_obj_set_style_border_color(p->btn, lv_color_hex(SOS_BORDER), 0);
+  lv_obj_set_style_border_width(p->btn, 1, 0);
+  lv_obj_set_style_pad_all(p->btn, 0, 0);
+  p->title = add_label(p->btn, "SOS", &lv_font_montserrat_22, SOS_TEXT);
+  p->hint = add_label(p->btn, "Hold for 3 seconds", &lv_font_montserrat_16, SOS_TEXT);
+  p->bar = lv_bar_create(p->btn);
+  lv_obj_set_size(p->bar, 150, 8);
+  if (compact) {
+    lv_obj_align(p->title, LV_ALIGN_LEFT_MID, 50, 0);
+    lv_obj_align(p->hint, LV_ALIGN_LEFT_MID, 120, 0);
+    lv_obj_align(p->bar, LV_ALIGN_LEFT_MID, 120, 0);
+  } else {
+    lv_obj_align(p->title, LV_ALIGN_TOP_MID, 0, 14);
+    lv_obj_align(p->hint, LV_ALIGN_TOP_MID, 0, 48);
+    lv_obj_align(p->bar, LV_ALIGN_TOP_MID, 0, 54);
+  }
+  lv_bar_set_range(p->bar, 0, 100);
+  lv_obj_set_style_bg_color(p->bar, lv_color_hex(SOS_BORDER), 0);  // track
+  lv_obj_set_style_bg_opa(p->bar, LV_OPA_COVER, 0);
+  lv_obj_set_style_bg_color(p->bar, lv_color_hex(SOS_LIVE), LV_PART_INDICATOR);
+  lv_obj_set_style_radius(p->bar, 4, LV_PART_INDICATOR | LV_STATE_DEFAULT);
+  lv_obj_add_flag(p->bar, LV_OBJ_FLAG_HIDDEN);  // shown only while holding
+  lv_obj_add_event_cb(p->btn, sos_btn_event_cb, LV_EVENT_PRESSED, p);
+  lv_obj_add_event_cb(p->btn, sos_btn_event_cb, LV_EVENT_RELEASED, p);
+  lv_obj_add_event_cb(p->btn, sos_btn_event_cb, LV_EVENT_PRESS_LOST, p);
+}
 
 void build_home_screen() {
   scrHome = new_screen(CREAM);
@@ -481,66 +568,92 @@ void build_home_screen() {
   }
 
   // Wide SOS bar (.sos-hold): hold 3 seconds to send, like the web watch.
-  sosBtn = add_button(scrHome, 34, 388, 342, 88, SOS_BG, 18);
-  lv_obj_set_style_border_color(sosBtn, lv_color_hex(SOS_BORDER), 0);
-  lv_obj_set_style_border_width(sosBtn, 1, 0);
-  lblSosTitle = add_label(sosBtn, "SOS", &lv_font_montserrat_22, SOS_TEXT);
-  lv_obj_align(lblSosTitle, LV_ALIGN_TOP_MID, 0, 12);
-  lblSosHint = add_label(sosBtn, "Hold for 3 seconds", &lv_font_montserrat_14, SOS_TEXT);
-  lv_obj_align(lblSosHint, LV_ALIGN_TOP_MID, 0, 42);
-  lv_obj_add_event_cb(sosBtn, sos_btn_event_cb, LV_EVENT_PRESSED, nullptr);
-  lv_obj_add_event_cb(sosBtn, sos_btn_event_cb, LV_EVENT_RELEASED, nullptr);
-  lv_obj_add_event_cb(sosBtn, sos_btn_event_cb, LV_EVENT_PRESS_LOST, nullptr);
-
-  sosHoldBar = lv_bar_create(sosBtn);
-  lv_obj_set_size(sosHoldBar, 160, 8);
-  lv_obj_align(sosHoldBar, LV_ALIGN_BOTTOM_MID, 0, -10);
-  lv_bar_set_range(sosHoldBar, 0, 100);
-  lv_obj_set_style_bg_color(sosHoldBar, lv_color_hex(SOS_BORDER), 0);       // track
-  lv_obj_set_style_bg_opa(sosHoldBar, LV_OPA_COVER, 0);
-  lv_obj_set_style_bg_color(sosHoldBar, lv_color_hex(SOS_LIVE), LV_PART_INDICATOR);
-  lv_obj_set_style_radius(sosHoldBar, 4, LV_PART_INDICATOR | LV_STATE_DEFAULT);
-  lv_obj_add_flag(sosHoldBar, LV_OBJ_FLAG_HIDDEN);
+  make_sos(scrHome, 34, 388, 342, 88, &sosHome, false);
+  sosBtn = sosHome.btn;
+  lblSosTitle = sosHome.title;
+  lblSosHint = sosHome.hint;
+  sosHoldBar = sosHome.bar;
 }
 
 void build_route_screen() {
+  // Same order as the web watch guide screen, fitted to 410x502 with the
+  // edges kept clear of the rounded corners.
   scrRoute = new_screen(CREAM);
+  lv_obj_clear_flag(scrRoute, LV_OBJ_FLAG_SCROLLABLE);
 
-  // One idea per screen: the landmark photo is the largest thing on screen,
-  // just like the web watch's guide screen.
+  lblRouteClock = add_label(scrRoute, "--:--", &lv_font_montserrat_16, INK);
+  lv_obj_align(lblRouteClock, LV_ALIGN_TOP_LEFT, 67, 14);
+  dotRouteBle = lv_obj_create(scrRoute);
+  lv_obj_set_size(dotRouteBle, 11, 11);
+  lv_obj_align(dotRouteBle, LV_ALIGN_TOP_RIGHT, -70, 18);
+  lv_obj_set_style_radius(dotRouteBle, LV_RADIUS_CIRCLE, 0);
+  lv_obj_set_style_bg_color(dotRouteBle, lv_color_hex(0x9aa89b), 0);
+  lv_obj_set_style_border_width(dotRouteBle, 0, 0);
+
+  // Turn banner: dark green, arrow + "Turn left".
+  lv_obj_t *banner = lv_obj_create(scrRoute);
+  lv_obj_set_pos(banner, 30, 40);
+  lv_obj_set_size(banner, 350, 62);
+  lv_obj_set_style_bg_color(banner, lv_color_hex(FOREST), 0);
+  lv_obj_set_style_radius(banner, 18, 0);
+  lv_obj_set_style_border_width(banner, 0, 0);
+  lv_obj_set_style_pad_all(banner, 0, 0);
+  lv_obj_clear_flag(banner, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_clear_flag(banner, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_t *lines[2];
+  for (int i = 0; i < 2; i++) {
+    lines[i] = lv_line_create(banner);
+    lv_obj_set_pos(lines[i], 20, 11);
+    lv_obj_set_style_line_width(lines[i], 5, 0);
+    lv_obj_set_style_line_color(lines[i], lv_color_hex(SURFACE), 0);
+    lv_obj_set_style_line_rounded(lines[i], true, 0);
+  }
+  lineArrowShaft = lines[0];
+  lineArrowHead = lines[1];
+  lv_line_set_points(lineArrowShaft, ARROW_UP_SHAFT, 3);
+  lv_line_set_points(lineArrowHead, ARROW_UP_HEAD, 3);
+  lblTurn = add_label(banner, "Go straight", &lv_font_montserrat_28, SURFACE);
+  lv_obj_align(lblTurn, LV_ALIGN_LEFT_MID, 76, 0);
+
+  // Landmark photo: centre crop of the 360x200 picture, like the web's
+  // wide photo. Square corners: rounded clipping is slow on this board.
   imgLandmark = lv_image_create(scrRoute);
-  lv_obj_set_pos(imgLandmark, 25, 22);
-  lv_obj_set_size(imgLandmark, 360, 200);
-  // No rounded clipping: masking a 360x200 photo every frame is slow.
+  lv_obj_set_pos(imgLandmark, 30, 110);
+  lv_obj_set_size(imgLandmark, 350, 116);
+  lv_image_set_inner_align(imgLandmark, LV_IMAGE_ALIGN_CENTER);
   lv_obj_clear_flag(imgLandmark, LV_OBJ_FLAG_SCROLLABLE);
 
-  // Turn for this stop (byte2 bits 4–5), centred under the photo.
-  lblLandmarkName = add_label(scrRoute, LV_SYMBOL_UP "  Go straight",
-                              &lv_font_montserrat_24, INK);
-  lv_obj_set_width(lblLandmarkName, 360);
+  lblLandmarkName = add_label(scrRoute, "Community garden",
+                              &lv_font_montserrat_22, INK);
+  lv_obj_set_width(lblLandmarkName, 350);
   lv_obj_set_style_text_align(lblLandmarkName, LV_TEXT_ALIGN_CENTER, 0);
-  lv_obj_align(lblLandmarkName, LV_ALIGN_TOP_MID, 0, 234);
+  lv_obj_align(lblLandmarkName, LV_ALIGN_TOP_MID, 0, 230);
 
-  // Three big buttons, primary first (all ≥ 44 px tall).
-  lv_obj_t *see = add_button(scrRoute, 25, 276, 360, 76, FOREST, 18);
-  lv_obj_set_style_bg_grad_color(see, lv_color_hex(FOREST_LIGHT), 0);
-  lv_obj_set_style_bg_grad_dir(see, LV_GRAD_DIR_VER, 0);
-  lv_obj_t *seeText = add_label(see, LV_SYMBOL_OK " I see it",
-                                &lv_font_montserrat_24, SURFACE);
+  lv_obj_t *see = add_button(scrRoute, 30, 260, 350, 62, FOREST, 18);
+  lv_obj_t *seeText = add_label(see, LV_SYMBOL_OK "  I see it",
+                                &lv_font_montserrat_26, SURFACE);
   lv_obj_center(seeText);
   lv_obj_add_event_cb(see, see_it_cb, LV_EVENT_CLICKED, nullptr);
 
   // "Not yet": the web pauses directions and offers "I see it now".
-  lv_obj_t *notYet = add_button(scrRoute, 25, 368, 176, 68, PALE, 14);
-  lv_obj_t *notYetText = add_label(notYet, "Not yet", &lv_font_montserrat_20, FOREST);
+  lv_obj_t *notYet = add_button(scrRoute, 30, 330, 171, 54, PALE, 16);
+  lv_obj_t *notYetText = add_label(notYet, "Not yet", &lv_font_montserrat_22, FOREST);
   lv_obj_center(notYetText);
   lv_obj_add_event_cb(notYet, not_yet_cb, LV_EVENT_CLICKED, nullptr);
 
-  lv_obj_t *back = add_button(scrRoute, 209, 368, 176, 68, PALE, 14);
-  lv_obj_t *backText = add_label(back, LV_SYMBOL_LEFT " Back",
-                                 &lv_font_montserrat_20, FOREST);
-  lv_obj_center(backText);
-  lv_obj_add_event_cb(back, back_cb, LV_EVENT_CLICKED, nullptr);
+  lv_obj_t *call = add_button(scrRoute, 209, 330, 171, 54, PALE, 16);
+  lv_obj_t *callText = add_label(call, LV_SYMBOL_CALL "  Call", &lv_font_montserrat_22, FOREST);
+  lv_obj_center(callText);
+  lv_obj_add_event_cb(call, route_call_cb, LV_EVENT_CLICKED, nullptr);
+
+  lv_obj_t *know = add_button(scrRoute, 30, 392, 350, 46, SURFACE, 16);
+  lv_obj_set_style_border_color(know, lv_color_hex(0xd5dccb), 0);
+  lv_obj_set_style_border_width(know, 2, 0);
+  lv_obj_t *knowText = add_label(know, "I know my way", &lv_font_montserrat_20, FOREST);
+  lv_obj_center(knowText);
+  lv_obj_add_event_cb(know, know_way_cb, LV_EVENT_CLICKED, nullptr);
+
+  make_sos(scrRoute, 42, 446, 326, 46, &sosRoute, true);
 }
 
 // "Not yet" screen (mirror code 7): calm line, "I see it now", Call family.
@@ -880,10 +993,12 @@ void sync() {
 
   if (watch.bleConnected != lastBleConnected) {
     lastBleConnected = watch.bleConnected;
-    if (dotBle != nullptr)
-      lv_obj_set_style_bg_color(dotBle,
-                                lv_color_hex(watch.bleConnected ? OK_GREEN : 0x9aa89b),
-                                0);
+    lv_obj_t *dots[2] = {dotBle, dotRouteBle};
+    for (lv_obj_t *d : dots)
+      if (d != nullptr)
+        lv_obj_set_style_bg_color(d,
+                                  lv_color_hex(watch.bleConnected ? OK_GREEN : 0x9aa89b),
+                                  0);
   }
 }
 
