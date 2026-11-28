@@ -62,28 +62,62 @@ the watch **and** the phone, and the green bar below.
   check-in, which it could not have received. Done when: the watch shows an "Offline" screen
   whose Home / Call / SOS still work, and the phone shows "Watch offline · last seen near home"
   with the check-in waiting until the watch reconnects.
-- [ ] **Step 4 — "Takes it off".** *(Codex, step-4-watch-taken-off.)* Today the phone says "Caregiver Assistance Requested",
+- [x] **Step 4 — "Takes it off".** *(Merged #22. ESP32 code 8.)* Today the phone says "Caregiver Assistance Requested",
   but nobody asked for help, and the watch shows a call screen to nobody. Done when: the
   phone says "Watch taken off" and offers Find My, the watch shows a quiet "Put me on?"
   screen, and no family request is created.
-- [ ] **Step 5 — "+8 min" escalation.** Today the phone escalates to Urgent while the watch
+- [x] **Step 5 — "+8 min" escalation.** *(Merged #28, web + phone; ESP32 → Step 10.)* Today the phone escalates to Urgent while the watch
   stays on "Go home?". Done when: every ladder step also shows on the watch (buzz again →
   "Call family?" → caregiver alerted) and both devices always show the same step.
 - [ ] **Step 6 — "Weak GPS" during a walk.** Done when: during a walk the watch keeps the
   landmark photo, hides the arrow and says "Look for the bakery"; outside a walk it stays a
   calm check-in.
-- [ ] **Step 7 — Happy endings.** Add two moments: "Arrives home" (watch: Welcome home;
+- [x] **Step 7 — Happy endings.** *(Merged #25, web + phone; ESP32 → Step 11.)* Add two moments: "Arrives home" (watch: Welcome home;
   phone: All calm + a short summary) and "Family calls back" (watch: "Jamie replied";
   phone: request done).
 - [ ] **Step 8 — Last long sentences.** Shorten the store messages still shown on the
   watch ("It's okay. I'm here with you.", "Help request sent — simulation") to ≤ 5 words,
   first-person, and copy them to the ESP32 firmware.
-- [ ] **Step 9 — Final check.** A logic review of steps 3–6 (Ilyas), then Clarine runs the
-  whole demo on the web and the physical watch and approves.
+- [x] **Step 2b — Guide home on the ESP32.** *(Merged #23, #26.)* Turn arrow + photo +
+  place name, Not yet works, I see it works on every walk, I know my way (0x0A), less lag.
+- [ ] **Step 10 — Safe-zone ladder on the ESP32.** Today "Walk out of safe zone" shows
+  "One moment, please" on the physical watch. Done when: each ladder step (Go home? → still
+  out → Call family? → caregiver alerted) shows on the ESP32 like the web watch, its buttons
+  work, and both always show the same step. Reserved mirror codes **9–12** (steps 1–4).
+- [ ] **Step 11 — Happy endings + handover on the ESP32.** Done when: "Welcome home",
+  "Jamie replied", the family-request screen and the calm "It's okay" screen all show on
+  the ESP32 instead of "One moment, please". Reserved mirror codes **13–16**. ("Welcome
+  home" is local state in `Wearable.tsx` today; move it into the store so Bluetooth sees it.)
+- [ ] **Step 12 — Lost and can't find the way: nearby police station.** When the wearer
+  doesn't know the way home (Not yet / I don't see it), Momo tells the caregiver the
+  nearest police station (simulated list, no real GPS) and asks "Call the police
+  station?". The phone shows name, distance and a Call button (demo — no real call).
+- [ ] **Step 9 — Final check.** A logic review of steps 3–6 and 10–12 (Ilyas), then Clarine
+  runs the whole demo on the web and the physical watch and approves.
+
+### Later — the full watch (do step by step after Step 9)
+
+The watch keeps **4 main buttons**. ✅ = works today, ⏳ = to do.
+
+1. **Home — guide me home**
+   - ✅ Familiar-landmark photos + turn arrow
+   - ⏳ Voice guidance, e.g. "Do you see the community garden? Go straight."
+   - ⏳ Don't know the way → Momo tells the caregiver the nearest police station and asks
+     whether to call it (Step 12)
+2. **Call**
+   - ⏳ Choose who to call (family list with faces)
+   - ⏳ Calling a family member
+3. **Talk** — talk with Momo by voice
+   - ⏳ Guide me home by voice
+   - ⏳ Just chat, with Momo's character shown on screen
+4. **Game — memory game**
+   - ⏳ Familiar landmarks
+   - ⏳ Familiar faces
+   - ⏳ My happy places (places with memories)
 
 ### Hardware smoke test (step 1; repeat after any firmware change)
 
-✅ touch, ✅ connects. Still to check: pair from **Connect Sprout watch** → 4 home tiles (Home, Call, Talk, Game) → caregiver
+✅ touch, ✅ connects, ✅ guide home (I see it, Not yet → I see it now, two walks in a row). Still to check: pair from **Connect Sprout watch** → 4 home tiles (Home, Call, Talk, Game) → caregiver
 check-in → "I see it" → "Not yet" → "I see it now" → SOS tap (nothing) → SOS hold 3 s (sends once).
 
 ## Files by area (so changes stay small)
@@ -103,7 +137,7 @@ Clarine approves every PR. Logic changes (`store`, `zone`, `services`) also get 
 
 1. Branch `step-<n>-<short-name>` from the latest `main`. No direct pushes to `main`.
 2. One step per PR, with before/after screenshots of the watch **and** the phone.
-3. **Green bar:** `npm test` (129), `npm run build`, full Playwright (92). A PR may not lower it.
+3. **Green bar:** `npm test` (133), `npm run build`, full Playwright (101). A PR may not lower it.
 4. Firmware PRs also compile:
    `arduino-cli compile --fqbn esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB,PSRAM=opi,CDCOnBoot=cdc firmware/wayhome-watch`
 5. Merge order: PR → Ilyas (logic PRs) → Clarine → squash-merge → Pages deploys.
