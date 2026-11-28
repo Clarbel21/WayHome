@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useStore } from "../store";
+import { useStore, requestContact } from "../store";
 
 // One timer for the application, even when several wearable previews are visible.
 export function CheckInRuntime() {
@@ -54,6 +54,14 @@ export function FamilyResponse() {
   return (
     <section className="card settings-card" aria-label="Family request">
       <h2>Family request · simulation</h2>
+      {requestContact(s) && (
+        <p>
+          <strong>
+            Wants to call {requestContact(s)!.name} (
+            {requestContact(s)!.relation})
+          </strong>
+        </p>
+      )}
       <p>
         {new Date(request.requestedAt).toLocaleString()} · {request.status}
       </p>

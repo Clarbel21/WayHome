@@ -1477,3 +1477,58 @@ html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-sos-step {
   color: #6e1e26;
   margin: 0 auto 3px;
 }
+
+/* ---------------------------------------------- call: who to call? (C1) */
+/* Three big faces, one tap each; Back stays visible without scrolling. */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-call-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  min-height: 0;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-call-title {
+  font-size: 17px;
+  text-align: center;
+  color: var(--wh-ink, #172d25);
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-call-faces {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-height: 0;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-call-face {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--wh-pale, #e7ecdc);
+  color: var(--wh-forest, #28483b);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-call-avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: var(--wh-ink, #172d25);
+  font-size: 17px;
+  flex: none;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-call-name {
+  flex: 1;
+  text-align: left;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-call-pick .wos-back {
+  min-height: 44px;
+}

@@ -178,8 +178,25 @@ export interface CheckIn {
   respondedAt?: number;
   unresolvedAt?: number;
 }
+/** People the wearer can call from the watch (Call → pick a face). */
+export interface FamilyContact {
+  id: string;
+  name: string;
+  relation: string;
+  /** Soft tile colour for the face circle (watch + phone). */
+  color: string;
+}
+// Order matters: the ESP32 compiles the same three names in this order
+// (firmware/wayhome-watch/watch_ui.cpp CALL_CONTACTS), indexed by 0x0B.
+export const initialFamily: FamilyContact[] = [
+  { id: "jamie", name: "Jamie", relation: "Daughter", color: "#f3e5d8" },
+  { id: "sam", name: "Sam", relation: "Son", color: "#dcece5" },
+  { id: "mei", name: "Mei", relation: "Sister", color: "#e3e1f4" },
+];
 export interface FamilyRequest {
   id: string;
+  /** Who the wearer chose to call (FamilyContact.id); none = the caregiver. */
+  contactId?: string;
   status: "waiting" | "acknowledged" | "responded";
   requestedAt: number;
   acknowledgedAt?: number;
@@ -208,6 +225,9 @@ interface State {
   backToHome: () => void;
   closeDemo: () => void;
   dismissAcknowledgment: () => void;
+  familyContacts: FamilyContact[];
+  /** Call → pick a face → ask that person (same path as "Call family"). */
+  callContact: (contactId: string) => void;
   checkIn: CheckIn | null;
   checkInHistory: CheckIn[];
   /**
@@ -298,6 +318,7 @@ function landmarkUpdate(s: State, landmarks: Landmark[]): Partial<State> {
   };
 }
 const defaults = () => ({
+  familyContacts: initialFamily,
   guidanceActive: false,
   checkIn: null as CheckIn | null,
   checkInHistory: [] as CheckIn[],
@@ -640,6 +661,14 @@ export const useStore = create<State>()(
               "Simulated caregiver notification — unresolved check-in",
             );
         }
+      },
+      callContact: (contactId) => {
+        const s = get();
+        if (!s.familyContacts.some((c) => c.id === contactId)) return;
+        s.chooseAssistance("family");
+        const req = get().familyRequest;
+        if (req && req.status !== "responded" && !req.contactId)
+          set({ familyRequest: { ...req, contactId } });
       },
       respondFamily: (id, response) => {
         const s = get(),
@@ -1370,3 +1399,12 @@ if (typeof window !== "undefined")
   window.addEventListener("storage", (e) => {
     if (e.key === "wayhome-v1") void useStore.persist.rehydrate();
   });
+
+/** The person the current family request is for (or the first contact). */
+export function requestContact(s: {
+  familyContacts: FamilyContact[];
+  familyRequest: FamilyRequest | null;
+}): FamilyContact | undefined {
+  const id = s.familyRequest?.contactId;
+  return id ? s.familyContacts.find((c) => c.id === id) : undefined;
+}

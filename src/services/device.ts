@@ -14,6 +14,7 @@ export type DeviceEvent =
   | { type: "landmark_missed" }
   | { type: "landmark_seen_now" }
   | { type: "know_my_way" }
+  | { type: "call_contact"; index: number }
   | { type: "connection"; connected: boolean };
 export interface DeviceService {
   readonly mode: "simulated" | "ble";
@@ -56,6 +57,11 @@ export function applyDeviceEvent(e: DeviceEvent) {
   if (e.type === "landmark_seen_now") s.seeItNow();
   // "I know my way" on the physical watch: same as the web guide button.
   if (e.type === "know_my_way") s.backToHome();
+  // Call → face on the physical watch: index into the family list.
+  if (e.type === "call_contact") {
+    const contact = useStore.getState().familyContacts[e.index];
+    if (contact) s.callContact(contact.id);
+  }
   if (e.type === "connection") s.setConnection(e.connected);
 }
 // Default adapter for demos without paired hardware. The watch firmware
