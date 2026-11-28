@@ -4,7 +4,8 @@ import {
   applyDeviceEvent,
 } from "./device";
 import { type Attachment, type Observation, type WearInputs } from "./safety";
-import { useStore } from "../store";
+import { useStore, navigable } from "../store";
+import { planRoute } from "../zone/route";
 
 /**
  * ESP32-S3 BLE adapter for the WayHome "Sprout" watch
@@ -90,20 +91,22 @@ export function watchNames(wearer: string, companion: string) {
 }
 
 /**
- * byte0 screen code, byte1 route position, byte2 current landmark stop,
- * bytes 3+ the names. Three header bytes + 17 name bytes = 20 total.
+ * byte0 screen code, byte1 route position, byte2 = landmark stop (bits 0–3)
+ * + turn (bits 4–5: 0 straight, 1 left, 2 right), bytes 3+ the names.
+ * Three header bytes + 17 name bytes = 20 total.
  */
 export function watchStatePayload(
   code: number,
   position: number,
   landmark: number,
   names: string,
+  turn: number = 0,
 ) {
   const text = new TextEncoder().encode(names).slice(0, 17);
   const payload = new Uint8Array(3 + text.length);
   payload[0] = code;
   payload[1] = position;
-  payload[2] = landmark;
+  payload[2] = (landmark & 0x0f) | ((turn & 0x03) << 4);
   payload.set(text, 3);
   return payload;
 }
@@ -189,6 +192,9 @@ export class BleDevice implements DeviceService {
   // Screen-mirror bookkeeping (see queueWatchState).
   private unsubscribeStore: (() => void) | null = null;
   private stateWriteQueued = false;
+  // A store change that arrived while a write was in flight: send again after.
+  private stateDirty = false;
+  private lastSentTurn = -1;
   private lastSentCode = -1;
   private lastSentPosition = -1;
   private lastSentLandmark = -1;
@@ -265,6 +271,7 @@ export class BleDevice implements DeviceService {
     this.lastSentCode = -1;
     this.lastSentPosition = -1;
     this.lastSentLandmark = -1;
+    this.lastSentTurn = -1;
     this.lastSentNames = "";
     this.unsubscribeStore = useStore.subscribe(() => this.queueWatchState());
     await this.sendWatchState().catch(() => {});
@@ -305,14 +312,26 @@ export class BleDevice implements DeviceService {
    * writes: store bursts produce at most one in-flight write.
    */
   private queueWatchState() {
-    if (this.stateWriteQueued) return;
+    // Never drop a change: one action often updates the store twice in a row
+    // (e.g. "Not yet" sets the mode, then the missed landmark). Dropping the
+    // second update left the watch on the wrong screen.
+    if (this.stateWriteQueued) {
+      this.stateDirty = true;
+      return;
+    }
     this.stateWriteQueued = true;
     void this.sendWatchState().finally(() => {
       this.stateWriteQueued = false;
+      if (this.stateDirty) {
+        this.stateDirty = false;
+        this.queueWatchState();
+      }
     });
   }
 
   private async sendWatchState() {
+    // Let the current burst of store updates finish before reading state.
+    await Promise.resolve();
     const watchState = this.chars.get(WATCH_STATE_UUID);
     if (!this.server || !watchState) return;
     const s = useStore.getState();
@@ -325,7 +344,12 @@ export class BleDevice implements DeviceService {
       Math.min(WATCH_LANDMARK_COUNT - 1, Math.round(s.guideIndex)),
     );
     const names = watchNames(s.settings.wearer, s.settings.companionName);
+    // Same turn the web watch shows ("Turn left" / "Turn right").
+    const legs = s.landmarks.filter(navigable).length;
+    const t = planRoute(legs).turns[s.guideIndex] ?? "straight";
+    const turn = t === "left" ? 1 : t === "right" ? 2 : 0;
     if (
+      turn === this.lastSentTurn &&
       code === this.lastSentCode &&
       position === this.lastSentPosition &&
       landmark === this.lastSentLandmark &&
@@ -335,9 +359,10 @@ export class BleDevice implements DeviceService {
     this.lastSentCode = code;
     this.lastSentPosition = position;
     this.lastSentLandmark = landmark;
+    this.lastSentTurn = turn;
     this.lastSentNames = names;
     await this.gatt(() =>
-      watchState.writeValue(watchStatePayload(code, position, landmark, names)),
+      watchState.writeValue(watchStatePayload(code, position, landmark, names, turn)),
     );
   }
 

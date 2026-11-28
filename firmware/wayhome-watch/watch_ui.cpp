@@ -86,6 +86,7 @@ bool sosHolding = false;
 // Cached state for sync()
 uint8_t lastBattery = UINT8_MAX;
 uint8_t lastLandmark = UINT8_MAX;
+uint8_t lastTurn = UINT8_MAX;
 uint8_t lastAttachment = 255;
 bool lastBleConnected = false;
 
@@ -130,14 +131,17 @@ void trigger_sos() {
 // widget is checked first: a NULL label once froze the watch at start-up.
 void refresh_landmark_widgets() {
   uint8_t stop = watch.remoteLandmark;
-  if (stop != lastLandmark) {
-    lastLandmark = stop;
-    USBSerial.printf("[UI] landmark stop %u\n", stop == UINT8_MAX
-                                                    ? (unsigned)255
-                                                    : (unsigned)stop);
-  }
+  uint8_t turn = watch.remoteTurn;
+  // Only touch the widgets when something changes: re-setting the same
+  // 360x200 photo forces a full redraw on every Bluetooth update (lag).
+  if (stop == lastLandmark && turn == lastTurn) return;
+  bool photoChanged = stop != lastLandmark;
+  lastLandmark = stop;
+  lastTurn = turn;
+  USBSerial.printf("[UI] landmark stop %u, turn %u\n",
+                   stop == UINT8_MAX ? 255u : (unsigned)stop, (unsigned)turn);
   bool known = stop < BUILTIN_LANDMARK_COUNT;
-  if (imgLandmark != nullptr) {
+  if (imgLandmark != nullptr && photoChanged) {
     if (known) {
       lv_image_set_src(imgLandmark, whLandmarkImages[stop].image);
       lv_obj_clear_flag(imgLandmark, LV_OBJ_FLAG_HIDDEN);
@@ -145,9 +149,13 @@ void refresh_landmark_widgets() {
       lv_obj_add_flag(imgLandmark, LV_OBJ_FLAG_HIDDEN);
     }
   }
+  // Like the web watch: say only the turn; the photo shows where.
   if (lblLandmarkName != nullptr) {
-    lv_label_set_text(lblLandmarkName,
-                      known ? whLandmarkImages[stop].name : "Look around");
+    const char *text = !known      ? "Look around"
+                       : turn == 1 ? LV_SYMBOL_LEFT "  Turn left"
+                       : turn == 2 ? "Turn right  " LV_SYMBOL_RIGHT
+                                   : LV_SYMBOL_UP "  Go straight";
+    lv_label_set_text(lblLandmarkName, text);
   }
 }
 
@@ -508,18 +516,17 @@ void build_route_screen() {
   // One idea per screen: the landmark photo is the largest thing on screen,
   // just like the web watch's guide screen.
   imgLandmark = lv_image_create(scrRoute);
-  lv_obj_set_pos(imgLandmark, 25, 18);
+  lv_obj_set_pos(imgLandmark, 25, 22);
   lv_obj_set_size(imgLandmark, 360, 200);
-  lv_obj_set_style_radius(imgLandmark, 14, 0);
-  lv_obj_set_style_clip_corner(imgLandmark, true, 0);
+  // No rounded clipping: masking a 360x200 photo every frame is slow.
   lv_obj_clear_flag(imgLandmark, LV_OBJ_FLAG_SCROLLABLE);
 
-  // Place name from the web stop byte, ≤ 5 words, centred under the photo.
-  lblLandmarkName = add_label(scrRoute, "Community garden",
-                              &lv_font_montserrat_22, INK);
+  // Turn for this stop (byte2 bits 4–5), centred under the photo.
+  lblLandmarkName = add_label(scrRoute, LV_SYMBOL_UP "  Go straight",
+                              &lv_font_montserrat_24, INK);
   lv_obj_set_width(lblLandmarkName, 360);
   lv_obj_set_style_text_align(lblLandmarkName, LV_TEXT_ALIGN_CENTER, 0);
-  lv_obj_align(lblLandmarkName, LV_ALIGN_TOP_MID, 0, 228);
+  lv_obj_align(lblLandmarkName, LV_ALIGN_TOP_MID, 0, 234);
 
   // Three big buttons, primary first (all ≥ 44 px tall).
   lv_obj_t *see = add_button(scrRoute, 25, 276, 360, 76, FOREST, 18);

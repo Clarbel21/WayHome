@@ -103,9 +103,10 @@ class WatchStateCallbacks : public NimBLECharacteristicCallbacks {
         watch.remotePosition = value[1];
       }
       if (value.size() >= 3) {
-        watch.remoteLandmark = value[2] < BUILTIN_LANDMARK_COUNT
-                                   ? value[2]
-                                   : UINT8_MAX;
+        // Low 4 bits = landmark stop, bits 4–5 = turn (see src/services/ble.ts).
+        uint8_t stop = value[2] & 0x0f;
+        watch.remoteLandmark = stop < BUILTIN_LANDMARK_COUNT ? stop : UINT8_MAX;
+        watch.remoteTurn = (value[2] >> 4) & 0x03;
       }
       size_t nameOffset = value.size() >= 3 ? 3 : 2;
       if (value.size() > nameOffset) {
