@@ -45,6 +45,7 @@ lv_obj_t *scrHome = nullptr;
 lv_obj_t *scrTakenOff = nullptr;
 lv_obj_t *scrRoute = nullptr;
 lv_obj_t *scrCall = nullptr;
+lv_obj_t *lblSosLine = nullptr;  // "Help is coming." / "Police are coming." (S2)
 lv_obj_t *scrCallPick = nullptr;  // Call → "Who to call?" (lane C1)
 lv_obj_t *scrCallMissed = nullptr;  // "No answer." → Try next (lane C2)
 lv_obj_t *lblCallTitle = nullptr;
@@ -1147,7 +1148,8 @@ void build_sos_screen() {
   scrSos = new_screen(SOS_LIVE);
 
   // Same words as the web watch after S1: one calm line, then "Demo".
-  lv_obj_t *title = add_label(scrSos, "Help is coming.", &lv_font_montserrat_34, SURFACE);
+  lblSosLine = add_label(scrSos, "Help is coming.", &lv_font_montserrat_34, SURFACE);
+  lv_obj_t *title = lblSosLine;
   lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 150);
 
   lv_obj_t *cap = add_label(scrSos, "Demo", &lv_font_montserrat_18, 0xf3d9db);
@@ -1304,7 +1306,7 @@ void sync() {
       lv_obj_set_parent(sosBtn, sosScreen);
       lv_obj_set_pos(sosBtn, 34, 388);
     }
-    if (code != 4) watch.sosActive = false;  // leaving the emergency screen
+    if (code != 4 && code != 20) watch.sosActive = false;  // leaving the emergency screen
     if (code != 17) audio::ringStop();      // ring only while ringing
     // V1: Momo says the line for a screen once, when the web moves to it.
     static uint8_t lastVoiceCode = 255;
@@ -1322,6 +1324,7 @@ void sync() {
     if (entered) {
       if (code == 1) audio::say("checkin");
       else if (code == 4) audio::say("sos");
+      else if (code == 20) audio::say("police");
       else if (code == 5) audio::say("thanks");
       else if (code == 7) audio::say("not-yet");
       else if (code == 8) audio::say("put-me-on");
@@ -1333,7 +1336,10 @@ void sync() {
       case 2: load_screen(scrCheckH); break;
       case 3: load_screen(scrRoute); break;
       case 4:
+      case 20:  // S2: the caregiver called the police (demo)
         watch.sosActive = true;
+        if (lblSosLine != nullptr)
+          lv_label_set_text(lblSosLine, code == 20 ? "Police are coming." : "Help is coming.");
         load_screen(scrSos);
         break;
       case 5: load_screen(scrThanks); break;
