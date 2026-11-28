@@ -13,8 +13,9 @@ import {
   Route,
   MapPinned,
   FastForward,
+  MessageCircleCheck,
 } from "lucide-react";
-import { useStore } from "../store";
+import { navigable, useStore } from "../store";
 import { useLang, type Lang } from "../i18n";
 import { useZone } from "../zone/store";
 
@@ -167,6 +168,40 @@ export function DemoStage() {
       run: () => s.event("SOS"),
       allowedInSos: true,
       tone: "sos",
+    },
+    {
+      id: "arrives-home",
+      label: { en: "Arrives home", id: "Tiba di rumah" },
+      watch: {
+        en: "The last familiar place is reached. The watch says “Welcome home.” and the phone shows All calm with a short summary.",
+        id: "Tempat terakhir tercapai. Jam mengucap “Selamat datang di rumah.” dan ponsel menampilkan Semua tenang serta ringkasan singkat.",
+      },
+      icon: Home,
+      run: fresh(() => {
+        useStore.getState().chooseAssistance("home");
+        // Complete the real guided-return flow: every "I see it" advances a
+        // stop, and the last one ends the walk with the welcome-home screen.
+        const stops = useStore.getState().landmarks.filter(navigable).length;
+        for (let i = 0; i < stops; i += 1) useStore.getState().nextLandmark();
+      }),
+      needsCalm: true,
+    },
+    {
+      id: "family-reply",
+      label: { en: "Family calls back", id: "Keluarga membalas" },
+      watch: {
+        en: "Jamie answers the family request. The watch shows “Jamie Chen replied.” and the phone marks the request done.",
+        id: "Jamie membalas permintaan keluarga. Jam menampilkan “Jamie Chen sudah membalas.” dan ponsel menandai permintaan selesai.",
+      },
+      icon: MessageCircleCheck,
+      run: fresh(() => {
+        useStore.getState().chooseAssistance("family");
+        const request = useStore.getState().familyRequest;
+        if (!request) return;
+        useStore.getState().respondFamily(request.id, "acknowledge");
+        useStore.getState().respondFamily(request.id, "respond");
+      }),
+      needsCalm: true,
     },
   ];
   return (

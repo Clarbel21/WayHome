@@ -551,10 +551,20 @@ function PhoneToday() {
     zone.distanceM > 0
       ? t("routeLeft", { m: Math.round(zone.distanceM) })
       : t("nearHome");
+  // Happy endings (Step 7): a finished walk and an answered family request
+  // are calm outcomes, not open concerns. Both are derived from store state,
+  // so the phone follows the same flow on every device.
+  const arrivedHome = s.mode === "NORMAL" && s.position === 6;
+  const familyRequestDone = s.familyRequest?.status === "responded";
+  const quiet =
+    (s.mode === "NORMAL" || familyRequestDone) &&
+    !findings.length &&
+    s.connected &&
+    !zone.active;
   const tone =
     isEmergency || (zone.active && zone.level >= 3)
       ? "urgent"
-      : s.mode === "NORMAL" && !findings.length && s.connected && !zone.active && !takenOff
+      : quiet && !takenOff
         ? "calm"
         : "attention";
   const alerting = tone !== "calm";
@@ -563,9 +573,11 @@ function PhoneToday() {
       ? t("watchTakenOff")
       : zone.active && s.mode === "NORMAL"
       ? t("zoneOutside")
-      : lang === "id"
-        ? (statusId[status[s.mode]] ?? status[s.mode])
-        : status[s.mode];
+      : familyRequestDone
+        ? t("requestDoneTitle")
+        : lang === "id"
+          ? (statusId[status[s.mode]] ?? status[s.mode])
+          : status[s.mode];
   const subtitle = isEmergency
     ? t("sosSub")
     : offline
@@ -586,9 +598,13 @@ function PhoneToday() {
             ? t("waitingAnswer", { wearer: first })
             : waiting
               ? t("familySub")
-              : s.mode === "NORMAL" && !findings.length
-                ? t("calmSub")
-                : t("changedSub");
+              : familyRequestDone
+                ? t("familyReplyDone", { caregiver: s.settings.caregiver })
+                : arrivedHome
+                  ? t("arrivedSummary", { wearer: first })
+                  : s.mode === "NORMAL" && !findings.length
+                    ? t("calmSub")
+                    : t("changedSub");
   const sendCheckIn = () => {
     s.event("CHECK");
     // A paired watch shows the same question; the simulated one renders below.
@@ -765,7 +781,7 @@ function PhoneToday() {
         </section>
       ) : (
         <>
-          {!guiding && <ZoneLadder />}
+          {!guiding && !familyRequestDone && <ZoneLadder />}
           {routeActive ? (
             <section className="phone-action-card cph-route">
               <h3>{t("routeLabel")}</h3>
@@ -797,7 +813,9 @@ function PhoneToday() {
           {guiding && <ZoneLadder />}
         </>
       )}
-      <FamilyResponse />
+      {/* A finished family request is reported in the hero; the full
+          response card is only useful while it is waiting for us. */}
+      {!familyRequestDone && <FamilyResponse />}
     </div>
   );
 }
