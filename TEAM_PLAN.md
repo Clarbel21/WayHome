@@ -64,8 +64,13 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
 - [x] **C1 — Choose who to call.** Tap Call → 3 big faces (Jamie, Sam, Mei) → tap one;
   the phone shows "Alex wants to call Sam". Web + ESP32 (BLE 0x0B). Editing the family
   list on the phone and real photos come with G2 (faces).
-- [ ] **C2 — Calling screen.** Ringing → "Jamie answered" / "No answer — try Alex?".
-  The phone shows the incoming call and can answer (demo, no real call). Web + ESP32.
+- [x] **C2 — Calling screen.** Ringing (ring tone on the web and the ESP32 speaker) →
+  phone **Answer** / **Decline** → "Sam replied." or "No answer." → **Try Mei**. Rings out
+  after 25 s. Mirror codes 17–19. Demo, no real call.
+- [ ] **C3 — Recorded call messages.** Record a short message per person; the web plays
+  `public/audio/call-<id>.mp3`, the ESP32 plays `/call-<n>.wav` from flash (hooks are in;
+  add the files + a FAT upload tool). The board has no vibration motor — add a small coin
+  motor on a free pin if we want buzzing.
 
 **Talk — talk with Momo**
 - [ ] **T1 — Momo's character + chat.** Momo's face on screen, talks back by voice
@@ -163,7 +168,7 @@ Clarine approves every PR. Logic changes (`store`, `zone`, `services`) also get 
 
 1. Branch `step-<n>-<short-name>` from the latest `main`. No direct pushes to `main`.
 2. One step per PR, with before/after screenshots of the watch **and** the phone.
-3. **Green bar:** `npm test` (137), `npm run build`, full Playwright (103). A PR may not lower it.
+3. **Green bar:** `npm test` (139), `npm run build`, full Playwright (104). A PR may not lower it.
 4. Firmware PRs also compile:
    `arduino-cli compile --fqbn esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB,PSRAM=opi,CDCOnBoot=cdc firmware/wayhome-watch`
 5. Merge order: PR → Ilyas (logic PRs) → Clarine → squash-merge → Pages deploys.

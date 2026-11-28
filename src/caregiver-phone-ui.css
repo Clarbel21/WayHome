@@ -1196,3 +1196,44 @@
   margin: 0;
   accent-color: var(--cph-forest, #28483b);
 }
+
+/* Call lane C2: incoming call from the watch (demo). */
+.cph-incoming {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  background: #28483b;
+  color: #fffefa;
+}
+.cph-incoming strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: max(11px, calc(var(--pu, 1px) * 15));
+}
+.cph-incoming small {
+  opacity: 0.8;
+}
+.cph-incoming-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.cph-incoming-actions button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.cph-answer {
+  background: #22a06b;
+  color: #fff;
+}
+.cph-decline {
+  background: #fffefa;
+  color: #9f343e;
+}

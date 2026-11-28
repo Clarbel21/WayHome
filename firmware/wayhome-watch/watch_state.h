@@ -47,6 +47,8 @@ struct WatchState {
   volatile uint8_t remoteLandmark = 0;
   // Turn at this stop, from byte2 bits 4–5: 0 straight, 1 left, 2 right.
   volatile uint8_t remoteTurn = 0;
+  // Who the web is calling, from byte2 bits 6–7: 0 none, 1 Jamie, 2 Sam, 3 Mei.
+  volatile uint8_t remoteContact = 0;
   volatile bool watchStatePending = false;
   // Wearer first name from the web (watch_state payload, bytes 3+). The UI
   // greets "Hello, <name>." like the web watch home.

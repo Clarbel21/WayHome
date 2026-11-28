@@ -200,6 +200,8 @@ export interface FamilyRequest {
   id: string;
   /** Who the wearer chose to call (FamilyContact.id); none = the caregiver. */
   contactId?: string;
+  /** Call lane C2: nobody answered (declined or rang out). Try someone else. */
+  missedAt?: number;
   status: "waiting" | "acknowledged" | "responded";
   requestedAt: number;
   acknowledgedAt?: number;
@@ -231,6 +233,10 @@ interface State {
   familyContacts: FamilyContact[];
   /** Call → pick a face → ask that person (same path as "Call family"). */
   callContact: (contactId: string) => void;
+  /** Call lane C2: the caregiver phone answers the ringing call (demo). */
+  answerFamilyCall: () => void;
+  /** Call lane C2: declined on the phone, or no answer after CALL_RING_MS. */
+  missFamilyCall: () => void;
   checkIn: CheckIn | null;
   checkInHistory: CheckIn[];
   /**
@@ -669,10 +675,47 @@ export const useStore = create<State>()(
       callContact: (contactId) => {
         const s = get();
         if (!s.familyContacts.some((c) => c.id === contactId)) return;
+        // "No answer — try Jamie?": a missed call ends; ring the next person.
+        if (s.familyRequest?.missedAt && s.familyRequest.status !== "responded") {
+          set({
+            familyRequest: {
+              id: crypto.randomUUID(),
+              status: "waiting",
+              requestedAt: Date.now(),
+              contactId,
+            },
+          });
+          return;
+        }
         s.chooseAssistance("family");
         const req = get().familyRequest;
         if (req && req.status !== "responded" && !req.contactId)
           set({ familyRequest: { ...req, contactId } });
+      },
+      answerFamilyCall: () => {
+        const req = get().familyRequest;
+        if (!req || req.status === "responded" || req.missedAt) return;
+        if (req.status === "waiting") get().respondFamily(req.id, "acknowledge");
+        get().respondFamily(req.id, "respond");
+      },
+      missFamilyCall: () => {
+        const s = get(),
+          req = s.familyRequest;
+        if (!req || req.status === "responded" || req.missedAt) return;
+        const who = requestContact(s)?.name ?? s.settings.caregiver;
+        set({
+          familyRequest: { ...req, missedAt: Date.now() },
+          alerts: [
+            {
+              id: crypto.randomUUID(),
+              title: `Missed call to ${who} — simulation`,
+              time: Date.now(),
+              read: false,
+              urgent: false,
+            },
+            ...s.alerts,
+          ].slice(0, 100),
+        });
       },
       respondFamily: (id, response) => {
         const s = get(),
@@ -1424,4 +1467,18 @@ export function requestContact(s: {
 }): FamilyContact | undefined {
   const id = s.familyRequest?.contactId;
   return id ? s.familyContacts.find((c) => c.id === id) : undefined;
+}
+
+/** Call lane C2: how long the watch rings before "No answer". */
+export const CALL_RING_MS = 25_000;
+
+/** Who to suggest after a missed call: the next person in the family list. */
+export function nextContact(s: {
+  familyContacts: FamilyContact[];
+  familyRequest: FamilyRequest | null;
+}): FamilyContact | undefined {
+  const list = s.familyContacts;
+  if (!list.length) return undefined;
+  const i = list.findIndex((c) => c.id === s.familyRequest?.contactId);
+  return list[(i + 1) % list.length];
 }
