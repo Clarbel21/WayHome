@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Photo } from "../components/Photo";
 
 /**
- * Reusable watch quiz shell (Game lane). G1 feeds it landmark photos; G2 can
- * feed it family faces and G3 happy places without changing this component.
+ * Reusable watch quiz shell (Game lane). G1 feeds it landmark photos; G2
+ * family faces and G3 happy places reuse it without changing this component.
  * One card is on screen at a time: photo, two name buttons, calm feedback,
  * then a short finish. The shell owns no safety or store logic.
  */
@@ -15,6 +15,8 @@ export interface PhotoQuizCard {
   answer: string;
   /** Exactly two big name choices, answer included. */
   choices: readonly [string, string];
+  /** Optional short family memory, shown under the reply after answering. */
+  memory?: string;
 }
 
 export interface PhotoQuizDeck {
@@ -83,8 +85,18 @@ export function PhotoQuiz({
         <div className="wos-game-photo">
           <Photo src={card.photo} alt={deck.photoAlt} />
         </div>
-        <p className="wos-game-result" role="status">
-          {correct ? deck.right(card.answer) : deck.learn(card.answer)}
+        <p
+          className={`wos-game-result${
+            card.memory ? " wos-game-result-with-memory" : ""
+          }`}
+          role="status"
+        >
+          <span className="wos-game-reply">
+            {correct ? deck.right(card.answer) : deck.learn(card.answer)}
+          </span>
+          {card.memory && (
+            <span className="wos-game-memory">{card.memory}</span>
+          )}
         </p>
         <button
           type="button"

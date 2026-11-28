@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-/** Which activity owns the watch screen. G2/G3 reuse the same game shell. */
+/** Which activity owns the watch screen. G1–G3 reuse the same game shell. */
 export type WatchGameDeck = "landmarks" | "faces" | "places";
 
 /**
@@ -11,7 +11,7 @@ export type WatchGameDeck = "landmarks" | "faces" | "places";
  */
 export const useWatchUi = create<{
   memories: boolean;
-  /** The Game tile first offers a deck choice (Places / Faces, later Happy places). */
+  /** The Game tile first offers a deck choice (Places / Faces / Happy places). */
   gamePicker: boolean;
   game: WatchGameDeck | null;
   openMemories: () => void;

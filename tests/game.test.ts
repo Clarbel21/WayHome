@@ -3,6 +3,7 @@ import { translate } from "../src/i18n";
 import { initialFamily } from "../src/store";
 import { landmarkQuizDeck, type GameTranslator } from "../src/game/landmarks";
 import { familyQuizDeck } from "../src/game/faces";
+import { happyPlacesQuizDeck } from "../src/game/happyPlaces";
 
 const t: GameTranslator = (key, vars) =>
   translate("en", key as Parameters<typeof translate>[1], vars);
@@ -107,5 +108,84 @@ describe("Game lane G2 — familiar faces", () => {
     ].join(" ");
     expect(visible).not.toMatch(/wrong|the (Jamie|Sam|Mei)/i);
     expect(familyQuizDeck(t, initialFamily.slice(0, 1))).toBeNull();
+  });
+});
+
+describe("Game lane G3 — happy places", () => {
+  const happy = happyPlacesQuizDeck(t);
+
+  it("uses four illustrated places with one family memory each", () => {
+    expect(happy.id).toBe("happy-places");
+    expect(happy.cards.map((card) => card.id)).toEqual([
+      "beach",
+      "bench",
+      "market",
+      "kitchen",
+    ]);
+    expect(happy.cards.map((card) => card.photo)).toEqual([
+      "/images/quiz-place-beach.svg",
+      "/images/quiz-place-bench.svg",
+      "/images/quiz-place-market.svg",
+      "/images/quiz-place-kitchen.svg",
+    ]);
+    expect(happy.cards.map((card) => card.memory)).toEqual([
+      "We swam here every summer.",
+      "We sat here and watched the ducks.",
+      "We bought fresh fruit here.",
+      "We cooked together every Sunday.",
+    ]);
+    for (const card of happy.cards)
+      expect(card.memory!.trim().split(/\s+/).length).toBeLessThanOrEqual(8);
+  });
+
+  it("offers two big choices per round and alternates the right side", () => {
+    expect(happy.cards.map((card) => card.answer)).toEqual([
+      "beach",
+      "park bench",
+      "old market",
+      "family kitchen",
+    ]);
+    for (const card of happy.cards) {
+      expect(card.choices).toHaveLength(2);
+      expect(new Set(card.choices).size).toBe(2);
+      expect(card.choices).toContain(card.answer);
+    }
+    expect(happy.cards.map((card) => card.choices[0] === card.answer)).toEqual([
+      true,
+      false,
+      true,
+      false,
+    ]);
+  });
+
+  it("keeps the same gentle replies and never says wrong", () => {
+    expect(happy.prompt).toBe("Which happy place?");
+    expect(happy.photoAlt).toBe("A happy place");
+    expect(happy.round(1, 4)).toBe("Round 1 of 4");
+    expect(happy.right("beach")).toBe("Yes! That's the beach.");
+    expect(happy.learn("old market")).toBe(
+      "That's the old market. Next one?",
+    );
+    expect(happy.next).toBe("Next");
+    expect(happy.finished).toBe("Well done!");
+    expect(happy.back).toBe("Back to home");
+    const visible = [
+      happy.prompt,
+      happy.finished,
+      happy.back,
+      ...happy.cards.flatMap((card) => [
+        card.answer,
+        ...card.choices,
+        card.memory ?? "",
+      ]),
+    ].join(" ");
+    expect(visible).not.toMatch(/wrong/i);
+  });
+
+  it("keeps Indonesian memories short too", () => {
+    const id: GameTranslator = (key, vars) =>
+      translate("id", key as Parameters<typeof translate>[1], vars);
+    for (const card of happyPlacesQuizDeck(id).cards)
+      expect(card.memory!.trim().split(/\s+/).length).toBeLessThanOrEqual(8);
   });
 });
