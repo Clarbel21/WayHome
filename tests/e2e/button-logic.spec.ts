@@ -79,43 +79,19 @@ test("log-only unanswered check-in can be reviewed without getting stuck", async
   ).toBeVisible();
 });
 
-test("removal handover provides a request, response and device recovery path", async ({
+test("removal offers a wear prompt and wearing the watch restores the home screen", async ({
   page,
 }) => {
   await page.goto("/#/demo");
   await page.getByRole("button", { name: /Simulate Wearable Removal/ }).click();
   await page.goto("/#/companion");
-  await page.getByRole("button", { name: "Call family", exact: true }).click();
-  await expect(page.getByText("Waiting…", { exact: true })).toBeVisible();
+  await expect(page.getByText("Put me on?", { exact: true })).toBeVisible();
   await page.goto("/#/caregiver/emergency");
-  await page
-    .getByRole("button", { name: "Acknowledge family request", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Simulate caregiver response", exact: true })
-    .click();
-  await page
-    .getByRole("button", {
-      name: "Review check-in after observations",
-      exact: true,
-    })
-    .click();
   await expect(
-    page
-      .getByText(
-        "Thank you for telling me. Your caregiver still needs to review the safety concern.",
-        { exact: true },
-      )
-      .first(),
-  ).toBeVisible();
+    page.getByRole("button", { name: "Acknowledge family request", exact: true }),
+  ).toHaveCount(0);
   await page
     .getByRole("button", { name: "Simulate likely worn", exact: true })
-    .click();
-  await page
-    .getByRole("button", {
-      name: "Review check-in after observations",
-      exact: true,
-    })
     .click();
   await page.goto("/#/companion");
   await expect(

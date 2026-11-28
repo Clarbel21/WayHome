@@ -40,6 +40,7 @@ const CMD_GO_HOME = 0x06; // watch → web: "Help me home" pressed
 const CMD_LANDMARK_STEP = 0x07; // watch → web, byte1: new step index 0–6
 const CMD_LANDMARK_MISSED = 0x08; // watch → web: "Not yet" (landmark not seen)
 const CMD_LANDMARK_SEEN_NOW = 0x09; // watch → web: "I see it now"
+const CMD_KNOW_MY_WAY = 0x0a; // watch → web: "I know my way" (end guidance)
 const ASSISTANCE_CHOICES = ["home", "family", "confused"] as const;
 
 // Built-in landmark photos compiled into the ESP32, in initialLandmarks order.
@@ -51,13 +52,15 @@ export const WATCH_LANDMARK_COUNT = 4;
  * (byte0 of the watch_state characteristic; firmware watch_ui.cpp applies it):
  * 0 home, 1 check-in question, 2 help options, 3 guided route, 4 emergency,
  * 5 acknowledged, 6 anything else (generic "check the app" screen),
- * 7 "Not yet" during guidance (the watch offers "I see it now").
+ * 7 "Not yet" during guidance, 8 watch taken off.
  */
 export function watchScreenCode(s: {
   mode: string;
   checkIn?: { stage?: string } | null;
   incident?: { stage: string } | null;
   missedLandmark?: unknown;
+  connected?: boolean;
+  wearStatus?: string;
 }): number {
   if (
     s.mode === "EMERGENCY_SIMULATED" ||
@@ -67,8 +70,9 @@ export function watchScreenCode(s: {
   if (s.mode === "CHECK_IN") {
     if (s.checkIn?.stage === "help_options") return 2;
     if (s.checkIn?.stage === "question") return 1;
-    return 5;
   }
+  if (s.connected && s.wearStatus === "not_worn") return 8;
+  if (s.mode === "CHECK_IN") return 5;
   if (s.mode === "GUIDED_RETURN") return 3;
   if (s.mode === "REORIENTATION" && s.missedLandmark) return 7;
   if (s.mode === "NORMAL") return 0;
@@ -168,6 +172,8 @@ export function companionEvent(value: DataView): DeviceEvent | null {
       return { type: "landmark_missed" };
     case CMD_LANDMARK_SEEN_NOW:
       return { type: "landmark_seen_now" };
+    case CMD_KNOW_MY_WAY:
+      return { type: "know_my_way" };
     case CMD_LANDMARK_STEP: {
       if (value.byteLength < 2) return null;
       const step = value.getUint8(1);
@@ -295,6 +301,7 @@ export class BleDevice implements DeviceService {
    * sends a check-in while a real watch is paired. No-op when unpaired.
    */
   async sendCheckInRequest() {
+    if (useStore.getState().wearStatus === "not_worn") return;
     const companion = this.chars.get(COMPANION_UUID);
     if (!this.server || !companion) return;
     await this.gatt(() =>

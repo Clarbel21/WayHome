@@ -39,6 +39,7 @@ struct WatchState {
   // 0 home, 1 check-in question, 2 help options, 3 guided route,
   // 4 emergency, 5 acknowledged, 6 other (check the app), 7 "Not yet"
   // during guidance (offer "I see it now"), 255 none yet.
+  // 8 = watch taken off (quiet prompt and SOS).
   volatile uint8_t remoteScreen = 255;
   volatile uint8_t remotePosition = 0;
   // Current landmark stop (0-3) sent in watch_state byte2, so the route

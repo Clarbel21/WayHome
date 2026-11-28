@@ -13,6 +13,16 @@ const phone = (page: import("@playwright/test").Page) =>
 const moments = (page: import("@playwright/test").Page) =>
   page.getByRole("toolbar", { name: "Demo moments" });
 
+test("taking the watch off shows a wear prompt and keeps Find My available", async ({
+  page,
+}) => {
+  await moments(page).getByRole("button", { name: "Takes it off" }).click();
+  await expect(watch(page).getByText("Put me on?")).toBeVisible();
+  await expect(phone(page).getByRole("heading", { name: "Watch taken off" })).toBeVisible();
+  await phone(page).getByRole("button", { name: "Find My", exact: true }).click();
+  await expect(watch(page).getByRole("button", { name: /stop ringing/i })).toBeVisible();
+});
+
 test("leaving the safe zone buzzes the watch, escalates, then guides home landmark by landmark", async ({
   page,
 }) => {
@@ -40,9 +50,9 @@ test("leaving the safe zone buzzes the watch, escalates, then guides home landma
   await watch(page).getByRole("button", { name: "I'm okay here" }).click();
   await expect(watch(page).getByText("Go home?")).toHaveCount(0);
 
-  // The wearer can still choose to go home from the home screen.
+  // The wearer can still choose to go home from the escalation screen.
   await watch(page)
-    .getByRole("button", { name: "Help me home", exact: true })
+    .getByRole("button", { name: "Yes, go home", exact: true })
     .click();
   await expect(watch(page).getByText("Go straight ahead")).toBeVisible();
   await expect(

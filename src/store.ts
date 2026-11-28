@@ -163,7 +163,7 @@ export function transition(current: Mode, event: Event): Mode {
     HELP: "CAREGIVER_HANDOVER",
     SOS: "EMERGENCY_SIMULATED",
     POLICE: "EMERGENCY_SIMULATED",
-    REMOVE: "CAREGIVER_HANDOVER",
+    REMOVE: current,
     DISCONNECT: current === "NORMAL" ? "CHECK_IN" : current,
   };
   return targets[event];
