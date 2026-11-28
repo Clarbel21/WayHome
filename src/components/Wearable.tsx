@@ -514,67 +514,45 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       ? approved.find((l) => l.id === s.missedLandmark?.id)
       : undefined;
     screenKey = missed ? `missed-${missed.id}` : screenKey;
-    screen = (
+    screen = missed ? (
+      <div className="wos-center wos-calm-screen">
+        {speech(t("familyIsHelping"))}
+        <button
+          className="watch-action wos-primary see-it-now"
+          onClick={s.seeItNow}
+        >
+          <Check size={18} /> {t("seeItNow")}
+        </button>
+        <button
+          className="wos-secondary cancel-guidance"
+          onClick={s.backToHome}
+        >
+          {t("cancelGuidance")}
+        </button>
+      </div>
+    ) : (
       <div className="watch-landmark wos-center wos-calm-screen">
         <div className="wos-breathe" aria-hidden="true">
           <span />
         </div>
         {speech(modeMessage(lang, s.mode, name))}
-        {missed ? (
-          <>
-            <div className="wos-photo small">
-              <LandmarkPhoto landmark={missed} />
-            </div>
-            <strong className="wos-missed-name">{missed.name}</strong>
-            <button
-              className="watch-action wos-primary see-it-now"
-              onClick={s.seeItNow}
-            >
-              <Check size={18} /> {t("seeItNow")}
-            </button>
-            {/* One labelled row instead of an icon-only house: a house
-                reads as "go home" while the wearer is being guided home. */}
-            <div className="wos-row2">
-              <button
-                className="wos-secondary wos-call-mini"
-                aria-label={t("helpFamily")}
-                onClick={() => s.chooseAssistance("family")}
-              >
-                <Phone size={18} aria-hidden="true" />
-                {lang === "id" ? "Telepon" : "Call"}
-              </button>
-              <button
-                className="wos-secondary cancel-guidance"
-                onClick={s.backToHome}
-              >
-                {t("cancelGuidance")}
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <small className="wos-kicker">{t("breathe")}</small>
-            {approved[0] && (
-              <div className="wos-photo small">
-                <LandmarkPhoto landmark={approved[0]} />
-              </div>
-            )}
-            <p>{t("takeTime")}</p>
-            {note}
-            <button
-              className="watch-action wos-primary"
-              onClick={() => s.chooseAssistance("family")}
-            >
-              <Phone size={17} /> {t("helpFamily")}
-            </button>
-            <button
-              className="wos-secondary cancel-guidance"
-              onClick={s.backToHome}
-            >
-              {t("cancelGuidance")}
-            </button>
-          </>
+        <small className="wos-kicker">{t("breathe")}</small>
+        {approved[0] && (
+          <div className="wos-photo small">
+            <LandmarkPhoto landmark={approved[0]} />
+          </div>
         )}
+        <p>{t("takeTime")}</p>
+        {note}
+        <button
+          className="watch-action wos-primary"
+          onClick={() => s.chooseAssistance("family")}
+        >
+          <Phone size={17} /> {t("helpFamily")}
+        </button>
+        <button className="wos-secondary cancel-guidance" onClick={s.backToHome}>
+          {t("cancelGuidance")}
+        </button>
       </div>
     );
   } else if (s.mode === "CAREGIVER_HANDOVER") {
