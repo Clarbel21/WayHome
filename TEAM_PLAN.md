@@ -61,8 +61,9 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
   Go straight." Browser speech on the web watch; a Mute toggle in Care tools.
 
 **Call — call a family member**
-- [ ] **C1 — Choose who to call.** Tap Call → 2–4 big faces with names (from the
-  caregiver's family list on the phone) → tap one. Web + ESP32.
+- [x] **C1 — Choose who to call.** Tap Call → 3 big faces (Jamie, Sam, Mei) → tap one;
+  the phone shows "Alex wants to call Sam". Web + ESP32 (BLE 0x0B). Editing the family
+  list on the phone and real photos come with G2 (faces).
 - [ ] **C2 — Calling screen.** Ringing → "Jamie answered" / "No answer — try Alex?".
   The phone shows the incoming call and can answer (demo, no real call). Web + ESP32.
 
@@ -155,7 +156,7 @@ Clarine approves every PR. Logic changes (`store`, `zone`, `services`) also get 
 
 1. Branch `step-<n>-<short-name>` from the latest `main`. No direct pushes to `main`.
 2. One step per PR, with before/after screenshots of the watch **and** the phone.
-3. **Green bar:** `npm test` (133), `npm run build`, full Playwright (101). A PR may not lower it.
+3. **Green bar:** `npm test` (137), `npm run build`, full Playwright (103). A PR may not lower it.
 4. Firmware PRs also compile:
    `arduino-cli compile --fqbn esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB,PSRAM=opi,CDCOnBoot=cdc firmware/wayhome-watch`
 5. Merge order: PR → Ilyas (logic PRs) → Clarine → squash-merge → Pages deploys.
