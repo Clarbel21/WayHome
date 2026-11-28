@@ -318,7 +318,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         <span className="sr-only">
           {t("sosNotified", { caregiver, emergency: s.settings.emergency })}
         </span>
-        <p className="wos-calm">{t("stayHere")}</p>
+        <p className="wos-calm">{t("sosHelpComing")}</p>
         <small className="wos-honest">{t("sosNoReal")}</small>
         <ResolveSOSButton short />
       </div>

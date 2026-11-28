@@ -62,6 +62,9 @@ export function validCompanionName(value: string): string | null {
     : null;
 }
 export interface EmergencySnapshot {
+  routePosition?: number;
+  policeStation?: string;
+  policePromptDismissed?: boolean;
   wearer: string;
   location: string;
   time: number;
@@ -280,7 +283,8 @@ interface State {
   alerts: Alert[];
   landmarks: Landmark[];
   settings: Settings;
-  event: (event: Event, reason?: string) => void;
+  event: (event: Event, reason?: string, policeStation?: string) => void;
+  dismissSosPolicePrompt: (alertId: string) => void;
   acknowledgeEmergency: (id: string) => void;
   resetEmergency: (note?: string) => void;
   saveCompanionName: (name: string) => boolean;
@@ -704,7 +708,7 @@ export const useStore = create<State>()(
           ].slice(0, 100),
         });
       },
-      event: (event, reason) => {
+      event: (event, reason, policeStation) => {
         const current = get();
         if (
           (current.mode === "EMERGENCY_SIMULATED" ||
@@ -840,7 +844,9 @@ export const useStore = create<State>()(
             {
               id: crypto.randomUUID(),
               title:
-                (["SOS", "POLICE"].includes(event)
+                (event === "POLICE" && policeStation
+                  ? `${titles.POLICE} · ${policeStation}`
+                  : ["SOS", "POLICE"].includes(event)
                   ? titles[event]
                   : reason || titles[event]) +
                 (s.mode === "EMERGENCY_SIMULATED" &&
@@ -862,6 +868,8 @@ export const useStore = create<State>()(
                       incidentId,
                       wearer: s.settings.wearer,
                       location: simulatedLocation(s.position),
+                      routePosition: s.position,
+                      ...(event === "POLICE" && policeStation ? { policeStation } : {}),
                       time: Date.now(),
                       safetyStatus: status.EMERGENCY_SIMULATED,
                       reason:
@@ -881,6 +889,15 @@ export const useStore = create<State>()(
           ].slice(0, 100),
         }));
       },
+      dismissSosPolicePrompt: (alertId) =>
+        set((s) => ({
+          alerts: s.alerts.map((alert) =>
+            alert.id === alertId && alert.emergency?.kind === "sos" &&
+            !alert.emergency.resolvedAt
+              ? { ...alert, emergency: { ...alert.emergency, policePromptDismissed: true } }
+              : alert,
+          ),
+        })),
       acknowledgeEmergency: (id) =>
         set((s) => ({
           alerts: s.alerts.map((a) =>

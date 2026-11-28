@@ -246,6 +246,28 @@
   min-height: 44px;
   padding: 6px 12px;
 }
+.care-phone.cpui .cph-sos-police {
+  margin: 8px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid currentColor;
+  font-size: max(12px, calc(var(--pu) * 13));
+}
+.care-phone.cpui .cph-sos-police-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.care-phone.cpui .cph-sos-police-actions .button {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 5px;
+}
+.care-phone.cpui .cph-emergency.cph-emergency-compact h3,
+.care-phone.cpui .cph-emergency.cph-emergency-compact .phone-timeline {
+  display: none;
+}
 .care-phone.cpui .phone-status.cph-hero .phone-live-dot {
   right: 14px;
   bottom: 14px;
