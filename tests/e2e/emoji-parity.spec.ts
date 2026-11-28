@@ -18,8 +18,9 @@ const holdSos = async (page: import("@playwright/test").Page) => {
 };
 
 test("SOS overrides an open memory activity on the watch", async ({ page }) => {
-  const watch = page.locator(".watch-area .watch");
-  await watch.getByRole("button", { name: "My memories", exact: true }).click();
+  // The Game tile now opens the landmark quiz; the old /memories link still
+  // opens the Memory Garden on the watch, which is what these safety tests use.
+  await page.goto("/#/memories");
   const garden = page.locator(".wos-memories");
   await expect(garden).toBeVisible();
   await garden.getByRole("button", { name: "Let's begin" }).click();
@@ -60,8 +61,9 @@ test("caregiver acknowledgment is receipt only; SOS needs explicit resolution", 
 test("open memory activity survives a reload and still steps aside for safety", async ({
   page,
 }) => {
-  const watch = page.locator(".watch-area .watch");
-  await watch.getByRole("button", { name: "My memories", exact: true }).click();
+  // The Game tile now opens the landmark quiz; the old /memories link still
+  // opens the Memory Garden on the watch, which is what these safety tests use.
+  await page.goto("/#/memories");
   const garden = page.locator(".wos-memories");
   await expect(garden).toBeVisible();
   await garden.getByRole("button", { name: "Let's begin" }).click();

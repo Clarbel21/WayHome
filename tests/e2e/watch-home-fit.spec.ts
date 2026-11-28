@@ -13,12 +13,7 @@ const VIEWPORTS = [
   { width: 880, height: 700 },
 ];
 
-const TILES = [
-  "Help me home",
-  "Call family",
-  "Let's talk",
-  "My memories",
-] as const;
+const TILES = ["Help me home", "Call family", "Let's talk", "Game"] as const;
 
 const watchOf = (page: Page) => page.locator(".watch-area .watch").first();
 
@@ -137,15 +132,12 @@ for (const viewport of VIEWPORTS) {
       watch.getByRole("button", { name: "Help me home", exact: true }),
     ).toBeVisible();
 
-    // Game (Memory Garden): fits, and Close restores the home.
-    await watch
-      .getByRole("button", { name: "My memories", exact: true })
-      .click();
-    await expect(page.locator(".wos-memories")).toBeVisible();
+    // Game (Familiar landmarks): fits, and Back to home restores the home.
+    await watch.getByRole("button", { name: "Game", exact: true }).click();
+    await expect(page.locator(".wos-game-question")).toBeVisible();
     await expectWatchFits(page);
-    await page
-      .locator(".wos-memories")
-      .getByRole("button", { name: "Close", exact: true })
+    await watch
+      .getByRole("button", { name: "Back to home", exact: true })
       .click();
     await expect(
       watch.getByRole("button", { name: "Help me home", exact: true }),

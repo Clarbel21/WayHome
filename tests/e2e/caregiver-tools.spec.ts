@@ -188,15 +188,12 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
     }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Back", exact: true }).click();
-  // Memories open on the watch itself and close back to the watch home.
-  await page.getByRole("button", { name: "My memories", exact: true }).click();
-  await expect(page.locator(".wos-memories")).toBeVisible();
-  await page
-    .locator(".wos-memories")
-    .getByRole("button", { name: "Close", exact: true })
-    .click();
+  // The Game lane opens the landmark quiz and closes back to the watch home.
+  await page.getByRole("button", { name: "Game", exact: true }).click();
+  await expect(page.locator(".wos-game-question")).toBeVisible();
+  await page.getByRole("button", { name: "Back to home", exact: true }).click();
   await expect(page).toHaveURL(/#\/together$/);
-  await expect(page.locator(".wos-memories")).toHaveCount(0);
+  await expect(page.locator(".wos-game-host")).toHaveCount(0);
   await page
     .getByRole("button", { name: "Explore Memories", exact: true })
     .click();
