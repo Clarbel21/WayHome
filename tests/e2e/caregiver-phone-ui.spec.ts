@@ -259,28 +259,6 @@ test("active alerts stand out without making the calm screen alarming", async ({
   ).toHaveCount(0);
 });
 
-test("a wearer mode change still raises the caregiver notification", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  const watch = page.getByRole("region", {
-    name: "A familiar friend.",
-    exact: true,
-  });
-  await watch.getByRole("button", { name: /^Mode ·/ }).click();
-  await watch.getByRole("button", { name: /^Focus/ }).click();
-  await expect(
-    page.locator(".phone-popup-layer .phone-action-popup").first(),
-  ).toBeVisible();
-  await expect(page.locator(".phone-popup-layer")).toContainText(
-    "Changed watch to Focus mode",
-  );
-  await expect(page.locator(".cph-mode-options button").nth(1)).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
-});
-
 test("Today text stays readable and the phone stays on the left", async ({
   page,
 }) => {

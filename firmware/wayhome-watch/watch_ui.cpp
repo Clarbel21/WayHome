@@ -5,6 +5,7 @@
 #include "ble_service.h"
 #include "landmark_images.h"
 #include "quiz_images.h"
+#include "emoji_images.h"
 #include <HWCDC.h>
 
 extern HWCDC USBSerial;  // defined in wayhome-watch.ino
@@ -453,7 +454,7 @@ const char *const FACE_MEMORY[3] = {"Your daughter. She visits every Sunday.",
                                     "Your son. You go fishing together.",
                                     "Your sister. She makes the best dumplings."};
 const char *const HAPPY_MEMORY[4] = {"We swam here every summer.",
-                                     "We sat here and watched the ducks.",
+                                     "We watched ducks here.",
                                      "We bought fresh fruit here.",
                                      "We cooked together every Sunday."};
 lv_obj_t *lblQuizMemory = nullptr;
@@ -543,10 +544,10 @@ void quiz_choice_cb(lv_event_t *e) {
   bool right = quiz_choice_id(quizRound, side) == answer;
   static char line[48];
   if (quizDeck == DECK_FACES)
-    snprintf(line, sizeof(line), right ? "Yes! That's %s." : "That's %s. Next one?",
+    snprintf(line, sizeof(line), right ? "Yes! That's %s." : "That's %s.",
              FACE_NAMES[answer]);
   else
-    snprintf(line, sizeof(line), right ? "Yes! That's the %s." : "That's the %s. Next one?",
+    snprintf(line, sizeof(line), right ? "Yes! That's the %s." : "That's the %s.",
              quizDeck == DECK_PLACES ? PLACE_LOWER[answer] : HAPPY_LOWER[answer]);
   if (lblQuizMemory != nullptr)
     lv_label_set_text(lblQuizMemory, quizDeck == DECK_PLACES ? PLACE_MEMORY[answer]
@@ -702,10 +703,9 @@ void build_home_screen() {
   // Simplified emoji home (TEAM_PLAN v2): 2x2 tiles - Home / Call / Talk /
   // Game - matching the web watch and the sketch in issue #4.
   const char *tileLabels[4] = {"Home", "Call", "Talk", "Game"};
-  const char *tileIcons[4] = {LV_SYMBOL_HOME, LV_SYMBOL_CALL, LV_SYMBOL_ENVELOPE,
-                              LV_SYMBOL_IMAGE};
-  // Icon colours follow the web tiles; labels are dark ink on the light tile.
-  const uint32_t tileIconColors[4] = {FOREST, PEACH_TEXT, LAVENDER_TEXT, MINT_TEXT};
+  // Same emoji as the web watch tiles: 🏠 📞 💬 🎮 (emoji_images.cpp).
+  const lv_image_dsc_t *tileEmoji[4] = {&wh_emoji_home_img, &wh_emoji_call_img,
+                                        &wh_emoji_talk_img, &wh_emoji_game_img};
   for (int i = 0; i < 4; i++) {
     int col = i % 2;
     int row = i / 2;
@@ -713,10 +713,12 @@ void build_home_screen() {
         add_button(scrHome, 22 + col * 188, 64 + row * 160, 178, 148, SURFACE, 16);
     lv_obj_set_style_border_color(tile, lv_color_hex(PALE), 0);
     lv_obj_set_style_border_width(tile, 2, 0);
-    lv_obj_t *icon = add_label(tile, tileIcons[i], &lv_font_montserrat_42, tileIconColors[i]);
-    lv_obj_align(icon, LV_ALIGN_TOP_MID, 0, 26);
+    lv_obj_t *icon = lv_image_create(tile);
+    lv_image_set_src(icon, tileEmoji[i]);
+    lv_obj_clear_flag(icon, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_align(icon, LV_ALIGN_TOP_MID, 0, 10);
     lv_obj_t *text = add_label(tile, tileLabels[i], &lv_font_montserrat_24, INK);
-    lv_obj_align(text, LV_ALIGN_TOP_MID, 0, 92);
+    lv_obj_align(text, LV_ALIGN_TOP_MID, 0, 94);
     lv_obj_add_event_cb(tile, tile_cb, LV_EVENT_CLICKED, (void *)(intptr_t)i);
   }
 
@@ -813,9 +815,10 @@ void build_route_screen() {
 void build_missed_screen() {
   scrMissed = new_screen(CREAM);
   make_sprout_avatar(scrMissed, 182, 50);
-  lv_obj_t *title = add_label(scrMissed, "It's okay.", &lv_font_montserrat_28, INK);
-  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 116);
-  lv_obj_t *hint = add_label(scrMissed, "Look around slowly.", &lv_font_montserrat_22, SAGE_TEXT);
+  // Same as the web after H2 + Step 8: one calm line, then two choices.
+  lv_obj_t *title = add_label(scrMissed, "Your family is helping.", &lv_font_montserrat_26, INK);
+  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 120);
+  lv_obj_t *hint = add_label(scrMissed, "Demo", &lv_font_montserrat_18, MUTED);
   lv_obj_align(hint, LV_ALIGN_TOP_MID, 0, 160);
 
   lv_obj_t *seen = add_button(scrMissed, 35, 220, 340, 80, FOREST, 17);
@@ -825,10 +828,12 @@ void build_missed_screen() {
   lv_obj_center(seenText);
   lv_obj_add_event_cb(seen, seen_now_cb, LV_EVENT_CLICKED, nullptr);
 
-  lv_obj_t *call = add_button(scrMissed, 35, 316, 340, 64, PEACH, 14);
-  lv_obj_t *callText = add_label(call, LV_SYMBOL_CALL " Call family", &lv_font_montserrat_20, PEACH_TEXT);
-  lv_obj_center(callText);
-  lv_obj_add_event_cb(call, missed_call_cb, LV_EVENT_CLICKED, nullptr);
+  lv_obj_t *know = add_button(scrMissed, 35, 316, 340, 64, SURFACE, 14);
+  lv_obj_set_style_border_color(know, lv_color_hex(0xd5dccb), 0);
+  lv_obj_set_style_border_width(know, 2, 0);
+  lv_obj_t *knowText = add_label(know, "I know my way", &lv_font_montserrat_20, FOREST);
+  lv_obj_center(knowText);
+  lv_obj_add_event_cb(know, know_way_cb, LV_EVENT_CLICKED, nullptr);
 }
 
 lv_obj_t *add_back(lv_obj_t *scr) {
@@ -898,7 +903,7 @@ void show_call_state(uint8_t code, uint8_t contact) {
     if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Ringing...");
     audio::ringStart();
   } else {
-    snprintf(title, sizeof(title), "%s answered", who);
+    snprintf(title, sizeof(title), "%s replied", who);
     if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "");
     audio::ringStop();
     if (contact >= 1 && contact <= 3) audio::playRecording(contact - 1);
@@ -912,7 +917,8 @@ void build_call_missed_screen() {
   lv_obj_clear_flag(scrCallMissed, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_t *icon = add_label(scrCallMissed, LV_SYMBOL_CALL, &lv_font_montserrat_42, MUTED);
   lv_obj_align(icon, LV_ALIGN_TOP_MID, 0, 70);
-  add_wrapped(scrCallMissed, "No answer.", &lv_font_montserrat_30, INK, 140);
+  add_wrapped(scrCallMissed, "No answer", &lv_font_montserrat_30, INK, 130);
+  add_wrapped(scrCallMissed, "Demo", &lv_font_montserrat_18, MUTED, 172);
   lv_obj_t *next = add_button(scrCallMissed, 35, 220, 340, 84, FOREST, 18);
   lblTryNext = add_label(next, "Try Jamie", &lv_font_montserrat_28, SURFACE);
   lv_obj_center(lblTryNext);
@@ -959,7 +965,7 @@ void build_call_screen() {
   lv_obj_align(icon, LV_ALIGN_TOP_MID, 0, 70);
   lblCallTitle = add_wrapped(scrCall, "Calling family", &lv_font_montserrat_28, INK, 136);
   lblCallStatus = add_wrapped(scrCall, "Waiting...", &lv_font_montserrat_22, SAGE_TEXT, 186);
-  add_wrapped(scrCall, "Demo - no real call.", &lv_font_montserrat_16, MUTED, 232);
+  add_wrapped(scrCall, "No real call - Demo", &lv_font_montserrat_18, MUTED, 232);
   lv_obj_t *callBack = add_back(scrCall);
   lv_obj_remove_event_cb(callBack, back_cb);
   lv_obj_add_event_cb(callBack, call_back_cb, LV_EVENT_CLICKED, nullptr);
@@ -1126,11 +1132,11 @@ void build_mirror_screens() {
   // Acknowledged: wearer answered "I'm okay" but safety checks block NORMAL.
   scrThanks = new_screen(CREAM);
   make_sprout_avatar(scrThanks, 182, 60);
-  lv_obj_t *tTitle = add_label(scrThanks, "Thank you.",
+  lv_obj_t *tTitle = add_label(scrThanks, "I'm here with you.",
                                &lv_font_montserrat_28, INK);
   lv_obj_align(tTitle, LV_ALIGN_TOP_MID, 0, 124);
   lv_obj_t *tNote = add_label(scrThanks,
-                              "Your caregiver will check.",
+                              "Let's wait for family.",
                               &lv_font_montserrat_20, SAGE_TEXT);
   lv_obj_align(tNote, LV_ALIGN_TOP_MID, 0, 168);
   lv_obj_set_style_text_align(tNote, LV_TEXT_ALIGN_CENTER, 0);

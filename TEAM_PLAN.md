@@ -41,6 +41,9 @@ The watch does five things: **🏠 go home with familiar-landmark photos · 📞
 6. **Minimum sizes:** text 15 px, buttons 44 px. Nothing scrolls; every screen can go back.
 6b. **SOS on every screen** (web and ESP32), always at the bottom.
 6c. **No typing, ever.** Older wearers talk or tap big buttons; no text fields on the watch.
+6d. **English only for now.** New steps don't need Indonesian (`id`) strings; existing ones stay.
+6e. **4 buttons only on the watch home** (Home, Call, Talk, Game) + SOS. No mode button — the
+    caregiver picks Normal / Focus / Dialogue on the phone.
 7. **Same words on both watches** (`src/i18n.ts` → `firmware/watch_ui.cpp`).
 8. **The phone can say more**, but status first and details under Care tools.
 
