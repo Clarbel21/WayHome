@@ -760,11 +760,16 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       </div>
     );
   } else if (s.mode === "CHECK_IN" && !acknowledged) {
+    // The walk's "simulated directions" note belongs to the walk, not to
+    // this question: drop it so one question + two answers always fit.
+    const walkNote = s.interactionNote.startsWith(
+      "These are simulated directions",
+    );
     screen = (
       <div className="wos-center">
         <Sprout small />
         {speech(modeMessage(lang, s.mode, name))}
-        {note}
+        {!walkNote && note}
         <div className="watch-controls wos-answer">
           <button
             className="watch-action wos-yes"
@@ -1005,9 +1010,13 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
                 autoComplete="off"
                 autoFocus
               />
-              <button className="watch-action wos-send" type="submit">
-                <Send size={16} aria-hidden="true" />
-                {lang === "id" ? "Kirim" : "Send"}
+              {/* Icon-only so the field keeps its width on the small watch. */}
+              <button
+                className="watch-action wos-send"
+                type="submit"
+                aria-label={lang === "id" ? "Kirim" : "Send"}
+              >
+                <Send size={20} aria-hidden="true" />
               </button>
             </form>
           ) : (

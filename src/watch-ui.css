@@ -480,6 +480,149 @@ html
   font-size: 15px;
 }
 
+/* ---------------------------------------------- guided return */
+/* The photo, the place name and the "I see it" question are the
+   guidance; the long explanation paragraph repeats what the companion
+   already says aloud (focus mode drops it for the same reason). The
+   recognition question itself is never touched.
+   While walking — with the direction block, and sometimes a status
+   note or the paused-guidance warning, on the same screen — every row
+   is compact so the words can never clip. When a note or warning does
+   join, the photo strip yields its row to it. */
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-guide
+  .wos-photo
+  img {
+  height: 44px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-guide:has(.wos-note)
+  .wos-photo,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-guide:has(.wos-warn)
+  .wos-photo {
+  display: none;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-guide
+  > p:not(.wos-question) {
+  display: none;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-guide
+  .recognition-cue {
+  display: none;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-guide
+  > strong {
+  font-size: 16px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide .wos-question {
+  font-size: 15.5px;
+  line-height: 1.2;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-note,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-warn {
+  font-size: 10.5px;
+  line-height: 1.25;
+  padding: 3px 6px;
+  margin: 2px 0 0;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide-top {
+  margin: 0 0 2px;
+  font-size: 10px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-direction {
+  min-height: 32px;
+  margin-bottom: 2px;
+  padding: 4px 7px;
+  gap: 7px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-direction
+  b {
+  font-size: 14px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-direction
+  small {
+  font-size: 10.5px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="guide-"]
+  .wos-direction
+  svg {
+  width: 18px;
+  height: 18px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide .wos-primary {
+  margin-top: 2px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide .wos-secondary {
+  margin-top: 2px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-guide .wos-row {
+  margin-top: 2px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-guide
+  .wos-row
+  .wos-ghost {
+  min-height: 34px;
+}
+
 /* ---------------------------------------------- reorientation (calm) */
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-breathe {
   width: 44px;
@@ -2230,4 +2373,17 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
   html body .watch-area .watch .watch-screen.wh-screen.wos .sos-hold {
     min-height: 44px;
   }
+}
+
+/* Talk (T1): typed row — the field flexes, Send is a 48px icon button. */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-type-row .wos-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-type-row .wos-send {
+  flex: 0 0 48px;
+  width: 48px;
+  min-width: 48px;
+  padding: 0;
+  justify-content: center;
 }
