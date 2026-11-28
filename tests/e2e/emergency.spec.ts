@@ -79,7 +79,7 @@ test("Buddy persists across modes; police confirmation, acknowledgment and reset
     page.getByText("Simulated police notification", { exact: true }),
   ).toBeVisible();
   await expect(
-    companion.getByText("Help request sent — simulation"),
+    companion.getByText("Help is coming. · Demo"),
   ).toBeVisible();
   await page
     .getByRole("button", { name: "Acknowledge emergency event" })

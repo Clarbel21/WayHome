@@ -181,7 +181,16 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const [now, setNow] = useState(new Date());
   const approved = s.landmarks.filter(navigable);
   const landmark = approved[s.guideIndex];
+  const missedStop =
+    s.mode === "REORIENTATION"
+      ? approved.find((stop) => stop.id === s.missedLandmark?.id)
+      : undefined;
   const name = s.settings.companionName;
+  const watchMessage = s.mode === "EMERGENCY_SIMULATED"
+    ? t("sosHelpComing")
+    : missedStop
+      ? t("familyIsHelping")
+      : modeMessage(lang, s.mode, name);
   // The person being called: the face the wearer picked, else the caregiver.
   const caregiver = requestContact(s)?.name ?? s.settings.caregiver;
   const experienceMode = s.settings.experienceMode;
@@ -231,7 +240,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           ? guidanceBlocked || s.wearStatus !== "likely_worn"
             ? t("guidancePaused")
             : landmark?.spokenCue || landmark?.instruction || t("noLandmarks")
-          : modeMessage(lang, s.mode, name),
+          : watchMessage,
       );
       speech.lang = lang === "id" ? "id-ID" : "en-US";
       window.speechSynthesis.speak(speech);
@@ -241,7 +250,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   }, [
     s.mode,
     s.settings.voice,
-    name,
+    watchMessage,
     lang,
     landmark?.id,
     landmark?.spokenCue,
@@ -305,36 +314,12 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   let screenKey: string = s.mode;
 
   if (s.mode === "EMERGENCY_SIMULATED") {
-    const sos = s.alerts.find((a) => a.emergency && !a.emergency.resolvedAt);
-    const seen = !!sos?.emergency?.acknowledgedAt;
     screen = (
       <div className="wos-sos">
         <div className="wos-sos-icon" aria-hidden="true">
           <ShieldAlert size={30} />
         </div>
-        {z.level >= 4 && (
-          <span className="wos-zone-step wos-sos-step" data-step="4">
-            {t("zoneStepOf", { n: 4 })}
-          </span>
-        )}
-        {speech(modeMessage(lang, s.mode, name))}
-        <ol className="wos-steps" aria-label="SOS progress">
-          <li className="done">
-            <Check size={13} /> {t("stepSent")}
-          </li>
-          <li className={seen ? "done" : "current"}>
-            {seen ? <Check size={13} /> : <span className="dot" />}{" "}
-            {t("stepSeen")}
-          </li>
-        </ol>
-        <p className="wos-sos-who">
-          {seen ? t("sosAcked", { caregiver }) : t("sosWaiting", { caregiver })}
-        </p>
-        <span className="sr-only">
-          {t("sosNotified", { caregiver, emergency: s.settings.emergency })}
-        </span>
-        <p className="wos-calm">{t("stayHere")}</p>
-        <small className="wos-honest">{t("sosNoReal")}</small>
+        {speech(watchMessage)}
         <ResolveSOSButton short />
       </div>
     );
@@ -529,13 +514,11 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       </div>
     );
   } else if (s.mode === "REORIENTATION") {
-    const missed = s.missedLandmark
-      ? approved.find((l) => l.id === s.missedLandmark?.id)
-      : undefined;
+    const missed = missedStop;
     screenKey = missed ? `missed-${missed.id}` : screenKey;
     screen = missed ? (
       <div className="wos-center wos-calm-screen">
-        {speech(t("familyIsHelping"))}
+        {speech(watchMessage)}
         <button
           className="watch-action wos-primary see-it-now"
           onClick={s.seeItNow}
@@ -546,7 +529,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           className="wos-secondary cancel-guidance"
           onClick={s.backToHome}
         >
-          {t("cancelGuidance")}
+          {t("endMissedGuidance")}
         </button>
       </div>
     ) : (

@@ -8,6 +8,27 @@ import { ResolveSOSButton } from "./ResolveSOSButton";
 import { WearableConfiguration } from "./WearableConfiguration";
 import { SafetyScenarios } from "./SafetyScenarios";
 import { Wearable } from "./Wearable";
+
+export function simulatePoliceNotification(
+  reason: string,
+  fromSos?: { alertId: string; station: string },
+) {
+  const state = useStore.getState();
+  if (fromSos) {
+    const latest = state.alerts.find(
+      (alert) => alert.emergency && !alert.emergency.resolvedAt,
+    );
+    if (
+      state.incident?.stage !== "active" ||
+      latest?.id !== fromSos.alertId ||
+      latest.emergency?.kind !== "sos" ||
+      latest.emergency.policePromptDismissed
+    )
+      return;
+  }
+  state.event("POLICE", reason, fromSos?.station);
+}
+
 export function EmergencyAssistance() {
   const s = useStore();
   const [confirmed, setConfirmed] = useState(false);
@@ -235,7 +256,7 @@ export function EmergencyAssistance() {
           onSubmit={(e) => {
             e.preventDefault();
             if (!reason.trim()) return;
-            s.event("POLICE", reason);
+            simulatePoliceNotification(reason);
             close();
           }}
         >

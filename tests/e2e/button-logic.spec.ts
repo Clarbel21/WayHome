@@ -151,7 +151,7 @@ test("SOS ignores right-click and canceled holds; active SOS disables conflictin
   await sos.click({ button: "right" });
   await page.waitForTimeout(3300);
   await expect(
-    page.getByText("Help request sent — simulation", { exact: true }),
+    page.getByText("Help is coming. · Demo", { exact: true }),
   ).toHaveCount(0);
   await page.keyboard.press("Escape");
   await sos.focus();
@@ -161,14 +161,14 @@ test("SOS ignores right-click and canceled holds; active SOS disables conflictin
   await page.keyboard.up("Space");
   await page.waitForTimeout(3300);
   await expect(
-    page.getByText("Help request sent — simulation", { exact: true }),
+    page.getByText("Help is coming. · Demo", { exact: true }),
   ).toHaveCount(0);
   await sos.focus();
   await page.keyboard.down("Space");
   await page.waitForTimeout(3300);
   await page.keyboard.up("Space");
   await expect(
-    page.getByText("Help request sent — simulation", { exact: true }),
+    page.getByText("Help is coming. · Demo", { exact: true }),
   ).toBeVisible();
   await page.goto("/#/caregiver/location");
   await expect(
