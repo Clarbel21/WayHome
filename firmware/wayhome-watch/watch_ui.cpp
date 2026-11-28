@@ -304,12 +304,14 @@ void tile_cb(lv_event_t *e) {
       break;
     case 1:
       // Call → pick a face first, like the web watch (lane C1).
+      audio::say("who-to-call");
       load_screen(scrCallPick);
       break;
     case 2:
       talk_start();
       break;
     default:
+      audio::say("which-game");
       load_screen(scrGamePick);  // "Which game?" Places / Faces
       break;
   }
@@ -433,6 +435,7 @@ void talk_arm_timer() {
         if (!talkNudged) {
           talkNudged = true;
           if (lblTalkReply != nullptr) lv_label_set_text(lblTalkReply, "Are you still there?");
+          audio::say("talk-still-there");
           talk_arm_timer();
         } else {
           USBSerial.println("[UI] talk: quiet -> home");
@@ -468,6 +471,7 @@ void talk_start() {
     lv_label_set_text(lblTalkNo, talkOutside ? "Just chat" : "Not now");
   talk_show_answers(true);
   talk_arm_timer();
+  audio::say(talkOutside ? "talk-ask-guide" : "talk-ask-chat");
   load_screen(scrTalk);
 }
 
@@ -477,6 +481,7 @@ void talk_answer_cb(lv_event_t *e) {
   talkNudged = false;
   USBSerial.printf("[UI] talk answer: %s\n", yes ? "yes" : "no");
   if (talkOutside && yes) {
+    audio::say("go-home");
     // Same as the Home tile: ask the web to start guided return.
     ble::publishCheckIn(0x06, 0);
     refresh_landmark_widgets();
@@ -484,10 +489,12 @@ void talk_answer_cb(lv_event_t *e) {
     return;
   }
   if (!talkOutside && !yes) {
+    audio::say("talk-bye");
     load_screen(scrHome);
     return;
   }
   if (lblTalkReply != nullptr) lv_label_set_text(lblTalkReply, "Lovely! What shall we talk about?");
+  audio::say("talk-chat-start");
   talk_show_answers(false);
   talk_arm_timer();
 }
@@ -617,6 +624,7 @@ void quiz_choice_cb(lv_event_t *e) {
   USBSerial.printf("[UI] quiz deck %u round %u: %s\n", (unsigned)quizDeck,
                    quizRound + 1u, right ? "right" : "gentle");
   if (lblQuizLine != nullptr) lv_label_set_text(lblQuizLine, line);
+  audio::say(right ? "game-right" : "game-gentle");
   for (lv_obj_t *b : btnQuiz)
     if (b != nullptr) lv_obj_add_flag(b, LV_OBJ_FLAG_HIDDEN);
   if (btnQuizNext != nullptr) lv_obj_clear_flag(btnQuizNext, LV_OBJ_FLAG_HIDDEN);
@@ -633,6 +641,7 @@ void game_pick_cb(lv_event_t *e) {
 void quiz_next_cb(lv_event_t *e) {
   LV_UNUSED(e);
   quizRound++;
+  if (quizRound == QUIZ_ROUNDS) audio::say("well-done");
   quiz_show();
 }
 
@@ -920,6 +929,9 @@ void call_pick_cb(lv_event_t *e) {
   int i = (int)(intptr_t)lv_event_get_user_data(e);
   if (i < 0 || i > 2) return;
   USBSerial.printf("[UI] call %s\n", CALL_CONTACTS[i].name);
+  static char voice[20];
+  snprintf(voice, sizeof(voice), "calling-%s", i == 0 ? "jamie" : i == 1 ? "sam" : "mei");
+  audio::say(voice);  // "Calling Sam." — the ring follows right after
   ble::publishCheckIn(0x0B, (uint8_t)i);
   static char title[32];
   snprintf(title, sizeof(title), "Calling %s", CALL_CONTACTS[i].name);
@@ -943,6 +955,10 @@ uint8_t tryNextIndex = 0;
 void try_next_cb(lv_event_t *e) {
   LV_UNUSED(e);
   USBSerial.printf("[UI] try %s\n", CALL_CONTACTS[tryNextIndex].name);
+  static char voice[20];
+  snprintf(voice, sizeof(voice), "calling-%s",
+           tryNextIndex == 0 ? "jamie" : tryNextIndex == 1 ? "sam" : "mei");
+  audio::say(voice);
   ble::publishCheckIn(0x0B, tryNextIndex);
 }
 
@@ -1290,6 +1306,27 @@ void sync() {
     }
     if (code != 4) watch.sosActive = false;  // leaving the emergency screen
     if (code != 17) audio::ringStop();      // ring only while ringing
+    // V1: Momo says the line for a screen once, when the web moves to it.
+    static uint8_t lastVoiceCode = 255;
+    static uint8_t lastSpokenStop = 255;
+    bool entered = code != lastVoiceCode;
+    lastVoiceCode = code;
+    if (code != 3) lastSpokenStop = 255;
+    if (code == 3 && watch.remoteLandmark != lastSpokenStop &&
+        watch.remoteLandmark < BUILTIN_LANDMARK_COUNT) {
+      lastSpokenStop = watch.remoteLandmark;
+      static char line[12];
+      snprintf(line, sizeof(line), "guide-%u", (unsigned)lastSpokenStop);
+      audio::say(line);  // "Do you see the community garden? Go straight."
+    }
+    if (entered) {
+      if (code == 1) audio::say("checkin");
+      else if (code == 4) audio::say("sos");
+      else if (code == 5) audio::say("thanks");
+      else if (code == 7) audio::say("not-yet");
+      else if (code == 8) audio::say("put-me-on");
+      else if (code == 19) audio::say("no-answer");
+    }
     switch (code) {
       case 0: load_screen(scrHome); break;
       case 1: load_screen(scrCheckQ); break;

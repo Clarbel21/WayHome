@@ -11,7 +11,13 @@ void begin();
 // Phone-style ring (two short tones every 3 s) until ringStop().
 void ringStart();
 void ringStop();
-// Answered call: play /call-<index>.wav from the FAT partition if present
-// (16 kHz, 16-bit, mono PCM WAV). Missing file = one short "answered" chime.
+// Answered call: play the person's message — SD card /wayhome/calls/<name>.wav
+// (jamie, sam, mei), else /call-<index>.wav on the FAT partition. 16 kHz,
+// 16-bit, mono PCM WAV. Missing file = one short "answered" chime.
 void playRecording(uint8_t index);
+// V1 — Momo speaks: play /wayhome/voice/<name>.wav from the SD card (made by
+// firmware/voice/make_voice.sh). No card or no file = silent (logged).
+// A new line replaces the one playing; a ring asked for while Momo speaks
+// starts right after her line.
+void say(const char *name);
 }  // namespace audio
