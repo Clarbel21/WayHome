@@ -1,4 +1,5 @@
 #include "watch_ui.h"
+#include "watch_audio.h"
 #include "watch_state.h"
 #include "watch_hal.h"
 #include "ble_service.h"
@@ -43,6 +44,7 @@ lv_obj_t *scrTakenOff = nullptr;
 lv_obj_t *scrRoute = nullptr;
 lv_obj_t *scrCall = nullptr;
 lv_obj_t *scrCallPick = nullptr;  // Call → "Who to call?" (lane C1)
+lv_obj_t *scrCallMissed = nullptr;  // "No answer." → Try next (lane C2)
 lv_obj_t *lblCallTitle = nullptr;
 
 // Same people, order and colours as initialFamily in src/store.ts; the web
@@ -337,7 +339,8 @@ void know_way_cb(lv_event_t *e) {
 void route_call_cb(lv_event_t *e) {
   LV_UNUSED(e);
   ble::publishCheckIn(0x04, 1);  // same as the home Call tile
-  if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Waiting...");
+  if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Ringing...");
+  audio::ringStart();  // ring now; the web confirms with code 17
   load_screen(scrCall);
 }
 
@@ -386,7 +389,8 @@ void checkin_assist_cb(lv_event_t *e) {
   int which = (int)(intptr_t)lv_event_get_user_data(e);
   ble::publishCheckIn(0x04, (uint8_t)which);
   if (which == 1) {
-    if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Waiting...");
+    if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Ringing...");
+    audio::ringStart();  // ring now; the web confirms with code 17
     load_screen(scrCall);
   } else {
     load_screen(scrHome);
@@ -396,7 +400,8 @@ void checkin_assist_cb(lv_event_t *e) {
 void missed_call_cb(lv_event_t *e) {
   LV_UNUSED(e);
   ble::publishCheckIn(0x04, 1);
-  if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Waiting...");
+  if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Ringing...");
+  audio::ringStart();  // ring now; the web confirms with code 17
   load_screen(scrCall);
 }
 
@@ -721,8 +726,68 @@ void call_pick_cb(lv_event_t *e) {
   static char title[32];
   snprintf(title, sizeof(title), "Calling %s", CALL_CONTACTS[i].name);
   if (lblCallTitle != nullptr) lv_label_set_text(lblCallTitle, title);
-  if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Waiting...");
+  if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Ringing...");
+  audio::ringStart();  // ring now; the web confirms with code 17
   load_screen(scrCall);
+}
+
+// Back from a call screen: end the request on the web too (0x0A → backToHome).
+void call_back_cb(lv_event_t *e) {
+  LV_UNUSED(e);
+  audio::ringStop();
+  ble::publishCheckIn(0x0A, 0);
+  load_screen(scrHome);
+}
+
+// "No answer" → "Try <next>": ring the next person in the list.
+lv_obj_t *lblTryNext = nullptr;
+uint8_t tryNextIndex = 0;
+void try_next_cb(lv_event_t *e) {
+  LV_UNUSED(e);
+  USBSerial.printf("[UI] try %s\n", CALL_CONTACTS[tryNextIndex].name);
+  ble::publishCheckIn(0x0B, tryNextIndex);
+}
+
+// Mirror codes 17 ringing, 18 answered, 19 no answer. contact: 1-based.
+void show_call_state(uint8_t code, uint8_t contact) {
+  static char title[32];
+  const char *who = contact >= 1 && contact <= 3 ? CALL_CONTACTS[contact - 1].name
+                                                 : "family";
+  if (code == 19) {
+    audio::ringStop();
+    tryNextIndex = contact >= 1 && contact <= 3 ? contact % 3 : 0;
+    snprintf(title, sizeof(title), "Try %s", CALL_CONTACTS[tryNextIndex].name);
+    if (lblTryNext != nullptr) lv_label_set_text(lblTryNext, title);
+    load_screen(scrCallMissed);
+    return;
+  }
+  if (code == 17) {
+    snprintf(title, sizeof(title), "Calling %s", who);
+    if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Ringing...");
+    audio::ringStart();
+  } else {
+    snprintf(title, sizeof(title), "%s answered", who);
+    if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "");
+    audio::ringStop();
+    if (contact >= 1 && contact <= 3) audio::playRecording(contact - 1);
+  }
+  if (lblCallTitle != nullptr) lv_label_set_text(lblCallTitle, title);
+  if (lv_screen_active() != scrCall) load_screen(scrCall);
+}
+
+void build_call_missed_screen() {
+  scrCallMissed = new_screen(CREAM);
+  lv_obj_clear_flag(scrCallMissed, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_t *icon = add_label(scrCallMissed, LV_SYMBOL_CALL, &lv_font_montserrat_42, MUTED);
+  lv_obj_align(icon, LV_ALIGN_TOP_MID, 0, 70);
+  add_wrapped(scrCallMissed, "No answer.", &lv_font_montserrat_30, INK, 140);
+  lv_obj_t *next = add_button(scrCallMissed, 35, 220, 340, 84, FOREST, 18);
+  lblTryNext = add_label(next, "Try Jamie", &lv_font_montserrat_28, SURFACE);
+  lv_obj_center(lblTryNext);
+  lv_obj_add_event_cb(next, try_next_cb, LV_EVENT_CLICKED, nullptr);
+  lv_obj_t *back = add_back(scrCallMissed);
+  lv_obj_remove_event_cb(back, back_cb);
+  lv_obj_add_event_cb(back, call_back_cb, LV_EVENT_CLICKED, nullptr);
 }
 
 // "Who to call?": three big faces (initial in a coloured circle + name).
@@ -763,7 +828,9 @@ void build_call_screen() {
   lblCallTitle = add_wrapped(scrCall, "Calling family", &lv_font_montserrat_28, INK, 136);
   lblCallStatus = add_wrapped(scrCall, "Waiting...", &lv_font_montserrat_22, SAGE_TEXT, 186);
   add_wrapped(scrCall, "Demo - no real call.", &lv_font_montserrat_16, MUTED, 232);
-  add_back(scrCall);
+  lv_obj_t *callBack = add_back(scrCall);
+  lv_obj_remove_event_cb(callBack, back_cb);
+  lv_obj_add_event_cb(callBack, call_back_cb, LV_EVENT_CLICKED, nullptr);
 }
 
 // Talk: Sprout's reply on top, four big topics, Back.
@@ -946,6 +1013,7 @@ bool init() {
   build_route_screen();
   build_call_screen();
   build_call_pick_screen();
+  build_call_missed_screen();
   build_talk_screen();
   build_game_screen();
   build_settings_screen();
@@ -989,6 +1057,7 @@ void sync() {
       lv_obj_set_pos(sosBtn, 34, 388);
     }
     if (code != 4) watch.sosActive = false;  // leaving the emergency screen
+    if (code != 17) audio::ringStop();      // ring only while ringing
     switch (code) {
       case 0: load_screen(scrHome); break;
       case 1: load_screen(scrCheckQ); break;
@@ -1013,6 +1082,12 @@ void sync() {
         }
         break;
       }
+      // Call lane C2: ringing → answered / no answer (src/services/ble.ts).
+      case 17:
+      case 18:
+      case 19:
+        show_call_state(code, watch.remoteContact);
+        break;
       default: break;  // 255 = nothing received yet
     }
   }

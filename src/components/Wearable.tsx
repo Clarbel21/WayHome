@@ -26,7 +26,13 @@ import { activeLadderStep, useZone, legTarget } from "../zone/store";
 import { planRoute } from "../zone/route";
 import { useWatchUi } from "./watchUi";
 import { MemoryGardenExperience } from "../memory/MemoryPlayer";
-import { useStore, navigable, requestContact } from "../store";
+import {
+  useStore,
+  navigable,
+  requestContact,
+  nextContact,
+} from "../store";
+import { RingTone, CallRecording } from "./RingTone";
 import { attachmentNames, wearLabels } from "../services/safety";
 import {
   startRingtone,
@@ -584,6 +590,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           <strong className="wos-arrived-title">
             {t("caregiverResponded", { caregiver })}
           </strong>
+          <CallRecording contactId={s.familyRequest?.contactId} />
           <Sprout small />
           <button
             className="watch-action wos-primary"
@@ -593,41 +600,60 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           </button>
         </div>
       );
-    } else {
+    } else if (s.familyRequest?.missedAt) {
+      // Call lane C2: nobody answered. One line, one next person, Back.
+      const next = nextContact(s);
+      screenKey = "call-missed";
       screen = (
-        <div className="watch-landmark wos-center wos-handover">
-          <div className={`avatar ${status ?? "none"}`}>
+        <div className="wos-center wos-call-missed">
+          <div className="avatar none" aria-hidden="true">
+            {caregiver.slice(0, 1)}
+          </div>
+          <strong className="wos-call-title">{t("noAnswer")}</strong>
+          {next && (
+            <button
+              className="watch-action wos-primary"
+              onClick={() => s.callContact(next.id)}
+            >
+              <Phone size={18} aria-hidden="true" />{" "}
+              {t("tryName", { name: next.name })}
+            </button>
+          )}
+          <button className="wos-back" onClick={s.backToHome}>
+            <ChevronLeft size={18} aria-hidden="true" /> {t("backHome")}
+          </button>
+        </div>
+      );
+    } else if (s.familyRequest) {
+      // Call lane C2: ringing. Face, name, "Ringing…" — the ring tone plays.
+      screenKey = `call-ringing-${s.familyRequest.id}`;
+      screen = (
+        <div className="watch-landmark wos-center wos-handover wos-ringing">
+          <RingTone />
+          <div className={`avatar ${status ?? "none"} wos-ring-pulse`}>
             {caregiver.slice(0, 1)}
           </div>
           <strong>{caregiver}</strong>
-          {s.familyRequest && (
-            <ol className="wos-steps" aria-label="Family request progress">
-              <li className="done">
-                <Check size={13} /> {t("stepSent")}
-              </li>
-              <li className={status !== "waiting" ? "done" : "current"}>
-                {status !== "waiting" ? (
-                  <Check size={13} />
-                ) : (
-                  <span className="dot" />
-                )}{" "}
-                {t("stepSeen")}
-              </li>
-              <li className={status === "acknowledged" ? "current" : ""}>
-                <span className="dot" /> {t("stepComing")}
-              </li>
-            </ol>
-          )}
-          {!s.familyRequest && (
-            <button
-              className="watch-action wos-primary"
-              onClick={() => s.chooseAssistance("family")}
-            >
-              <Phone size={17} /> {t("helpFamily")}
-            </button>
-          )}
-          <p>{!s.familyRequest ? t("needsReview") : t("waitingCaregiver")}</p>
-          <small>{s.familyRequest ? t("notifSent") : t("notifNone")}</small>
+          <p>{t("ringing")}</p>
+          <small>{t("notifSent")}</small>
+          <button className="wos-back" onClick={s.backToHome}>
+            <ChevronLeft size={18} aria-hidden="true" /> {t("backHome")}
+          </button>
+        </div>
+      );
+    } else {
+      screen = (
+        <div className="watch-landmark wos-center wos-handover">
+          <div className="avatar none">{caregiver.slice(0, 1)}</div>
+          <strong>{caregiver}</strong>
+          <button
+            className="watch-action wos-primary"
+            onClick={() => s.chooseAssistance("family")}
+          >
+            <Phone size={17} /> {t("helpFamily")}
+          </button>
+          <p>{t("needsReview")}</p>
+          <small>{t("notifNone")}</small>
           {note}
           <button className="wos-back" onClick={s.backToHome}>
             <ChevronLeft size={18} aria-hidden="true" /> {t("backHome")}

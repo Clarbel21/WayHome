@@ -40,6 +40,7 @@ import {
   X,
   MessageCircle,
   ChevronLeft,
+  Phone,
 } from "lucide-react";
 import {
   status,
@@ -646,7 +647,7 @@ function PhoneToday() {
                 ? t("callWants", { wearer: first, name: requestContact(s)!.name })
                 : t("familySub")
               : familyRequestDone
-                ? t("familyReplyDone", { caregiver: s.settings.caregiver })
+                ? t("familyReplyDone", { caregiver: requestContact(s)?.name ?? s.settings.caregiver })
                 : arrivedHome
                   ? t("arrivedSummary", { wearer: first })
                   : s.mode === "NORMAL" && !findings.length
@@ -674,8 +675,34 @@ function PhoneToday() {
   const guiding = s.mode === "GUIDED_RETURN" && zone.guideStartM !== null;
   const missedStop =
     !offline && !takenOff && s.mode === "REORIENTATION" ? s.missedLandmark : null;
+  // Call lane C2: the wearer's call rings on this phone (demo, no real call).
+  const ringingCall =
+    s.mode === "CAREGIVER_HANDOVER" &&
+    !!s.familyRequest &&
+    s.familyRequest.status !== "responded" &&
+    !s.familyRequest.missedAt
+      ? s.familyRequest
+      : null;
+  const callee = requestContact(s)?.name ?? s.settings.caregiver;
   return (
     <div className={`cph-today ${alerting ? "cph-today-alert" : ""}`}>
+      {ringingCall && (
+        <section className="cph-incoming" aria-label="Incoming call">
+          <strong>
+            <Phone size={16} aria-hidden="true" />{" "}
+            {t("incomingCall", { wearer: first, name: callee })}
+          </strong>
+          <small>{t("demoCall")}</small>
+          <div className="cph-incoming-actions">
+            <button className="cph-answer" onClick={s.answerFamilyCall}>
+              {t("answerCall")}
+            </button>
+            <button className="cph-decline" onClick={s.missFamilyCall}>
+              {t("declineCall")}
+            </button>
+          </div>
+        </section>
+      )}
       {/* 1 + 2 — who we are looking after, and whether anything needs us. */}
       <section
         className={`phone-status cph-hero tone-${tone} ${isEmergency ? "phone-emergency" : ""}`}
