@@ -187,3 +187,53 @@ describe("Game lane G3 — happy places", () => {
       expect(card.memory!.trim().split(/\s+/).length).toBeLessThanOrEqual(5);
   });
 });
+
+describe("Game lane G4 — caregiver edits", () => {
+  it("uses edited names, lines and uploaded photos on the watch", () => {
+    const people = initialFamily.map((c) =>
+      c.id === "jamie"
+        ? {
+            ...c,
+            name: "Jules",
+            memoryLine: "We bake together.",
+            photoId: "jamie-photo",
+          }
+        : c,
+    );
+    const faces = familyQuizDeck(t, people)!;
+    expect(faces.cards[0].answer).toBe("Jules");
+    expect(faces.cards[0].photoId).toBe("jamie-photo");
+    expect(faces.cards[0].memory).toBe("We bake together.");
+
+    const places = landmarkQuizDeck(t, {
+      bakery: { memoryLine: "Muffins on Fridays.", photoId: "bakery-photo" },
+    });
+    expect(places.cards[1].memory).toBe("Muffins on Fridays.");
+    expect(places.cards[1].photoId).toBe("bakery-photo");
+
+    const happy = happyPlacesQuizDeck(t, {
+      beach: { memoryLine: "Sunset swims.", photoId: "beach-photo" },
+    });
+    expect(happy.cards[0].memory).toBe("Sunset swims.");
+    expect(happy.cards[0].photoId).toBe("beach-photo");
+  });
+
+  it("falls back to built-in art and lines when an edit is empty", () => {
+    const faces = familyQuizDeck(t, initialFamily)!;
+    expect(faces.cards[0].answer).toBe("Jamie");
+    expect(faces.cards[0].photoId).toBeUndefined();
+    expect(faces.cards[0].memory).toBe("My daughter visits on Sundays.");
+
+    const places = landmarkQuizDeck(t, {
+      bakery: { memoryLine: "", photoId: undefined },
+    });
+    expect(places.cards[1].memory).toBe("I love their muffins.");
+    expect(places.cards[1].photoId).toBeUndefined();
+
+    const happy = happyPlacesQuizDeck(t, {
+      beach: { memoryLine: "", photoId: undefined },
+    });
+    expect(happy.cards[0].memory).toBe("We swam here every summer.");
+    expect(happy.cards[0].photoId).toBeUndefined();
+  });
+});

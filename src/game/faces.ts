@@ -40,9 +40,12 @@ export function familyQuizDeck(
     return {
       id: `${person.id}-${i}`,
       photo: FACE_ART[person.id],
+      photoId: person.photoId,
       answer,
       choices: i % 2 === 0 ? [answer, other] : [other, answer],
-      memory: FACE_MEMORY[person.id] ? t(FACE_MEMORY[person.id]) : undefined,
+      memory:
+        person.memoryLine ||
+        (FACE_MEMORY[person.id] ? t(FACE_MEMORY[person.id]) : undefined),
     };
   });
 

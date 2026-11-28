@@ -26,7 +26,14 @@ import { activeLadderStep, useZone, legTarget } from "../zone/store";
 import { planRoute } from "../zone/route";
 import { useWatchUi } from "./watchUi";
 import { MemoryGardenExperience } from "../memory/MemoryPlayer";
-import { useStore, navigable, requestContact, nextContact } from "../store";
+import {
+  useStore,
+  navigable,
+  requestContact,
+  nextContact,
+  type FamilyContact,
+} from "../store";
+import { useMediaURL } from "../memory/media";
 import { RingTone, CallRecording } from "./RingTone";
 import { attachmentNames, wearLabels } from "../services/safety";
 import {
@@ -55,6 +62,29 @@ type TalkReply = "intro" | "comfort" | "where" | "who" | "nice";
 
 /** Talk: no reply for this long → back to the home screen (saves battery). */
 export const TALK_IDLE_MS = 7000;
+
+/** G4: uploaded portrait when present, the colour + initial otherwise. */
+function CallFaceAvatar({ contact }: { contact: FamilyContact }) {
+  const { url } = useMediaURL(contact.photoId);
+  if (url)
+    return (
+      <img
+        className="wos-call-avatar wos-call-photo"
+        src={url}
+        alt=""
+        aria-hidden="true"
+      />
+    );
+  return (
+    <span
+      className="wos-call-avatar"
+      style={{ background: contact.color }}
+      aria-hidden="true"
+    >
+      {contact.name.slice(0, 1)}
+    </span>
+  );
+}
 
 // The wearer sees exactly one screen at a time, chosen from the safety mode.
 // Every action calls the existing store; this component holds no safety logic.
@@ -1047,11 +1077,11 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     // from the store; G3 (happy places) adds one illustrated memory deck.
     const deck =
       watchUi.game === "landmarks"
-        ? landmarkQuizDeck(t)
+        ? landmarkQuizDeck(t, s.gameEdits.places)
         : watchUi.game === "faces"
           ? familyQuizDeck(t, s.familyContacts)
           : watchUi.game === "places"
-            ? happyPlacesQuizDeck(t)
+            ? happyPlacesQuizDeck(t, s.gameEdits.happyPlaces)
             : null;
     screenKey = `game-${watchUi.game}`;
     screen = deck ? (
@@ -1208,13 +1238,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
                 s.callContact(c.id);
               }}
             >
-              <span
-                className="wos-call-avatar"
-                style={{ background: c.color }}
-                aria-hidden="true"
-              >
-                {c.name.slice(0, 1)}
-              </span>
+              <CallFaceAvatar contact={c} />
               <span className="wos-call-name">{c.name}</span>
               <Phone size={18} aria-hidden="true" />
             </button>

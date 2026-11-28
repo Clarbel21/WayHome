@@ -1,3 +1,4 @@
+import type { GameCardEdit } from "../store";
 import type { PhotoQuizCard, PhotoQuizDeck } from "./PhotoQuiz";
 import type { GameTranslator } from "./translator";
 
@@ -36,18 +37,23 @@ const NAME_KEY: Record<LandmarkId, Parameters<GameTranslator>[0]> = {
  * The distractor cycles to the next familiar place, and the correct side
  * alternates so the wearer cannot answer by position.
  */
-export function landmarkQuizDeck(t: GameTranslator): PhotoQuizDeck {
+export function landmarkQuizDeck(
+  t: GameTranslator,
+  edits: Record<string, GameCardEdit> = {},
+): PhotoQuizDeck {
   const cards: PhotoQuizCard[] = IDS.map((id, i) => {
     const next = IDS[(i + 1) % IDS.length];
     const answer = t(NAME_KEY[id]);
     const distractor = t(NAME_KEY[next]);
+    const edit = edits[id] ?? {};
     return {
       id,
       photo: BUILT_IN[id],
+      photoId: edit.photoId,
       answer,
       choices: i % 2 === 0 ? [answer, distractor] : [distractor, answer],
-      // A short memory under the answer, like G3 ("You love their muffins.").
-      memory: t(MEMORY_KEY[id]),
+      // G4 caregiver line first; the built-in line remains the fallback.
+      memory: edit.memoryLine || t(MEMORY_KEY[id]),
     };
   });
 

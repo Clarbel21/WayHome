@@ -186,7 +186,7 @@ test("every caregiver phone control is still reachable", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Your care tools", exact: true }),
   ).toBeVisible();
-  await expect(page.locator(".phone-tool-list button")).toHaveCount(7);
+  await expect(page.locator(".phone-tool-list button")).toHaveCount(8);
   await expect(
     page.getByRole("link", { name: "Open full workspace", exact: true }),
   ).toHaveAttribute("href", "#/caregiver");
