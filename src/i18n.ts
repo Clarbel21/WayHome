@@ -101,6 +101,7 @@ const en: Dict = {
   offlineWatchLine: "No signal right now",
   // phone
   allCalm: "All calm",
+  requestDoneTitle: "Request done",
   needsAttention: "Needs attention",
   urgent: "Urgent",
   sendCheckIn: "Send a check-in",
@@ -188,6 +189,9 @@ const en: Dict = {
   respondFirst:
     "Respond to the family request below before sending another check-in.",
   calmSub: "A little support, whenever it’s needed.",
+  // phone: the two happy endings — short, factual summaries after a demo walk
+  arrivedSummary: "Demo walk done · {wearer} is home.",
+  familyReplyDone: "Request done · {caregiver} replied.",
   sosSub:
     "A simulated SOS needs your review. Acknowledgment does not resolve it.",
   familySub: "Your family member asked for you.",
@@ -280,6 +284,7 @@ const id: Dict = {
   offline: "Offline",
   offlineWatchLine: "Sinyal hilang sementara",
   allCalm: "Semua tenang",
+  requestDoneTitle: "Permintaan selesai",
   needsAttention: "Perlu perhatian",
   urgent: "Mendesak",
   sendCheckIn: "Kirim sapaan",
@@ -366,6 +371,8 @@ const id: Dict = {
   respondFirst:
     "Tanggapi permintaan keluarga di bawah sebelum mengirim sapaan lagi.",
   calmSub: "Sedikit dukungan, kapan pun dibutuhkan.",
+  arrivedSummary: "Jalan demo selesai · {wearer} di rumah.",
+  familyReplyDone: "Permintaan selesai · {caregiver} membalas.",
   sosSub: "SOS simulasi perlu Anda tinjau. Konfirmasi tidak menyelesaikannya.",
   familySub: "Anggota keluarga Anda meminta Anda.",
   changedSub: "Ada perubahan. Lihat detail di bawah.",

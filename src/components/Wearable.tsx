@@ -63,16 +63,26 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     if (s.mode !== "NORMAL") {
       setTalk(null);
       setShowModePicker(false);
+      setArrived(false);
+    } else {
+      // A guided walk ends at position 6 with the last landmark confirmed.
+      // Read the recorded stop as well as the mode transition so a presenter
+      // moment that completes several stops in one click still lands here.
+      const stops = s.landmarks.filter(navigable);
+      const lastStop = stops[stops.length - 1]?.name;
+      const finished =
+        s.position === 6 &&
+        (prevMode.current === "GUIDED_RETURN" ||
+          (!!lastStop &&
+            s.alerts.some(
+              (a) =>
+                a.title ===
+                `Landmark reached: ${lastStop} — wearer confirmed recognition`,
+            )));
+      setArrived(finished);
     }
-    if (
-      prevMode.current === "GUIDED_RETURN" &&
-      s.mode === "NORMAL" &&
-      s.position === 6
-    )
-      setArrived(true);
-    if (s.mode !== "NORMAL") setArrived(false);
     prevMode.current = s.mode;
-  }, [s.mode, s.position]);
+  }, [s.mode, s.position, s.alerts, s.landmarks]);
   const acknowledged =
     s.checkIn?.response === "okay" &&
     s.checkIn.source !== "caregiver" &&
@@ -509,75 +519,72 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     );
   } else if (s.mode === "CAREGIVER_HANDOVER") {
     const status = s.familyRequest?.status;
-    screen = (
-      <div className="watch-landmark wos-center wos-handover">
-        <div className={`avatar ${status ?? "none"}`}>
-          {caregiver.slice(0, 1)}
-        </div>
-        <strong>{caregiver}</strong>
-        {s.familyRequest && (
-          <ol className="wos-steps" aria-label="Family request progress">
-            <li className="done">
-              <Check size={13} /> {t("stepSent")}
-            </li>
-            <li className={status !== "waiting" ? "done" : "current"}>
-              {status !== "waiting" ? (
-                <Check size={13} />
-              ) : (
-                <span className="dot" />
-              )}{" "}
-              {t("stepSeen")}
-            </li>
-            <li
-              className={
-                status === "responded"
-                  ? "done"
-                  : status === "acknowledged"
-                    ? "current"
-                    : ""
-              }
-            >
-              {status === "responded" ? (
-                <Check size={13} />
-              ) : (
-                <span className="dot" />
-              )}{" "}
-              {t("stepComing")}
-            </li>
-          </ol>
-        )}
-        {!s.familyRequest && (
-          <button
-            className="watch-action wos-primary"
-            onClick={() => s.chooseAssistance("family")}
-          >
-            <Phone size={17} /> {t("helpFamily")}
-          </button>
-        )}
-        <p>
-          {!s.familyRequest
-            ? t("needsReview")
-            : status === "responded"
-              ? t("caregiverResponded", { caregiver })
-              : t("waitingCaregiver")}
-        </p>
-        <small>{s.familyRequest ? t("notifSent") : t("notifNone")}</small>
-        {note}
-        {status !== "responded" && (
-          <button className="wos-back" onClick={s.backToHome}>
-            <ChevronLeft size={18} aria-hidden="true" /> {t("backHome")}
-          </button>
-        )}
-        {status === "responded" && (
+    if (status === "responded") {
+      // Happy ending: one big line, no progress list to read after the call.
+      screenKey = "family-replied";
+      screen = (
+        <div className="wos-center wos-arrived">
+          <div className="wos-arrived-badge" aria-hidden="true">
+            <Check size={30} />
+          </div>
+          <strong className="wos-arrived-title">
+            {t("caregiverResponded", { caregiver })}
+          </strong>
+          <Sprout small />
           <button
             className="watch-action wos-primary"
             onClick={() => s.answerCheckIn("okay")}
           >
             {t("continueAfter")}
           </button>
-        )}
-      </div>
-    );
+        </div>
+      );
+    } else {
+      screen = (
+        <div className="watch-landmark wos-center wos-handover">
+          <div className={`avatar ${status ?? "none"}`}>
+            {caregiver.slice(0, 1)}
+          </div>
+          <strong>{caregiver}</strong>
+          {s.familyRequest && (
+            <ol className="wos-steps" aria-label="Family request progress">
+              <li className="done">
+                <Check size={13} /> {t("stepSent")}
+              </li>
+              <li className={status !== "waiting" ? "done" : "current"}>
+                {status !== "waiting" ? (
+                  <Check size={13} />
+                ) : (
+                  <span className="dot" />
+                )}{" "}
+                {t("stepSeen")}
+              </li>
+              <li
+                className={
+                  status === "acknowledged" ? "current" : ""
+                }
+              >
+                <span className="dot" /> {t("stepComing")}
+              </li>
+            </ol>
+          )}
+          {!s.familyRequest && (
+            <button
+              className="watch-action wos-primary"
+              onClick={() => s.chooseAssistance("family")}
+            >
+              <Phone size={17} /> {t("helpFamily")}
+            </button>
+          )}
+          <p>{!s.familyRequest ? t("needsReview") : t("waitingCaregiver")}</p>
+          <small>{s.familyRequest ? t("notifSent") : t("notifNone")}</small>
+          {note}
+          <button className="wos-back" onClick={s.backToHome}>
+            <ChevronLeft size={18} aria-hidden="true" /> {t("backHome")}
+          </button>
+        </div>
+      );
+    }
   } else if (s.mode === "CHECK_IN" && s.checkIn?.stage === "help_options") {
     screenKey = "help-options";
     screen = (

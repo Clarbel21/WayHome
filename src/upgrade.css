@@ -4810,6 +4810,18 @@
     font-size: 12.5px;
     white-space: nowrap;
   }
+  /* Step 7 adds two ending moments. Keep the left column as tall as the
+     devices at 1280x720 instead of pushing the page into a scroll. */
+  .shared-experience:not(.large-text) .stage-toolbar .demo-stage-chips {
+    gap: 4px;
+    padding: 9px;
+  }
+  .shared-experience:not(.large-text) .stage-toolbar button.demo-chip {
+    min-height: 28px;
+    padding: 3px 10px;
+    font-size: 12px;
+    line-height: 1.15;
+  }
   .shared-experience:not(.large-text) .stage-toolbar .demo-stage-caption {
     margin: 0;
     font-size: 11.5px;
