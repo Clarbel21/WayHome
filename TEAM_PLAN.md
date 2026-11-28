@@ -42,7 +42,49 @@ The watch does five things: **🏠 go home with familiar-landmark photos · 📞
 7. **Same words on both watches** (`src/i18n.ts` → `firmware/watch_ui.cpp`).
 8. **The phone can say more**, but status first and details under Care tools.
 
-## Next steps — take the next unchecked one
+## Main task now — the 4 buttons work for real
+
+The watch has **4 main buttons: Home, Call, Talk, Game.** Each button is a **lane**; one
+person or AI per lane, so lanes run in parallel. Inside a lane, take the lowest unchecked
+step. Each step is done on the **web watch first**, then copied to the **ESP32** (the
+firmware lane does that). Facts stay factual: no real calls, GPS or dispatch — say
+"Demo" where it matters.
+
+**Home — guide me home**
+- [x] **H1 — Landmarks + turn arrow.** Photo, place name, Turn left / right / Go straight,
+  I see it, Not yet → I see it now, I know my way. Web + ESP32. *(#19, #23, #26)*
+- [ ] **H2 — Don't know the way → nearby police station.** After "Not yet" / "I don't see
+  it", Momo tells the caregiver the nearest police station (simulated list, no real GPS)
+  and asks "Call the police station?". Phone: name, distance, Call button (demo, no real
+  call). Watch: one calm line, "Your family is helping."
+- [ ] **H3 — Voice guidance.** Momo speaks each step: "Do you see the community garden?
+  Go straight." Browser speech on the web watch; a Mute toggle in Care tools.
+
+**Call — call a family member**
+- [ ] **C1 — Choose who to call.** Tap Call → 2–4 big faces with names (from the
+  caregiver's family list on the phone) → tap one. Web + ESP32.
+- [ ] **C2 — Calling screen.** Ringing → "Jamie answered" / "No answer — try Alex?".
+  The phone shows the incoming call and can answer (demo, no real call). Web + ESP32.
+
+**Talk — talk with Momo**
+- [ ] **T1 — Momo's character + chat.** Momo's face on screen, talks back by voice
+  (browser speech in/out, typed fallback). Short, kind replies; no medical advice.
+- [ ] **T2 — Guide me home by voice.** Saying "take me home" starts H1.
+
+**Game — memory game**
+- [ ] **G1 — Familiar landmarks.** Show a photo, pick its name from 2 big choices.
+- [ ] **G2 — Familiar faces.** Show a family photo, pick the name.
+- [ ] **G3 — My happy places.** Places with memories, with a short line from the family.
+- Caregiver adds the photos for G1–G3 on the phone (Care tools).
+
+**ESP32 parity (firmware lane)** — after each web step merges, copy it to the physical
+watch and add its Bluetooth command/screen code to `src/services/ble.ts` and
+`firmware/wayhome-watch/README.md`.
+
+## Demo moments — paused
+
+Paused while we build the 4 buttons. Steps 1–5, 7 and 2b are done; 6, 8, 10, 11 and 9
+wait. Step 12 moved into the Home button below (H2).
 
 Anyone (person or AI) works on the **lowest unchecked step**. Before starting, write your
 name next to it in a PR or issue so two people don't take the same step. When it merges,
@@ -88,32 +130,8 @@ the watch **and** the phone, and the green bar below.
   "Jamie replied", the family-request screen and the calm "It's okay" screen all show on
   the ESP32 instead of "One moment, please". Reserved mirror codes **13–16**. ("Welcome
   home" is local state in `Wearable.tsx` today; move it into the store so Bluetooth sees it.)
-- [ ] **Step 12 — Lost and can't find the way: nearby police station.** When the wearer
-  doesn't know the way home (Not yet / I don't see it), Momo tells the caregiver the
-  nearest police station (simulated list, no real GPS) and asks "Call the police
-  station?". The phone shows name, distance and a Call button (demo — no real call).
 - [ ] **Step 9 — Final check.** A logic review of steps 3–6 and 10–12 (Ilyas), then Clarine
   runs the whole demo on the web and the physical watch and approves.
-
-### Later — the full watch (do step by step after Step 9)
-
-The watch keeps **4 main buttons**. ✅ = works today, ⏳ = to do.
-
-1. **Home — guide me home**
-   - ✅ Familiar-landmark photos + turn arrow
-   - ⏳ Voice guidance, e.g. "Do you see the community garden? Go straight."
-   - ⏳ Don't know the way → Momo tells the caregiver the nearest police station and asks
-     whether to call it (Step 12)
-2. **Call**
-   - ⏳ Choose who to call (family list with faces)
-   - ⏳ Calling a family member
-3. **Talk** — talk with Momo by voice
-   - ⏳ Guide me home by voice
-   - ⏳ Just chat, with Momo's character shown on screen
-4. **Game — memory game**
-   - ⏳ Familiar landmarks
-   - ⏳ Familiar faces
-   - ⏳ My happy places (places with memories)
 
 ### Hardware smoke test (step 1; repeat after any firmware change)
 
