@@ -2481,3 +2481,31 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-listening.on svg {
     transform: scale(1.25);
   }
 }
+
+/* Talk: the opening question's two big answers (voice works too). */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-talk-answers {
+  display: grid;
+  gap: 6px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-talk-answers .watch-action {
+  min-height: 44px;
+  font-size: 16px;
+}
+
+/* While Momo asks her opening question, her face shrinks so the two big
+   answers and Back fit without scrolling. */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-talk-asking .wos-momo .sprout {
+  width: 40px;
+  height: 38px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-talk-asking .wos-chat-actions {
+  gap: 5px;
+}
+@media (max-width: 900px) {
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-talk-asking .wos-momo {
+    display: none !important;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-talk-asking .wos-talk-answers .watch-action {
+    margin-top: 0;
+  }
+}

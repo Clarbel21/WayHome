@@ -123,7 +123,7 @@ for (const viewport of VIEWPORTS) {
     await watch
       .getByRole("button", { name: "Let's talk", exact: true })
       .click();
-    await expect(watch.getByText("I'm here with you.")).toBeVisible();
+    await expect(watch.getByText("Hi! Want to chat with me?")).toBeVisible();
     await expectWatchFits(page);
     await watch.getByRole("button", { name: "Back", exact: true }).click();
     await expect(

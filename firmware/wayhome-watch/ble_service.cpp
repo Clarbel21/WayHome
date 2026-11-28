@@ -98,7 +98,9 @@ class WatchStateCallbacks : public NimBLECharacteristicCallbacks {
                        (unsigned)value[0],
                        value.size() >= 2 ? (unsigned)value[1] : 0u,
                        value.size() >= 3 ? (unsigned)value[2] : 0u);
-      watch.remoteScreen = value[0];
+      // byte0 bit 7 = wearer outside the safe zone (Talk asks to guide home).
+      watch.remoteScreen = value[0] & 0x7F;
+      watch.outsideZone = (value[0] & 0x80) != 0;
       if (value.size() >= 2 && value[1] <= 6) {
         watch.remotePosition = value[1];
       }
