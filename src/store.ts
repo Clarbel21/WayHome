@@ -898,6 +898,9 @@ export const useStore = create<State>()(
                   id: incidentId,
                   revision: (s.incident?.revision || 0) + 1,
                   stage: "active" as const,
+                  ...(event === "POLICE" && policeStation
+                    ? { demoPoliceCalledAt: Date.now() }
+                    : {}),
                 },
               }
             : {}),

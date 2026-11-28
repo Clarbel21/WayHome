@@ -136,6 +136,7 @@ export function scenarioMode(s: SafetySignals) {
 }
 export interface Incident {
   deviceReviewPending?: boolean;
+  demoPoliceCalledAt?: number;
   id: string;
   revision: number;
   stage: "active" | "awaiting_verification" | "resolved";

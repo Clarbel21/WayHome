@@ -145,6 +145,7 @@ const en: Dict = {
   sosWaiting: "Waiting for {caregiver}",
   stayHere: "Stay where you are.",
   sosHelpComing: "Help is coming. · Demo",
+  sosPoliceComing: "Police are coming · Demo",
   sosPoliceQuestion: "Call the police?",
   sosPoliceDemo: "Demo · simulated location, no real call.",
   sosCallPolice: "Call police",
