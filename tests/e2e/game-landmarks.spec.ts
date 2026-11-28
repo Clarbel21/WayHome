@@ -6,6 +6,13 @@ import { test, expect, type Page } from "@playwright/test";
 
 const watchOf = (page: Page) => page.locator(".watch-area .watch").first();
 
+async function openPlaces(page: Page) {
+  const watch = watchOf(page);
+  await watch.getByRole("button", { name: "Game", exact: true }).click();
+  await expect(watch.locator(".wos-game-pick")).toBeVisible();
+  await watch.getByRole("button", { name: "Places", exact: true }).click();
+}
+
 async function openFresh(page: Page) {
   await page.goto("/#/companion");
   await page.evaluate(() => {
@@ -77,7 +84,7 @@ test("four landmark rounds use gentle words, big choices and one frame", async (
 }) => {
   await openFresh(page);
   const watch = watchOf(page);
-  await watch.getByRole("button", { name: "Game", exact: true }).click();
+  await openPlaces(page);
   const quiz = watch.locator(".wos-game");
   await expect(quiz).toHaveClass(/wos-game-question/);
   await expect(quiz.locator(".wos-game-round")).toHaveText("Round 1 of 4");
@@ -168,7 +175,7 @@ test("the game fits the small stage and safety takes over mid-round", async ({
   await page.setViewportSize({ width: 880, height: 700 });
   await openFresh(page);
   const watch = watchOf(page);
-  await watch.getByRole("button", { name: "Game", exact: true }).click();
+  await openPlaces(page);
   const quiz = watch.locator(".wos-game");
   await expectBigAndTappable(page);
   await expectOneFrame(page);

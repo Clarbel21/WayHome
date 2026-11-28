@@ -188,8 +188,10 @@ test("okay offers next actions, memory root Back/Exit restore wearer and guidanc
     }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Back", exact: true }).click();
-  // The Game lane opens the landmark quiz and closes back to the watch home.
+  // The Game lane offers two decks; Places opens the landmark quiz.
   await page.getByRole("button", { name: "Game", exact: true }).click();
+  await expect(page.locator(".wos-game-pick")).toBeVisible();
+  await page.getByRole("button", { name: "Places", exact: true }).click();
   await expect(page.locator(".wos-game-question")).toBeVisible();
   await page.getByRole("button", { name: "Back to home", exact: true }).click();
   await expect(page).toHaveURL(/#\/together$/);

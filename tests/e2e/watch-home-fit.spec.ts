@@ -132,8 +132,11 @@ for (const viewport of VIEWPORTS) {
       watch.getByRole("button", { name: "Help me home", exact: true }),
     ).toBeVisible();
 
-    // Game (Familiar landmarks): fits, and Back to home restores the home.
+    // Game (Familiar landmarks): picker + quiz fit, Back to home restores home.
     await watch.getByRole("button", { name: "Game", exact: true }).click();
+    await expect(page.locator(".wos-game-pick")).toBeVisible();
+    await expectWatchFits(page);
+    await watch.getByRole("button", { name: "Places", exact: true }).click();
     await expect(page.locator(".wos-game-question")).toBeVisible();
     await expectWatchFits(page);
     await watch
