@@ -19,6 +19,9 @@ test("Talk listens by itself, answers, and has no typing", async ({ page }) => {
   await expect(watch(page).getByRole("button", { name: "Type" })).toHaveCount(0);
   await sayToMomo(page, "Where am I?");
   await expect(watch(page).getByText("“Where am I?”")).toBeVisible();
+  await expect(
+    watch(page).getByText("I can guide you home.", { exact: true }),
+  ).toBeVisible();
 });
 
 test('saying "take me home" starts the guided walk (T2)', async ({ page }) => {

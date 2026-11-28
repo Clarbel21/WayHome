@@ -26,7 +26,9 @@ test("home screen offers four large actions plus SOS", async ({ page }) => {
   await w.getByRole("button", { name: "Let's talk", exact: true }).click();
   // Talk listens by itself (no typing): the wearer just asks.
   await sayToMomo(page, "Who is my family?");
-  await expect(w.getByText("Jamie Chen is one tap away.")).toBeVisible();
+  await expect(
+    w.getByText("Call Jamie Chen anytime.", { exact: true }),
+  ).toBeVisible();
 });
 
 test("demo moments drive both devices and SOS disables unsafe moments", async ({
@@ -39,7 +41,7 @@ test("demo moments drive both devices and SOS disables unsafe moments", async ({
   ).toBeVisible();
   await expect(caregiver(page).getByText("Route deviation")).toBeVisible();
   await expect(
-    wearer(page).getByText("It's okay. I'm here with you.", { exact: true }),
+    wearer(page).getByText("I'm here with you.", { exact: true }),
   ).toBeVisible();
 
   await bar.getByRole("button", { name: "Low battery" }).click();

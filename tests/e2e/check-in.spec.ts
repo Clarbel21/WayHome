@@ -13,7 +13,7 @@ test("okay reassures and persists response", async ({ page }) => {
   await start(page);
   await page.getByRole("button", { name: "I'm okay", exact: true }).click();
   await expect(
-    page.getByText("Thank you for telling me. I'm here with you.", {
+    page.getByText("I'm here with you.", {
       exact: true,
     }),
   ).toBeVisible();
@@ -70,10 +70,10 @@ test("family handover acknowledgment and simulated response synchronize tabs", a
     .getByRole("button", { name: "Simulate caregiver response", exact: true })
     .click();
   await expect(
-    page.getByText("Jamie Chen replied.", { exact: true }),
+    page.getByText("Jamie Chen replied · Demo", { exact: true }),
   ).toBeVisible();
   await page
-    .getByRole("button", { name: "I'm ready to continue", exact: true })
+    .getByRole("button", { name: "I'm ready", exact: true })
     .click();
   await expect(
     page.getByText("Hi Alex! I'm Sprout.", { exact: true }),
@@ -87,7 +87,7 @@ test("confusion offers support without a recognition test", async ({
   await page.getByRole("button", { name: "I'm not sure", exact: true }).click();
   await expect(
     page.getByText(
-      "It's okay to feel unsure. Take your time. I'm here with you.",
+      "I'll stay with you.",
       { exact: true },
     ),
   ).toBeVisible();
@@ -107,7 +107,7 @@ test("real timeout repeats once then notifies without declaring lost", async ({
   await page.clock.fastForward(30001);
   await expect(
     page.getByText(
-      "I'm here with you. When you're ready, tell me how you feel.",
+      "I'm here with you.",
       { exact: true },
     ),
   ).toBeVisible();

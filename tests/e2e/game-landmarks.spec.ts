@@ -118,7 +118,7 @@ test("four landmark rounds use gentle words, big choices and one frame", async (
 
   // A short memory sits under the answer (like G3).
   await expect(quiz.locator(".wos-game-memory")).toHaveText(
-    "You grow tomatoes here.",
+    "I grow tomatoes here.",
   );
 
   // Round 2: the exact happy line for the bakery.
@@ -143,8 +143,8 @@ test("four landmark rounds use gentle words, big choices and one frame", async (
   );
   await quiz.getByRole("button", { name: /^home$/i }).click();
   await expect(quiz).toHaveAttribute("data-result", "gentle");
-  await expect(quiz.locator(".wos-game-result")).toContainText(
-    "That's the library. Next one?",
+  await expect(quiz.locator(".wos-game-reply")).toHaveText(
+    "That's the library.",
   );
   expect((await quiz.innerText()).toLowerCase()).not.toContain("wrong");
   await expectBigAndTappable(page);

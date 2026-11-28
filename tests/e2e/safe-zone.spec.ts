@@ -20,7 +20,7 @@ test("taking the watch off shows a wear prompt and keeps Find My available", asy
   await expect(watch(page).getByText("Put me on?")).toBeVisible();
   await expect(phone(page).getByRole("heading", { name: "Watch taken off" })).toBeVisible();
   await phone(page).getByRole("button", { name: "Find My", exact: true }).click();
-  await expect(watch(page).getByRole("button", { name: /stop ringing/i })).toBeVisible();
+  await expect(watch(page).getByRole("button", { name: "I found it", exact: true })).toBeVisible();
 });
 
 test("leaving the safe zone buzzes the watch, escalates, then guides home landmark by landmark", async ({
@@ -167,9 +167,9 @@ test("a missed landmark offers the caregiver a demo police call and the wearer c
     timeout: 15_000,
   });
   await watch(page).getByRole("button", { name: "Not yet" }).click();
-  await expect(watch(page).getByText("Your family is helping.", { exact: true })).toBeVisible();
+  await expect(watch(page).getByText("Your family is helping. · Demo", { exact: true })).toBeVisible();
   await expect(watch(page).locator(".wos-body")).toHaveText(
-    /^Your family is helping\.\s*See it now\s*End guidance$/,
+    /^Your family is helping\. · Demo\s*See it now\s*End guidance$/,
   );
   const caregiver = phone(page);
   await expect(caregiver.getByRole("heading", { name: "Call the police station?" })).toBeVisible();

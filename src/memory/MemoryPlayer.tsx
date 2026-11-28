@@ -44,7 +44,9 @@ export function MemoryImage({
   const media = useMediaURL(entry.imageId);
   const watch = useOnWatch();
   return media.error ? (
-    <p className="memory-notice">{media.error}</p>
+    <p className="memory-notice">
+      {watch ? "I can't open this photo." : media.error}
+    </p>
   ) : media.url || entry.image ? (
     <div className="memory-photo">
       <Photo
@@ -61,8 +63,9 @@ export function MemoryImage({
     </div>
   ) : (
     <p className="memory-notice">
-      A picture can be added by your caregiver. We can still share a memory
-      together.
+      {watch
+        ? "We can remember without photos."
+        : "A picture can be added by your caregiver. We can still share a memory together."}
     </p>
   );
 }
@@ -97,7 +100,11 @@ function MusicPlayer({ entry }: { entry: MemoryEntry }) {
       )}
       {entry.audioId ? (
         <>
-          {media.error && <p role="status">{media.error}</p>}
+          {media.error && (
+            <p role="status">
+              {watch ? "I can't open this recording." : media.error}
+            </p>
+          )}
           {media.url && (
             <>
               <audio
@@ -134,7 +141,11 @@ function MusicPlayer({ entry }: { entry: MemoryEntry }) {
                 {playing ? <Pause /> : <Play />}
                 {playing ? "Pause recording" : "Play recording"}
               </button>
-              {error && <p role="status">{error}</p>}
+              {error && (
+                <p role="status">
+                  {watch ? "I can't play this recording." : error}
+                </p>
+              )}
             </>
           )}
         </>
@@ -160,7 +171,11 @@ function MusicPlayer({ entry }: { entry: MemoryEntry }) {
         </>
       )}
       {!sound && entry.audioId && (
-        <p>Sound is off in Memory Library preferences. No audio will play.</p>
+        <p>
+          {watch
+            ? "Our sound is off."
+            : "Sound is off in Memory Library preferences. No audio will play."}
+        </p>
       )}
     </div>
   );
@@ -177,10 +192,15 @@ export function MemoryActivityPlayer() {
   if (kind !== "garden" && !entry)
     return (
       <div className="memory-question">
-        <h2>This memory is taking a little rest.</h2>
+        <h2>
+          {watch
+            ? "This memory can wait."
+            : "This memory is taking a little rest."}
+        </h2>
         <p>
-          Your caregiver may have changed its approval. Let's choose something
-          else.
+          {watch
+            ? "Let's choose another memory."
+            : "Your caregiver may have changed its approval. Let's choose something else."}
         </p>
         <button className="memory-choice" onClick={m.home}>
           Choose another activity
@@ -228,9 +248,13 @@ export function MemoryActivityPlayer() {
           ) : (
             <div className="memory-reveal" role="status">
               <p className={watch ? "watch-reveal" : undefined}>
-                {entry.relationship
-                  ? `This is your ${entry.relationship}, ${entry.title}.`
-                  : `This is ${entry.title}.`}
+                {watch
+                  ? entry.relationship
+                    ? `Your ${entry.relationship}, ${entry.title}.`
+                    : entry.title
+                  : entry.relationship
+                    ? `This is your ${entry.relationship}, ${entry.title}.`
+                    : `This is ${entry.title}.`}
                 {!watch && ` ${entry.description}`}
               </p>
               {!watch && (
@@ -266,7 +290,7 @@ export function MemoryActivityPlayer() {
                 className="memory-choice more"
                 onClick={() => m.respond("Tell me about it")}
               >
-                Tell me about it
+                {watch ? "Tell me more" : "Tell me about it"}
               </button>
             </div>
           ) : (
@@ -397,7 +421,7 @@ export function MemoryActivityPlayer() {
                 className="memory-choice"
                 onClick={() => m.complete("tree")}
               >
-                Plant a little tree
+                {watch ? "Plant a tree" : "Plant a little tree"}
               </button>
               <button
                 className="memory-choice"
@@ -672,7 +696,7 @@ export function MemoryGardenExperience({
                 <span className="memory-tile-icon" aria-hidden="true">
                   <Footprints size={22} />
                 </span>
-                <span>Practice my way home</span>
+                <span>Practice my walk</span>
                 <ArrowRight size={18} />
               </button>
             ) : (

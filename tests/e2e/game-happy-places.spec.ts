@@ -155,10 +155,10 @@ test("four happy-place rounds show one memory line and gentle words", async ({
   await quiz.getByRole("button", { name: /^old market$/i }).click();
   await expect(quiz).toHaveAttribute("data-result", "gentle");
   await expect(quiz.locator(".wos-game-reply")).toHaveText(
-    "That's the park bench. Next one?",
+    "That's the park bench.",
   );
   await expect(quiz.locator(".wos-game-memory")).toHaveText(
-    "We sat here and watched the ducks.",
+    "We watched ducks here.",
   );
   expect((await quiz.innerText()).toLowerCase()).not.toContain("wrong");
   await expectBigAndTappable(page);

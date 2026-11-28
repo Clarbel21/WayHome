@@ -141,8 +141,8 @@ test("four face rounds use family names, two big choices and gentle words", asyn
   );
   await quiz.getByRole("button", { name: "Mei", exact: true }).click();
   await expect(quiz).toHaveAttribute("data-result", "gentle");
-  await expect(quiz.locator(".wos-game-result")).toContainText(
-    "That's Sam. Next one?",
+  await expect(quiz.locator(".wos-game-reply")).toHaveText(
+    "That's Sam.",
   );
   expect((await quiz.innerText()).toLowerCase()).not.toContain("wrong");
   await expectBigAndTappable(page);
@@ -164,8 +164,8 @@ test("four face rounds use family names, two big choices and gentle words", asyn
   );
   await expect(quiz.locator(".wos-game-choice")).toHaveText(["Mei", "Jamie"]);
   await quiz.getByRole("button", { name: "Mei", exact: true }).click();
-  await expect(quiz.locator(".wos-game-result")).toContainText(
-    "That's Jamie. Next one?",
+  await expect(quiz.locator(".wos-game-reply")).toHaveText(
+    "That's Jamie.",
   );
   await quiz.getByRole("button", { name: "Next", exact: true }).click();
 

@@ -45,7 +45,7 @@ describe("Game lane G1 — familiar landmarks", () => {
   it("keeps feedback gentle and finishes in four rounds", () => {
     expect(deck.round(1, 4)).toBe("Round 1 of 4");
     expect(deck.right("bakery")).toBe("Yes! That's the bakery.");
-    expect(deck.learn("library")).toBe("That's the library. Next one?");
+    expect(deck.learn("library")).toBe("That's the library.");
     expect(deck.next).toBe("Next");
     expect(deck.finished).toBe("Well done!");
     expect(deck.back).toBe("Back to home");
@@ -97,7 +97,7 @@ describe("Game lane G2 — familiar faces", () => {
   it("keeps feedback gentle and skips a deck with too few people", () => {
     expect(faces.prompt).toBe("Who is this?");
     expect(faces.right("Jamie")).toBe("Yes! That's Jamie.");
-    expect(faces.learn("Sam")).toBe("That's Sam. Next one?");
+    expect(faces.learn("Sam")).toBe("That's Sam.");
     expect(faces.finished).toBe("Well done!");
     expect(faces.back).toBe("Back to home");
     const visible = [
@@ -130,12 +130,12 @@ describe("Game lane G3 — happy places", () => {
     ]);
     expect(happy.cards.map((card) => card.memory)).toEqual([
       "We swam here every summer.",
-      "We sat here and watched the ducks.",
+      "We watched ducks here.",
       "We bought fresh fruit here.",
       "We cooked together every Sunday.",
     ]);
     for (const card of happy.cards)
-      expect(card.memory!.trim().split(/\s+/).length).toBeLessThanOrEqual(8);
+      expect(card.memory!.trim().split(/\s+/).length).toBeLessThanOrEqual(5);
   });
 
   it("offers two big choices per round and alternates the right side", () => {
@@ -163,9 +163,7 @@ describe("Game lane G3 — happy places", () => {
     expect(happy.photoAlt).toBe("A happy place");
     expect(happy.round(1, 4)).toBe("Round 1 of 4");
     expect(happy.right("beach")).toBe("Yes! That's the beach.");
-    expect(happy.learn("old market")).toBe(
-      "That's the old market. Next one?",
-    );
+    expect(happy.learn("old market")).toBe("That's the old market.");
     expect(happy.next).toBe("Next");
     expect(happy.finished).toBe("Well done!");
     expect(happy.back).toBe("Back to home");
@@ -186,6 +184,6 @@ describe("Game lane G3 — happy places", () => {
     const id: GameTranslator = (key, vars) =>
       translate("id", key as Parameters<typeof translate>[1], vars);
     for (const card of happyPlacesQuizDeck(id).cards)
-      expect(card.memory!.trim().split(/\s+/).length).toBeLessThanOrEqual(8);
+      expect(card.memory!.trim().split(/\s+/).length).toBeLessThanOrEqual(5);
   });
 });

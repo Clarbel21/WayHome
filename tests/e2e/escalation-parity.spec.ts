@@ -58,7 +58,7 @@ test("every +8 min ladder step shows on the watch and the phone together", async
 
   await moments(page).getByRole("button", { name: "+8 min" }).click();
   await expectSameStep(page, 3, /Call family\?/);
-  await expect(watchStep(page, 3)).toContainText("Caregiver alerted");
+  await expect(watchStep(page, 3)).toContainText("I alerted family · Demo");
   await expect(
     watch(page).getByRole("button", { name: "Call family", exact: true }),
   ).toBeVisible();
