@@ -26,7 +26,7 @@ import { activeLadderStep, useZone, legTarget } from "../zone/store";
 import { planRoute } from "../zone/route";
 import { useWatchUi } from "./watchUi";
 import { MemoryGardenExperience } from "../memory/MemoryPlayer";
-import { useStore, navigable } from "../store";
+import { useStore, navigable, requestContact } from "../store";
 import { attachmentNames, wearLabels } from "../services/safety";
 import {
   startRingtone,
@@ -58,12 +58,15 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const t = useT();
   const location = useLocation();
   const [talk, setTalk] = useState<TalkReply | null>(null);
+  // Call → "Who to call?" faces (lane C1). Closes when the mode changes.
+  const [pickCall, setPickCall] = useState(false);
   const [showModePicker, setShowModePicker] = useState(false);
   const [arrived, setArrived] = useState(false);
   const prevMode = useRef(s.mode);
   useEffect(() => {
     if (s.mode !== "NORMAL") {
       setTalk(null);
+      setPickCall(false);
       setShowModePicker(false);
       setArrived(false);
     } else {
@@ -173,7 +176,8 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const approved = s.landmarks.filter(navigable);
   const landmark = approved[s.guideIndex];
   const name = s.settings.companionName;
-  const caregiver = s.settings.caregiver;
+  // The person being called: the face the wearer picked, else the caregiver.
+  const caregiver = requestContact(s)?.name ?? s.settings.caregiver;
   const experienceMode = s.settings.experienceMode;
   const experienceModeLabel =
     experienceMode === "focus"
@@ -523,67 +527,48 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       ? approved.find((l) => l.id === s.missedLandmark?.id)
       : undefined;
     screenKey = missed ? `missed-${missed.id}` : screenKey;
-    screen = (
+    screen = missed ? (
+      <div className="wos-center wos-calm-screen">
+        {speech(t("familyIsHelping"))}
+        <button
+          className="watch-action wos-primary see-it-now"
+          onClick={s.seeItNow}
+        >
+          <Check size={18} /> {t("seeItNow")}
+        </button>
+        <button
+          className="wos-secondary cancel-guidance"
+          onClick={s.backToHome}
+        >
+          {t("cancelGuidance")}
+        </button>
+      </div>
+    ) : (
       <div className="watch-landmark wos-center wos-calm-screen">
         <div className="wos-breathe" aria-hidden="true">
           <span />
         </div>
         {speech(modeMessage(lang, s.mode, name))}
-        {missed ? (
-          <>
-            <div className="wos-photo small">
-              <LandmarkPhoto landmark={missed} />
-            </div>
-            <strong className="wos-missed-name">{missed.name}</strong>
-            <button
-              className="watch-action wos-primary see-it-now"
-              onClick={s.seeItNow}
-            >
-              <Check size={18} /> {t("seeItNow")}
-            </button>
-            {/* One labelled row instead of an icon-only house: a house
-                reads as "go home" while the wearer is being guided home. */}
-            <div className="wos-row2">
-              <button
-                className="wos-secondary wos-call-mini"
-                aria-label={t("helpFamily")}
-                onClick={() => s.chooseAssistance("family")}
-              >
-                <Phone size={18} aria-hidden="true" />
-                {lang === "id" ? "Telepon" : "Call"}
-              </button>
-              <button
-                className="wos-secondary cancel-guidance"
-                onClick={s.backToHome}
-              >
-                {t("cancelGuidance")}
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <small className="wos-kicker">{t("breathe")}</small>
-            {approved[0] && (
-              <div className="wos-photo small">
-                <LandmarkPhoto landmark={approved[0]} />
-              </div>
-            )}
-            <p>{t("takeTime")}</p>
-            {note}
-            <button
-              className="watch-action wos-primary"
-              onClick={() => s.chooseAssistance("family")}
-            >
-              <Phone size={17} /> {t("helpFamily")}
-            </button>
-            <button
-              className="wos-secondary cancel-guidance"
-              onClick={s.backToHome}
-            >
-              {t("cancelGuidance")}
-            </button>
-          </>
+        <small className="wos-kicker">{t("breathe")}</small>
+        {approved[0] && (
+          <div className="wos-photo small">
+            <LandmarkPhoto landmark={approved[0]} />
+          </div>
         )}
+        <p>{t("takeTime")}</p>
+        {note}
+        <button
+          className="watch-action wos-primary"
+          onClick={() => s.chooseAssistance("family")}
+        >
+          <Phone size={17} /> {t("helpFamily")}
+        </button>
+        <button
+          className="wos-secondary cancel-guidance"
+          onClick={s.backToHome}
+        >
+          {t("cancelGuidance")}
+        </button>
       </div>
     );
   } else if (s.mode === "CAREGIVER_HANDOVER") {
@@ -853,6 +838,43 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         </button>
       </div>
     );
+  } else if (pickCall && s.mode === "NORMAL") {
+    screenKey = "call-pick";
+    screen = (
+      <div className="wos-call-pick">
+        <strong className="wos-call-title">{t("whoToCall")}</strong>
+        <div
+          className="wos-call-faces"
+          role="group"
+          aria-label={t("whoToCall")}
+        >
+          {s.familyContacts.slice(0, 3).map((c) => (
+            <button
+              key={c.id}
+              className="wos-call-face"
+              aria-label={`${t("callFamily")}: ${c.name}`}
+              onClick={() => {
+                setPickCall(false);
+                s.callContact(c.id);
+              }}
+            >
+              <span
+                className="wos-call-avatar"
+                style={{ background: c.color }}
+                aria-hidden="true"
+              >
+                {c.name.slice(0, 1)}
+              </span>
+              <span className="wos-call-name">{c.name}</span>
+              <Phone size={18} aria-hidden="true" />
+            </button>
+          ))}
+        </div>
+        <button className="wos-back" onClick={() => setPickCall(false)}>
+          <ChevronLeft size={16} /> {t("backHome")}
+        </button>
+      </div>
+    );
   } else if (experienceMode === "dialogue" || talk) {
     const activeTalk = talk ?? "intro";
     screenKey = `talk-${activeTalk}`;
@@ -931,7 +953,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           <button
             className="wos-emoji-tile"
             aria-label={t("callFamily")}
-            onClick={() => s.chooseAssistance("family")}
+            onClick={() => setPickCall(true)}
           >
             <span className="wos-emoji-symbol" aria-hidden="true">
               📞

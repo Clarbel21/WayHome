@@ -41,7 +41,13 @@ import {
   MessageCircle,
   ChevronLeft,
 } from "lucide-react";
-import { status, useStore, simulatedLocation, navigable } from "../store";
+import {
+  status,
+  useStore,
+  simulatedLocation,
+  navigable,
+  requestContact,
+} from "../store";
 import { useLang, useT, timeAgo } from "../i18n";
 import { RADIUS_MAX, RADIUS_MIN, useZone } from "../zone/store";
 import { RouteHomeMap, ZoneLadder, ZoneMap } from "../zone/ZoneViews";
@@ -50,6 +56,7 @@ import { Check, BatteryLow, Satellite, AlertTriangle } from "lucide-react";
 import { wearLabels } from "../services/safety";
 import { CheckInHistory, FamilyResponse } from "./CheckInSupport";
 import { bleDevice } from "../services/ble";
+import { nearestDemoPoliceStation } from "../zone/demoPolice";
 
 // Codex's shared list (src/experienceModes.ts, PR #8) is not on main yet.
 // Keep this single local copy of the agreed emoji + names; Codex will swap it
@@ -100,9 +107,10 @@ export function CaregiverPhone() {
   // so the escalation ladder and live route map are actually on screen.
   const zoneActive = useZone((z) => z.active);
   const guiding = s.mode === "GUIDED_RETURN";
+  const missedStop = s.mode === "REORIENTATION" && !!s.missedLandmark;
   useEffect(() => {
-    if (zoneActive || guiding) setView("today");
-  }, [zoneActive, guiding]);
+    if (zoneActive || guiding || missedStop) setView("today");
+  }, [zoneActive, guiding, missedStop]);
   useEffect(() => {
     scrollArea.current?.scrollTo({ top: 0 });
   }, [view]);
@@ -528,6 +536,43 @@ function PhoneDeviceDetails() {
   );
 }
 
+function DemoPoliceStation({
+  position,
+  companion,
+}: {
+  position: number;
+  companion: string;
+}) {
+  const t = useT();
+  const [called, setCalled] = useState(false);
+  const station = nearestDemoPoliceStation(position);
+  return (
+    <div className="cph-police">
+      <p className="cph-hero-sub">{t("demoPoliceAttribution", { companion })}</p>
+      <h3 className="cph-hero-title">{t("demoPoliceQuestion")}</h3>
+      <div className="cph-police-row">
+        <p>
+          <strong>{station.name}</strong>
+          <small>
+            {t("demoPoliceDistance", { metres: Math.round(station.distance) })}
+          </small>
+        </p>
+        <button
+          type="button"
+          className="button"
+          disabled={called}
+          onClick={() => setCalled(true)}
+        >
+          {t("demoPoliceCall")}
+        </button>
+      </div>
+      <p className="cph-hero-sub" role="status">
+        {t(called ? "demoPoliceCalled" : "demoPoliceDisclaimer")}
+      </p>
+    </div>
+  );
+}
+
 // Today tab: one person, one status, one next action, then quiet context.
 // Safety rules stay in the store.
 function PhoneToday() {
@@ -597,7 +642,9 @@ function PhoneToday() {
           : s.checkIn?.stage === "question"
             ? t("waitingAnswer", { wearer: first })
             : waiting
-              ? t("familySub")
+              ? requestContact(s)
+                ? t("callWants", { wearer: first, name: requestContact(s)!.name })
+                : t("familySub")
               : familyRequestDone
                 ? t("familyReplyDone", { caregiver: s.settings.caregiver })
                 : arrivedHome
@@ -625,6 +672,8 @@ function PhoneToday() {
   const ack = emergency?.emergency?.acknowledgedAt;
   const routeActive = s.mode === "GUIDED_RETURN" && approved.length > 0;
   const guiding = s.mode === "GUIDED_RETURN" && zone.guideStartM !== null;
+  const missedStop =
+    !offline && !takenOff && s.mode === "REORIENTATION" ? s.missedLandmark : null;
   return (
     <div className={`cph-today ${alerting ? "cph-today-alert" : ""}`}>
       {/* 1 + 2 — who we are looking after, and whether anything needs us. */}
@@ -642,8 +691,18 @@ function PhoneToday() {
                 : t("needsAttention")}
           </span>
         </div>
-        <h3 className="cph-hero-title">{heading}</h3>
-        <p className="cph-hero-sub">{subtitle}</p>
+        {missedStop ? (
+          <DemoPoliceStation
+            key={missedStop.id}
+            position={missedStop.position}
+            companion={s.settings.companionName}
+          />
+        ) : (
+          <>
+            <h3 className="cph-hero-title">{heading}</h3>
+            <p className="cph-hero-sub">{subtitle}</p>
+          </>
+        )}
         {s.mode === "CHECK_IN" && s.checkIn?.stage === "question" && (
           <span className="phone-live-dot" aria-hidden="true" />
         )}

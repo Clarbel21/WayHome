@@ -408,3 +408,13 @@ test("I know my way (0x0a) ends guidance from the physical watch", () => {
   applyDeviceEvent(ev!);
   expect(state().mode).toBe("NORMAL");
 });
+
+test("Call → face (0x0b) on the physical watch asks that person", () => {
+  useStore.setState({ ...useStore.getInitialState(), connected: true });
+  const ev = companionEvent(view([0x0b, 1]));
+  expect(ev).toEqual({ type: "call_contact", index: 1 });
+  applyDeviceEvent(ev!);
+  expect(state().familyRequest?.contactId).toBe("sam");
+  applyDeviceEvent({ type: "call_contact", index: 9 }); // out of range: ignored
+  expect(state().familyRequest?.contactId).toBe("sam");
+});
