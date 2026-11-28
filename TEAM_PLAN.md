@@ -81,6 +81,9 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
   again. 7 s with no reply → back home (saves battery). *(ZCode #38; hands-free + 7 s by
   Claude.)* ESP32: same screen and 7 s timeout; on-chip speech recognition is a later step.
 - [x] **T2 — Guide me home by voice.** Saying "take me home" starts H1. *(22 Nov, ZCode — step-t2-home-by-voice. Also "go home", "I want to go home" and Indonesian "pulang" / "antar saya pulang"; Momo answers “Okay, let’s go home.” and the walk starts after she says it.)*
+- [ ] **T3 — Call by voice + a few more answers.** "Call Jamie" / "call my daughter" →
+  Call lane (C2 ringing). Momo also answers "what time is it?", "what day is it?",
+  "where am I?" (simulated, near home) in ≤ 8 words. Still hands-free, 7 s timeout.
 
 **Game — memory game**
 - [x] **G1 — Familiar landmarks.** Show a photo, pick its name from 2 big choices.
@@ -90,7 +93,11 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
 - [x] **G3 — My happy places.** Places with memories, with a short line from the family.
   *(WorkBuddy #46.)* Every Game card now shows a short memory under the answer
   ("Your favourite bakery. You love their muffins."). Web + ESP32.
-- Caregiver adds the photos for G1–G3 on the phone (Care tools).
+- [ ] **G4 — Caregiver edits the games and family on the phone.** Care tools → "Family &
+  memories": edit each person's name, relation and memory line (Call + Faces), and each
+  place's memory line (Places, Happy places); upload a photo per card (stored in the
+  browser like the Memory library). The web watch uses them right away. ESP32 keeps the
+  built-in set for now.
 - **ESP32 flash is at 83 %.** Fine for now. Only if a new step no longer fits (G3, real
   family photos, call recordings), add SD-card support: the board has a micro-SD slot,
   so pictures/sounds load from `wayhome/` on the card with the built-in ones as fallback.
