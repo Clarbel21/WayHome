@@ -59,7 +59,10 @@ test("demo moments drive both devices and SOS disables unsafe moments", async ({
     .getByRole("button", { name: "Acknowledge SOS alert", exact: true })
     .click();
   await expect(
-    wearer(page).getByText("Jamie Chen has seen your SOS"),
+    caregiver(page).getByText(/acknowledgment recorded/i),
+  ).toBeVisible();
+  await expect(
+    wearer(page).getByText("Help is coming. · Demo", { exact: true }),
   ).toBeVisible();
 });
 
