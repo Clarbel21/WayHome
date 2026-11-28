@@ -1,7 +1,13 @@
 import { Check, House } from "lucide-react";
 import { navigable, useStore } from "../store";
 import { useT } from "../i18n";
-import { RADIUS_MAX, RADIUS_MIN, legTarget, useZone } from "./store";
+import {
+  RADIUS_MAX,
+  RADIUS_MIN,
+  activeLadderStep,
+  legTarget,
+  useZone,
+} from "./store";
 import {
   MAP_H,
   MAP_W,
@@ -143,6 +149,7 @@ export function ZoneLadder() {
   const s = useStore();
   const t = useT();
   if (!z.active) return null;
+  const step = activeLadderStep(z);
   const guiding = s.mode === "GUIDED_RETURN" && z.guideStartM !== null;
   if (guiding)
     return (
@@ -170,8 +177,12 @@ export function ZoneLadder() {
     <section
       className={`phone-action-card zone-ladder ${z.level >= 3 ? "urgent" : ""}`}
       aria-label={t("zoneLadder")}
+      data-step={step}
     >
-      <h3>{t("zoneLadder")}</h3>
+      <h3>
+        {t("zoneLadder")}
+        <span className="zone-ladder-step">{t("zoneStepOf", { n: step })}</span>
+      </h3>
       <p className="zone-ladder-sub">
         {guiding
           ? t("zoneGuiding")

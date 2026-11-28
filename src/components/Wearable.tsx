@@ -22,7 +22,7 @@ import {
   CornerUpRight,
   CornerUpLeft,
 } from "lucide-react";
-import { useZone, legTarget } from "../zone/store";
+import { activeLadderStep, useZone, legTarget } from "../zone/store";
 import { planRoute } from "../zone/route";
 import { useWatchUi } from "./watchUi";
 import { MemoryGardenExperience } from "../memory/MemoryPlayer";
@@ -137,8 +137,19 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     }
   }, [find.ringing, s.connected, s.mode]);
   const wearerFirst = s.settings.wearer.split(" ")[0];
-  // Only ask "Heading home?" when no other safety screen owns the watch.
+  // Only let the safe zone own the watch when no other safety screen does.
+  // The step number is the same one the caregiver ladder shows, so neither
+  // device can sit on an older step after "+8 min".
   const zonePrompt = z.prompt && (s.mode === "NORMAL" || s.mode === "CHECK_IN");
+  const zoneStep =
+    s.mode !== "EMERGENCY_SIMULATED" &&
+    s.mode !== "GUIDED_RETURN" &&
+    // A walk in progress, or any check-in/handover safety screen, owns the
+    // watch instead; the ladder resumes on the home screen.
+    z.guideStartM === null &&
+    s.mode === "NORMAL"
+      ? activeLadderStep(z)
+      : 0;
   const [now, setNow] = useState(new Date());
   const approved = s.landmarks.filter(navigable);
   const landmark = approved[s.guideIndex];
@@ -272,6 +283,11 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         <div className="wos-sos-icon" aria-hidden="true">
           <ShieldAlert size={30} />
         </div>
+        {z.level >= 4 && (
+          <span className="wos-zone-step wos-sos-step" data-step="4">
+            {t("zoneStepOf", { n: 4 })}
+          </span>
+        )}
         {speech(modeMessage(lang, s.mode, name))}
         <ol className="wos-steps" aria-label="SOS progress">
           <li className="done">
@@ -321,30 +337,58 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         </div>
       </div>
     );
-  } else if (zonePrompt) {
-    screenKey = `zone-${z.promptAt}`;
+  } else if (zoneStep) {
+    // Every ladder step owns the watch until the wearer answers it. The
+    // chip and the phone ladder carry the same step number; the words stay
+    // short enough for the watch (one idea, up to three buttons).
+    screenKey = `zone-step-${zoneStep}-${z.promptAt}`;
+    const askingFamily = zoneStep >= 3;
+    const stepTitle =
+      zoneStep === 1
+        ? t("zoneTitle")
+        : zoneStep === 2
+          ? t("zoneStillOut")
+          : zoneStep === 3
+            ? t("zoneCallFamily")
+            : t("zoneCaregiverAlerted");
+    const acceptGuide = () => {
+      z.acceptGuide();
+      s.chooseAssistance("home");
+    };
     screen = (
-      <div className="wos-center wos-zone">
+      <div
+        className={`wos-center wos-zone ${askingFamily ? "wos-zone-call" : ""}`}
+        data-step={zoneStep}
+      >
         <div className="wos-zone-icon" aria-hidden="true">
-          <MapPin size={28} />
+          {askingFamily ? <Phone size={28} /> : <MapPin size={28} />}
         </div>
-        <strong className="wos-zone-title">{t("zoneTitle")}</strong>
+        <span className="wos-zone-step">{t("zoneStepOf", { n: zoneStep })}</span>
+        <strong className="wos-zone-title">{stepTitle}</strong>
+        {askingFamily && (
+          <span className="wos-zone-status">{t("zoneCaregiverAlerted")}</span>
+        )}
         <span className="sr-only">
           {t("zoneDistance", { km: (z.distanceM / 1000).toFixed(2) })}
         </span>
+        {askingFamily && (
+          <button
+            className="watch-action wos-primary"
+            onClick={() => s.chooseAssistance("family")}
+          >
+            <Phone size={18} /> {t("callFamily")}
+          </button>
+        )}
         <button
-          className="watch-action wos-primary"
-          onClick={() => {
-            z.acceptGuide();
-            s.chooseAssistance("home");
-          }}
+          className={`watch-action ${askingFamily ? "wos-secondary" : "wos-primary"}`}
+          onClick={acceptGuide}
         >
           <House size={18} /> {t("zoneYes")}
         </button>
         <button className="wos-ghost" onClick={z.decline}>
           {t("zoneNo")}
         </button>
-        <span className="wos-zone-timer" aria-hidden="true" />
+        {zonePrompt && <span className="wos-zone-timer" aria-hidden="true" />}
       </div>
     );
   } else if (s.mode === "GUIDED_RETURN") {
@@ -876,7 +920,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
 
   return (
     <div
-      className={`watch-area mode-${s.mode.toLowerCase()} experience-${experienceMode} ${s.attachment} ${compact ? "compact" : ""} ${buzzing ? "buzz" : ""} ${ringing ? "find-ring" : ""} ${zonePrompt ? "zone-alert" : ""}`}
+      className={`watch-area mode-${s.mode.toLowerCase()} experience-${experienceMode} ${s.attachment} ${compact ? "compact" : ""} ${buzzing ? "buzz" : ""} ${ringing ? "find-ring" : ""} ${zoneStep ? "zone-alert" : ""}`}
       onClickCapture={captureWatchAction}
     >
       <div className="watch-strap top" />

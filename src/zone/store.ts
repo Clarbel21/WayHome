@@ -31,12 +31,20 @@ export const PROMPT_SECONDS = 16;
 export const REASK_AFTER_DECLINE_S = 15;
 export const REASK_AFTER_SILENCE_S = 6;
 
+export const LADDER_STEPS = 4;
+
 /** Ladder level for a number of simulated minutes outside (1 = check-in only). */
 export function ladderLevel(vmin: number, s: ZoneSettings) {
   if (vmin >= s.emergencyMin) return 4;
   if (vmin >= s.callSecondaryMin) return 3;
   if (vmin >= s.notifyPrimaryMin) return 2;
   return 1;
+}
+
+/** The one ladder step both devices show while the wearer is outside. */
+export function activeLadderStep(zone: { active: boolean; level: number }) {
+  if (!zone.active) return 0;
+  return Math.max(1, Math.min(LADDER_STEPS, zone.level || 1));
 }
 
 /** Distance from home the wearer should reach at the end of guided leg `index`. */
