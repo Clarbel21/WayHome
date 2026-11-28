@@ -1442,3 +1442,67 @@
   background: #fff;
   color: #2f4d3d;
 }
+
+/* Talk log (Updates): what the wearer said on the watch, what Momo
+   answered. Text only — no audio is stored. Flagged rows need attention. */
+.cph-talk-log {
+  margin: 10px 0 0;
+}
+.cph-talk-log h4 {
+  margin: 0 0 4px;
+}
+.phone-talk-note,
+.phone-talk-empty {
+  font-size: 12px;
+  color: #6d7a6e;
+  margin: 2px 0 6px;
+}
+.cph-talk-log ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.cph-talk-log li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid #e2e6dc;
+  border-radius: 10px;
+  background: #fbfcf9;
+}
+.cph-talk-log li.matters {
+  border-color: #e8c9a0;
+  background: #fdf6ec;
+}
+.cph-talk-log time {
+  font-size: 12px;
+  color: #6d7a6e;
+  white-space: nowrap;
+}
+.cph-talk-log li > div {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.cph-talk-log strong {
+  font-weight: 650;
+}
+.cph-talk-log span {
+  color: #4d5c4e;
+}
+.phone-talk-flag {
+  align-self: center;
+  justify-self: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #b98336;
+  color: #fff;
+  font-weight: 700;
+}

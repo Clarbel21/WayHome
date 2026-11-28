@@ -13,8 +13,12 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("Talk listens by itself, answers, and has no typing", async ({ page }) => {
-  await watch(page).getByRole("button", { name: "Let's talk", exact: true }).click();
-  await expect(watch(page).getByText("Hi! Want to chat with me?")).toBeVisible();
+  await watch(page)
+    .getByRole("button", { name: "Let's talk", exact: true })
+    .click();
+  await expect(
+    watch(page).getByText("Hi! Want to chat with me?"),
+  ).toBeVisible();
   await expect(watch(page).getByRole("textbox")).toHaveCount(0);
   await expect(watch(page).getByRole("button", { name: "Type" })).toHaveCount(
     0,
@@ -26,8 +30,12 @@ test("Talk listens by itself, answers, and has no typing", async ({ page }) => {
 });
 
 test('saying "take me home" starts the guided walk (T2)', async ({ page }) => {
-  await watch(page).getByRole("button", { name: "Let's talk", exact: true }).click();
-  await expect(watch(page).getByText("Hi! Want to chat with me?")).toBeVisible();
+  await watch(page)
+    .getByRole("button", { name: "Let's talk", exact: true })
+    .click();
+  await expect(
+    watch(page).getByText("Hi! Want to chat with me?"),
+  ).toBeVisible();
   await sayToMomo(page, "Take me home");
   // Momo confirms out loud and on screen...
   await expect(watch(page).getByText("Okay, let's go home.")).toBeVisible();
@@ -38,9 +46,15 @@ test('saying "take me home" starts the guided walk (T2)', async ({ page }) => {
   await expect(watch(page).locator(".wos-talk")).toHaveCount(0);
 });
 
-test('saying "pulang" (Indonesian) also starts the guided walk', async ({ page }) => {
-  await watch(page).getByRole("button", { name: "Let's talk", exact: true }).click();
-  await expect(watch(page).getByText("Hi! Want to chat with me?")).toBeVisible();
+test('saying "pulang" (Indonesian) also starts the guided walk', async ({
+  page,
+}) => {
+  await watch(page)
+    .getByRole("button", { name: "Let's talk", exact: true })
+    .click();
+  await expect(
+    watch(page).getByText("Hi! Want to chat with me?"),
+  ).toBeVisible();
   await sayToMomo(page, "Aku mau pulang");
   await expect(watch(page).getByText("Okay, let's go home.")).toBeVisible();
   await expect(
@@ -49,32 +63,52 @@ test('saying "pulang" (Indonesian) also starts the guided walk', async ({ page }
 });
 
 test("quiet: Momo asks once, then goes home", async ({ page }) => {
-  await watch(page).getByRole("button", { name: "Let's talk", exact: true }).click();
+  await watch(page)
+    .getByRole("button", { name: "Let's talk", exact: true })
+    .click();
   await expect(watch(page).locator(".wos-talk")).toBeVisible();
   // First 7 s of silence: one gentle check, still on Talk.
-  await expect(watch(page).getByText("Are you still there?")).toBeVisible({ timeout: 9000 });
+  await expect(watch(page).getByText("Are you still there?")).toBeVisible({
+    timeout: 9000,
+  });
   await expect(watch(page).locator(".wos-talk")).toBeVisible();
   // Second quiet spell: back home.
-  await expect(watch(page).locator(".wos-emoji-grid")).toBeVisible({ timeout: 9000 });
+  await expect(watch(page).locator(".wos-emoji-grid")).toBeVisible({
+    timeout: 9000,
+  });
 });
 
-test("inside the safe zone Momo asks to chat; Not now goes home", async ({ page }) => {
-  await watch(page).getByRole("button", { name: "Let's talk", exact: true }).click();
-  await expect(watch(page).getByText("Hi! Want to chat with me?")).toBeVisible();
+test("inside the safe zone Momo asks to chat; Not now goes home", async ({
+  page,
+}) => {
+  await watch(page)
+    .getByRole("button", { name: "Let's talk", exact: true })
+    .click();
+  await expect(
+    watch(page).getByText("Hi! Want to chat with me?"),
+  ).toBeVisible();
   await watch(page).getByRole("button", { name: "Let's chat" }).click();
-  await expect(watch(page).getByText("Lovely! What shall we talk about?")).toBeVisible();
+  await expect(
+    watch(page).getByText("Lovely! What shall we talk about?"),
+  ).toBeVisible();
   await watch(page).getByRole("button", { name: /Back/ }).click();
   await page.evaluate(() => delete (window as any).__momoRec);
-  await watch(page).getByRole("button", { name: "Let's talk", exact: true }).click();
+  await watch(page)
+    .getByRole("button", { name: "Let's talk", exact: true })
+    .click();
   await sayToMomo(page, "Not now");
-  await expect(watch(page).locator(".wos-emoji-grid")).toBeVisible({ timeout: 5000 });
+  await expect(watch(page).locator(".wos-emoji-grid")).toBeVisible({
+    timeout: 5000,
+  });
 });
 
 test('saying "call Jamie" rings the family contact (T3)', async ({ page }) => {
   await watch(page)
     .getByRole("button", { name: "Let's talk", exact: true })
     .click();
-  await expect(watch(page).getByText("Hi! Want to chat with me?")).toBeVisible();
+  await expect(
+    watch(page).getByText("Hi! Want to chat with me?"),
+  ).toBeVisible();
   await sayToMomo(page, "Call Jamie");
   // The call lane (C2) ringing screen opens for the family contact.
   await expect(watch(page).locator(".wos-ringing")).toBeVisible();
@@ -89,7 +123,9 @@ test('saying "call my daughter" calls the same person (T3)', async ({
   await watch(page)
     .getByRole("button", { name: "Let's talk", exact: true })
     .click();
-  await expect(watch(page).getByText("Hi! Want to chat with me?")).toBeVisible();
+  await expect(
+    watch(page).getByText("Hi! Want to chat with me?"),
+  ).toBeVisible();
   await sayToMomo(page, "Call my daughter");
   await expect(watch(page).locator(".wos-ringing")).toBeVisible();
   await expect(watch(page).getByText("Jamie", { exact: true })).toBeVisible();
@@ -101,7 +137,9 @@ test("Momo answers the time, the day and where she is (T3)", async ({
   await watch(page)
     .getByRole("button", { name: "Let's talk", exact: true })
     .click();
-  await expect(watch(page).getByText("Hi! Want to chat with me?")).toBeVisible();
+  await expect(
+    watch(page).getByText("Hi! Want to chat with me?"),
+  ).toBeVisible();
   await sayToMomo(page, "What time is it?");
   await expect(watch(page).getByText(/It's \d{1,2}:\d{2}/)).toBeVisible();
   await sayToMomo(page, "What day is it?");
@@ -112,4 +150,28 @@ test("Momo answers the time, the day and where she is (T3)", async ({
   ).toBeVisible();
   await sayToMomo(page, "Where am I?");
   await expect(watch(page).getByText("Near home · Demo")).toBeVisible();
+});
+
+test("the caregiver phone keeps a short Talk log (follow-up)", async ({
+  page,
+}) => {
+  await watch(page)
+    .getByRole("button", { name: "Let's talk", exact: true })
+    .click();
+  // Momo opens with her question (answer by voice — the mic is already on).
+  await expect(
+    watch(page).getByText(/Shall I guide you home|Want to chat with me/),
+  ).toBeVisible();
+  await sayToMomo(page, "Take me home");
+  await expect(watch(page).getByText("Okay, let's go home.")).toBeVisible();
+
+  // The phone's Updates view logs the flagged exchange (text only).
+  await page
+    .getByRole("navigation", { name: "Phone views" })
+    .getByRole("button", { name: "Updates" })
+    .click();
+  const row = page.locator(".cph-talk-log li.matters").first();
+  await expect(row).toBeVisible();
+  await expect(row).toContainText("Take me home");
+  await expect(row).toContainText("Okay, let's go home.");
 });
