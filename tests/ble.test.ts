@@ -388,3 +388,13 @@ test("two quick store updates both reach the watch (Not yet → missed screen)",
   expect(calls.length).toBeGreaterThan(0);
   expect((calls[calls.length - 1][0] as Uint8Array)[0]).toBe(7);
 });
+
+test("I know my way (0x0a) ends guidance from the physical watch", () => {
+  useStore.setState({ ...useStore.getInitialState(), connected: true });
+  applyDeviceEvent({ type: "go_home" });
+  expect(state().mode).toBe("GUIDED_RETURN");
+  const ev = companionEvent(view([0x0a]));
+  expect(ev).toEqual({ type: "know_my_way" });
+  applyDeviceEvent(ev!);
+  expect(state().mode).toBe("NORMAL");
+});

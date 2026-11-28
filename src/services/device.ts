@@ -13,6 +13,7 @@ export type DeviceEvent =
   | { type: "landmark_step"; step: number }
   | { type: "landmark_missed" }
   | { type: "landmark_seen_now" }
+  | { type: "know_my_way" }
   | { type: "connection"; connected: boolean };
 export interface DeviceService {
   readonly mode: "simulated" | "ble";
@@ -53,6 +54,8 @@ export function applyDeviceEvent(e: DeviceEvent) {
   // the web watch buttons, so the walk pauses and resumes identically.
   if (e.type === "landmark_missed") s.chooseAssistance("unrecognized");
   if (e.type === "landmark_seen_now") s.seeItNow();
+  // "I know my way" on the physical watch: same as the web guide button.
+  if (e.type === "know_my_way") s.backToHome();
   if (e.type === "connection") s.setConnection(e.connected);
 }
 // Default adapter for demos without paired hardware. The watch firmware
