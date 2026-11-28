@@ -12,3 +12,8 @@ LV_IMAGE_DECLARE(wh_quiz_home_img);
 LV_IMAGE_DECLARE(wh_quiz_face_jamie_img);
 LV_IMAGE_DECLARE(wh_quiz_face_sam_img);
 LV_IMAGE_DECLARE(wh_quiz_face_mei_img);
+// G3 happy places: beach, park bench, old market, family kitchen.
+LV_IMAGE_DECLARE(wh_quiz_place_beach_img);
+LV_IMAGE_DECLARE(wh_quiz_place_bench_img);
+LV_IMAGE_DECLARE(wh_quiz_place_market_img);
+LV_IMAGE_DECLARE(wh_quiz_place_kitchen_img);

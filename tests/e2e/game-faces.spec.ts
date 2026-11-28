@@ -127,7 +127,7 @@ test("four face rounds use family names, two big choices and gentle words", asyn
   // Round 1: right answer stays cheerful.
   await quiz.getByRole("button", { name: "Jamie", exact: true }).click();
   await expect(quiz).toHaveAttribute("data-result", "right");
-  await expect(quiz.locator(".wos-game-result")).toHaveText(
+  await expect(quiz.locator(".wos-game-result")).toContainText(
     "Yes! That's Jamie.",
   );
   expect((await quiz.innerText()).toLowerCase()).not.toContain("wrong");
@@ -141,7 +141,7 @@ test("four face rounds use family names, two big choices and gentle words", asyn
   );
   await quiz.getByRole("button", { name: "Mei", exact: true }).click();
   await expect(quiz).toHaveAttribute("data-result", "gentle");
-  await expect(quiz.locator(".wos-game-result")).toHaveText(
+  await expect(quiz.locator(".wos-game-result")).toContainText(
     "That's Sam. Next one?",
   );
   expect((await quiz.innerText()).toLowerCase()).not.toContain("wrong");
@@ -155,7 +155,7 @@ test("four face rounds use family names, two big choices and gentle words", asyn
     /images\/quiz-face-mei\.svg/,
   );
   await quiz.getByRole("button", { name: "Mei", exact: true }).click();
-  await expect(quiz.locator(".wos-game-result")).toHaveText("Yes! That's Mei.");
+  await expect(quiz.locator(".wos-game-result")).toContainText("Yes! That's Mei.");
   await quiz.getByRole("button", { name: "Next", exact: true }).click();
   await expect(quiz.locator(".wos-game-round")).toHaveText("Round 4 of 4");
   await expect(quiz.locator("img")).toHaveAttribute(
@@ -164,7 +164,7 @@ test("four face rounds use family names, two big choices and gentle words", asyn
   );
   await expect(quiz.locator(".wos-game-choice")).toHaveText(["Mei", "Jamie"]);
   await quiz.getByRole("button", { name: "Mei", exact: true }).click();
-  await expect(quiz.locator(".wos-game-result")).toHaveText(
+  await expect(quiz.locator(".wos-game-result")).toContainText(
     "That's Jamie. Next one?",
   );
   await quiz.getByRole("button", { name: "Next", exact: true }).click();

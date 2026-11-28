@@ -434,13 +434,29 @@ void talk_start() {
 // kind line. Same cards and words as the web watch (src/game/*.ts); never
 // says "wrong".
 constexpr uint8_t QUIZ_ROUNDS = 4;
-enum QuizDeck : uint8_t { DECK_PLACES = 0, DECK_FACES = 1 };
+enum QuizDeck : uint8_t { DECK_PLACES = 0, DECK_FACES = 1, DECK_HAPPY = 2 };
 uint8_t quizDeck = DECK_PLACES;
 const char *const PLACE_NAMES[4] = {"Garden", "Bakery", "Library", "Home"};
 const char *const PLACE_LOWER[4] = {"garden", "bakery", "library", "home"};
 const lv_image_dsc_t *const PLACE_IMG[4] = {&wh_quiz_garden_img, &wh_quiz_bakery_img,
                                             &wh_quiz_library_img, &wh_quiz_home_img};
 const char *const FACE_NAMES[3] = {"Jamie", "Sam", "Mei"};
+const char *const HAPPY_NAMES[4] = {"Beach", "Park bench", "Old market", "Kitchen"};
+const char *const HAPPY_LOWER[4] = {"beach", "park bench", "old market", "family kitchen"};
+const lv_image_dsc_t *const HAPPY_IMG[4] = {&wh_quiz_place_beach_img, &wh_quiz_place_bench_img,
+                                            &wh_quiz_place_market_img, &wh_quiz_place_kitchen_img};
+// One short memory under each answer — same lines as src/i18n.ts.
+const char *const PLACE_MEMORY[4] = {
+    "You grow tomatoes here.", "Your favourite bakery. You love their muffins.",
+    "You read the paper here on Sundays.", "Your home, with the blue door."};
+const char *const FACE_MEMORY[3] = {"Your daughter. She visits every Sunday.",
+                                    "Your son. You go fishing together.",
+                                    "Your sister. She makes the best dumplings."};
+const char *const HAPPY_MEMORY[4] = {"We swam here every summer.",
+                                     "We sat here and watched the ducks.",
+                                     "We bought fresh fruit here.",
+                                     "We cooked together every Sunday."};
+lv_obj_t *lblQuizMemory = nullptr;
 const lv_image_dsc_t *const FACE_IMG[3] = {&wh_quiz_face_jamie_img, &wh_quiz_face_sam_img,
                                            &wh_quiz_face_mei_img};
 uint8_t quizRound = 0;
@@ -454,7 +470,7 @@ lv_obj_t *lblQuizDone = nullptr;
 
 // Answer and distractor for a round (indices into the deck's names).
 void quiz_card(uint8_t round, uint8_t &answer, uint8_t &other) {
-  if (quizDeck == DECK_PLACES) {
+  if (quizDeck != DECK_FACES) {  // places and happy places: next one along
     answer = round % 4;
     other = (round + 1) % 4;
   } else {  // faces: Jamie, Sam, Mei, then Jamie vs Mei (no pair twice)
@@ -472,7 +488,9 @@ uint8_t quiz_choice_id(uint8_t round, uint8_t side) {
 }
 
 const char *quiz_name(uint8_t id) {
-  return quizDeck == DECK_PLACES ? PLACE_NAMES[id] : FACE_NAMES[id];
+  return quizDeck == DECK_PLACES ? PLACE_NAMES[id]
+         : quizDeck == DECK_FACES ? FACE_NAMES[id]
+                                  : HAPPY_NAMES[id];
 }
 
 void quiz_show() {
@@ -489,14 +507,18 @@ void quiz_show() {
     if (done) {
       lv_obj_add_flag(imgQuiz, LV_OBJ_FLAG_HIDDEN);
     } else {
-      lv_image_set_src(imgQuiz, quizDeck == DECK_PLACES ? PLACE_IMG[answer] : FACE_IMG[answer]);
+      lv_image_set_src(imgQuiz, quizDeck == DECK_PLACES ? PLACE_IMG[answer]
+                                : quizDeck == DECK_FACES ? FACE_IMG[answer]
+                                                         : HAPPY_IMG[answer]);
       lv_obj_clear_flag(imgQuiz, LV_OBJ_FLAG_HIDDEN);
     }
   }
   if (lblQuizLine != nullptr)
     lv_label_set_text(lblQuizLine, done ? ""
                                    : quizDeck == DECK_PLACES ? "Which place is this?"
-                                                             : "Who is this?");
+                                   : quizDeck == DECK_FACES  ? "Who is this?"
+                                                             : "Which happy place?");
+  if (lblQuizMemory != nullptr) lv_label_set_text(lblQuizMemory, "");
   for (uint8_t i = 0; i < 2; i++) {
     if (btnQuiz[i] == nullptr) continue;
     if (done) {
@@ -519,14 +541,18 @@ void quiz_choice_cb(lv_event_t *e) {
   uint8_t answer, other;
   quiz_card(quizRound, answer, other);
   bool right = quiz_choice_id(quizRound, side) == answer;
-  static char line[40];
-  if (quizDeck == DECK_PLACES)
-    snprintf(line, sizeof(line), right ? "Yes! That's the %s." : "That's the %s. Next one?",
-             PLACE_LOWER[answer]);
-  else
+  static char line[48];
+  if (quizDeck == DECK_FACES)
     snprintf(line, sizeof(line), right ? "Yes! That's %s." : "That's %s. Next one?",
              FACE_NAMES[answer]);
-  USBSerial.printf("[UI] quiz %s round %u: %s\n", quizDeck == DECK_PLACES ? "places" : "faces",
+  else
+    snprintf(line, sizeof(line), right ? "Yes! That's the %s." : "That's the %s. Next one?",
+             quizDeck == DECK_PLACES ? PLACE_LOWER[answer] : HAPPY_LOWER[answer]);
+  if (lblQuizMemory != nullptr)
+    lv_label_set_text(lblQuizMemory, quizDeck == DECK_PLACES ? PLACE_MEMORY[answer]
+                                     : quizDeck == DECK_FACES ? FACE_MEMORY[answer]
+                                                              : HAPPY_MEMORY[answer]);
+  USBSerial.printf("[UI] quiz deck %u round %u: %s\n", (unsigned)quizDeck,
                    quizRound + 1u, right ? "right" : "gentle");
   if (lblQuizLine != nullptr) lv_label_set_text(lblQuizLine, line);
   for (lv_obj_t *b : btnQuiz)
@@ -959,9 +985,11 @@ void build_game_screen() {
   lv_obj_align(lblGameStep, LV_ALIGN_TOP_MID, 0, 18);
   // 230x140 picture (places without name plaques, or a family face).
   imgQuiz = lv_image_create(scrMemories);
-  lv_obj_set_pos(imgQuiz, 90, 46);
+  lv_obj_set_pos(imgQuiz, 90, 42);
   lv_obj_set_size(imgQuiz, 230, 140);
-  lblQuizLine = add_wrapped(scrMemories, "Which place is this?", &lv_font_montserrat_22, INK, 196);
+  lblQuizLine = add_wrapped(scrMemories, "Which place is this?", &lv_font_montserrat_22, INK, 190);
+  // Memory line under the answer ("Your favourite bakery. You love their muffins.").
+  lblQuizMemory = add_wrapped(scrMemories, "", &lv_font_montserrat_18, SAGE_TEXT, 246);
   for (uint8_t i = 0; i < 2; i++) {
     btnQuiz[i] = add_button(scrMemories, 30 + i * 179, 240, 171, 72, SURFACE, 16);
     lv_obj_set_style_border_color(btnQuiz[i], lv_color_hex(0x9ec2a6), 0);
@@ -970,7 +998,7 @@ void build_game_screen() {
     lv_obj_center(lblQuizChoice[i]);
     lv_obj_add_event_cb(btnQuiz[i], quiz_choice_cb, LV_EVENT_CLICKED, (void *)(intptr_t)i);
   }
-  btnQuizNext = add_button(scrMemories, 30, 240, 350, 72, FOREST, 16);
+  btnQuizNext = add_button(scrMemories, 30, 304, 350, 68, FOREST, 16);
   lv_obj_t *nextText = add_label(btnQuizNext, "Next", &lv_font_montserrat_26, SURFACE);
   lv_obj_center(nextText);
   lv_obj_add_event_cb(btnQuizNext, quiz_next_cb, LV_EVENT_CLICKED, nullptr);
@@ -983,10 +1011,10 @@ void build_game_screen() {
   scrGamePick = new_screen(CREAM);
   lv_obj_clear_flag(scrGamePick, LV_OBJ_FLAG_SCROLLABLE);
   lv_obj_t *title = add_label(scrGamePick, "Which game?", &lv_font_montserrat_30, INK);
-  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 90);
-  const char *decks[2] = {"Places", "Faces"};
-  for (uint8_t i = 0; i < 2; i++) {
-    lv_obj_t *b = add_button(scrGamePick, 30 + i * 179, 190, 171, 96, SURFACE, 18);
+  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 40);
+  const char *decks[3] = {"Places", "Faces", "Happy places"};
+  for (uint8_t i = 0; i < 3; i++) {
+    lv_obj_t *b = add_button(scrGamePick, 30, 96 + i * 92, 350, 80, SURFACE, 18);
     lv_obj_set_style_border_color(b, lv_color_hex(0x9ec2a6), 0);
     lv_obj_set_style_border_width(b, 2, 0);
     lv_obj_t *l = add_label(b, decks[i], &lv_font_montserrat_26, FOREST);

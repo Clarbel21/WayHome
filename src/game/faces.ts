@@ -14,6 +14,13 @@ const FACE_ART: Record<string, string> = {
   mei: "/images/quiz-face-mei.svg",
 };
 
+// One short line about each person, shown after the answer (like G3).
+const FACE_MEMORY: Record<string, Parameters<GameTranslator>[0]> = {
+  jamie: "gameMemoryJamie",
+  sam: "gameMemorySam",
+  mei: "gameMemoryMei",
+};
+
 export function familyQuizDeck(
   t: GameTranslator,
   contacts: readonly FamilyContact[],
@@ -35,6 +42,7 @@ export function familyQuizDeck(
       photo: FACE_ART[person.id],
       answer,
       choices: i % 2 === 0 ? [answer, other] : [other, answer],
+      memory: FACE_MEMORY[person.id] ? t(FACE_MEMORY[person.id]) : undefined,
     };
   });
 
