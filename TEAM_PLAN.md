@@ -39,6 +39,8 @@ The watch does five things: **🏠 go home with familiar-landmark photos · 📞
 5. **No explanations on the watch.** Reasons and disclaimers go on the phone; the watch keeps
    one short honesty note ("Demo — no real call.").
 6. **Minimum sizes:** text 15 px, buttons 44 px. Nothing scrolls; every screen can go back.
+6b. **SOS on every screen** (web and ESP32), always at the bottom.
+6c. **No typing, ever.** Older wearers talk or tap big buttons; no text fields on the watch.
 7. **Same words on both watches** (`src/i18n.ts` → `firmware/watch_ui.cpp`).
 8. **The phone can say more**, but status first and details under Care tools.
 
@@ -73,21 +75,22 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
   motor on a free pin if we want buzzing.
 
 **Talk — talk with Momo**
-- [x] **T1 — Momo's character + chat.** Momo's face on screen, talks back by voice
-  (browser speech in/out, typed fallback). Short, kind replies; no medical advice.
-  *(22 Nov, ZCode — step-t1-momo-chat. The four fixed chips became free keyword chat:
-  the wearer speaks or types, Momo answers with the same lines; mic/type/send labels
-  are inline EN+ID until they get i18n keys.)*
+- [x] **T1 — Momo's character + chat.** Talk is like a call with Momo: tap Talk → she
+  greets and listens by herself (no buttons, **no typing**), answers by voice, listens
+  again. 7 s with no reply → back home (saves battery). *(ZCode #38; hands-free + 7 s by
+  Claude.)* ESP32: same screen and 7 s timeout; on-chip speech recognition is a later step.
 - [ ] **T2 — Guide me home by voice.** Saying "take me home" starts H1.
 
 **Game — memory game**
-- [ ] **G1 — Familiar landmarks.** Show a photo, pick its name from 2 big choices.
+- [x] **G1 — Familiar landmarks.** Show a photo, pick its name from 2 big choices.
+  *(WorkBuddy #35; ESP32 copy by Claude with the built-in photos.)*
 - [ ] **G2 — Familiar faces.** Show a family photo, pick the name.
 - [ ] **G3 — My happy places.** Places with memories, with a short line from the family.
 - Caregiver adds the photos for G1–G3 on the phone (Care tools).
 
 **SOS — hold 3 seconds** (stays on every screen)
-- [ ] **S1 — SOS asks the caregiver "Call the police?"** After an SOS hold, the phone's
+- [x] **S1 — SOS asks the caregiver "Call the police?"** *(Codex #36; ESP32 shows "Help is
+  coming. · Demo".)* After an SOS hold, the phone's
   Today card shows the nearest police station (same simulated list as H2: name, distance)
   with **Call police** and **Not now**. Call → "Calling … (demo, no real call)" and the
   alert log records it. The watch stays on "Help is coming." Reuse the existing simulated
