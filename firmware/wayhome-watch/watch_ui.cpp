@@ -408,27 +408,88 @@ void missed_call_cb(lv_event_t *e) {
   load_screen(scrCall);
 }
 
-// Talk is like a call with Momo: no buttons to talk, just listen. With no
-// reply for 7 s the watch goes back home to save battery (same as the web).
-// (Speech recognition on the chip comes later; the mic is on the board.)
+// Talk is like a call with Momo. She opens with one question, the same as
+// the web watch: outside the safe zone "Hello! Shall I guide you home?",
+// otherwise "Hi! Want to chat with me?" — answered with one of two big
+// buttons (speech recognition on the chip comes later). Quiet for 7 s →
+// "Are you still there?" once; quiet again → home (saves battery).
 constexpr uint32_t TALK_IDLE_MS = 7000;
 lv_timer_t *talkTimer = nullptr;
+bool talkNudged = false;
+bool talkOutside = false;
+lv_obj_t *lblTalkYes = nullptr;
+lv_obj_t *lblTalkNo = nullptr;
+lv_obj_t *btnTalkYes = nullptr;
+lv_obj_t *btnTalkNo = nullptr;
+lv_obj_t *lblTalkListen = nullptr;
 
-void talk_idle_cb(lv_timer_t *timer) {
-  LV_UNUSED(timer);
-  talkTimer = nullptr;  // one-shot: LVGL deletes it after this call
-  if (lv_screen_active() == scrTalk) {
-    USBSerial.println("[UI] talk: 7 s quiet -> home");
-    load_screen(scrHome);
+void talk_arm_timer() {
+  if (talkTimer != nullptr) lv_timer_delete(talkTimer);
+  talkTimer = lv_timer_create(
+      [](lv_timer_t *t) {
+        LV_UNUSED(t);
+        talkTimer = nullptr;  // one-shot: LVGL deletes it after this call
+        if (lv_screen_active() != scrTalk) return;
+        if (!talkNudged) {
+          talkNudged = true;
+          if (lblTalkReply != nullptr) lv_label_set_text(lblTalkReply, "Are you still there?");
+          talk_arm_timer();
+        } else {
+          USBSerial.println("[UI] talk: quiet -> home");
+          load_screen(scrHome);
+        }
+      },
+      TALK_IDLE_MS, nullptr);
+  lv_timer_set_repeat_count(talkTimer, 1);
+}
+
+void talk_show_answers(bool show) {
+  for (lv_obj_t *o : {btnTalkYes, btnTalkNo})
+    if (o != nullptr) {
+      if (show) lv_obj_clear_flag(o, LV_OBJ_FLAG_HIDDEN);
+      else lv_obj_add_flag(o, LV_OBJ_FLAG_HIDDEN);
+    }
+  if (lblTalkListen != nullptr) {
+    if (show) lv_obj_add_flag(lblTalkListen, LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_clear_flag(lblTalkListen, LV_OBJ_FLAG_HIDDEN);
   }
 }
 
 void talk_start() {
-  if (lblTalkReply != nullptr) lv_label_set_text(lblTalkReply, "I'm here with you.");
-  if (talkTimer != nullptr) lv_timer_delete(talkTimer);
-  talkTimer = lv_timer_create(talk_idle_cb, TALK_IDLE_MS, nullptr);
-  lv_timer_set_repeat_count(talkTimer, 1);
+  talkNudged = false;
+  talkOutside = watch.outsideZone;
+  if (lblTalkReply != nullptr)
+    lv_label_set_text(lblTalkReply, talkOutside ? "Hello! Shall I guide you home?"
+                                                : "Hi! Want to chat with me?");
+  if (lblTalkYes != nullptr)
+    lv_label_set_text(lblTalkYes, talkOutside ? LV_SYMBOL_HOME "  Guide me home"
+                                              : "Let's chat");
+  if (lblTalkNo != nullptr)
+    lv_label_set_text(lblTalkNo, talkOutside ? "Just chat" : "Not now");
+  talk_show_answers(true);
+  talk_arm_timer();
   load_screen(scrTalk);
+}
+
+// Yes (side 0) / No (side 1) to the opening question.
+void talk_answer_cb(lv_event_t *e) {
+  bool yes = (int)(intptr_t)lv_event_get_user_data(e) == 0;
+  talkNudged = false;
+  USBSerial.printf("[UI] talk answer: %s\n", yes ? "yes" : "no");
+  if (talkOutside && yes) {
+    // Same as the Home tile: ask the web to start guided return.
+    ble::publishCheckIn(0x06, 0);
+    refresh_landmark_widgets();
+    load_screen(scrRoute);
+    return;
+  }
+  if (!talkOutside && !yes) {
+    load_screen(scrHome);
+    return;
+  }
+  if (lblTalkReply != nullptr) lv_label_set_text(lblTalkReply, "Lovely! What shall we talk about?");
+  talk_show_answers(false);
+  talk_arm_timer();
 }
 
 // Game (G1 places, G2 faces): a picture, a question, two big names, then a
@@ -975,11 +1036,20 @@ void build_call_screen() {
 void build_talk_screen() {
   scrTalk = new_screen(CREAM);
   lv_obj_clear_flag(scrTalk, LV_OBJ_FLAG_SCROLLABLE);
-  make_sprout_avatar(scrTalk, 182, 60);
-  lblTalkReply = add_wrapped(scrTalk, "I'm here with you.", &lv_font_montserrat_26, INK, 150);
-  lv_obj_t *listen = add_label(scrTalk, LV_SYMBOL_AUDIO "  Listening...",
-                               &lv_font_montserrat_22, OK_GREEN);
-  lv_obj_align(listen, LV_ALIGN_TOP_MID, 0, 220);
+  make_sprout_avatar(scrTalk, 182, 30);
+  lblTalkReply = add_wrapped(scrTalk, "Hi! Want to chat with me?", &lv_font_montserrat_26, INK, 112);
+  btnTalkYes = add_button(scrTalk, 35, 204, 340, 72, FOREST, 18);
+  lblTalkYes = add_label(btnTalkYes, "Let's chat", &lv_font_montserrat_24, SURFACE);
+  lv_obj_center(lblTalkYes);
+  lv_obj_add_event_cb(btnTalkYes, talk_answer_cb, LV_EVENT_CLICKED, (void *)(intptr_t)0);
+  btnTalkNo = add_button(scrTalk, 35, 290, 340, 72, PALE, 18);
+  lblTalkNo = add_label(btnTalkNo, "Not now", &lv_font_montserrat_24, FOREST);
+  lv_obj_center(lblTalkNo);
+  lv_obj_add_event_cb(btnTalkNo, talk_answer_cb, LV_EVENT_CLICKED, (void *)(intptr_t)1);
+  lblTalkListen = add_label(scrTalk, LV_SYMBOL_AUDIO "  Listening...",
+                            &lv_font_montserrat_22, OK_GREEN);
+  lv_obj_align(lblTalkListen, LV_ALIGN_TOP_MID, 0, 230);
+  lv_obj_add_flag(lblTalkListen, LV_OBJ_FLAG_HIDDEN);
   add_back(scrTalk);
 }
 

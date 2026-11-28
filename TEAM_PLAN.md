@@ -79,10 +79,12 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
   motor on a free pin if we want buzzing.
 
 **Talk — talk with Momo**
-- [x] **T1 — Momo's character + chat.** Talk is like a call with Momo: tap Talk → she
-  greets and listens by herself (no buttons, **no typing**), answers by voice, listens
-  again. 7 s with no reply → back home (saves battery). *(ZCode #38; hands-free + 7 s by
-  Claude.)* ESP32: same screen and 7 s timeout; on-chip speech recognition is a later step.
+- [x] **T1 — Momo's character + chat.** Talk is like a call with Momo. She opens with one
+  question: outside the safe zone "Hello! Shall I guide you home?" (Guide me home / Just
+  chat), otherwise "Hi! Want to chat with me?" (Let's chat / Not now) — answer by voice or
+  one big tap. Then free chat, hands-free, no typing. Quiet 7 s → "Are you still there?"
+  once; quiet again → home. ESP32: same question and buttons (byte0 bit 7 = outside the
+  zone); on-chip speech recognition is a later step. *(ZCode #38, Claude)*
 - [x] **T2 — Guide me home by voice.** Saying "take me home" starts H1. *(22 Nov, ZCode — step-t2-home-by-voice. Also "go home", "I want to go home" and Indonesian "pulang" / "antar saya pulang"; Momo answers “Okay, let’s go home.” and the walk starts after she says it.)*
 - [ ] **T3 — Call by voice + a few more answers.** "Call Jamie" / "call my daughter" →
   Call lane (C2 ringing). Momo also answers "what time is it?", "what day is it?",

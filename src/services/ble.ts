@@ -6,6 +6,7 @@ import {
 import { type Attachment, type Observation, type WearInputs } from "./safety";
 import { useStore, navigable } from "../store";
 import { planRoute } from "../zone/route";
+import { useZone } from "../zone/store";
 
 /**
  * ESP32-S3 BLE adapter for the WayHome "Sprout" watch
@@ -114,10 +115,12 @@ export function watchStatePayload(
   turn: number = 0,
   /** Call lane C2: 1-based family contact being called (0 = none). */
   contact: number = 0,
+  /** Talk: wearer is outside the safe zone (byte0 bit 7). */
+  outside = false,
 ) {
   const text = new TextEncoder().encode(names).slice(0, 17);
   const payload = new Uint8Array(3 + text.length);
-  payload[0] = code;
+  payload[0] = (code & 0x7f) | (outside ? 0x80 : 0);
   payload[1] = position;
   payload[2] =
     (landmark & 0x0f) | ((turn & 0x03) << 4) | ((contact & 0x03) << 6);
@@ -216,6 +219,7 @@ export class BleDevice implements DeviceService {
   private stateDirty = false;
   private lastSentTurn = -1;
   private lastSentContact = -1;
+  private lastSentOutside: boolean | null = null;
   private lastSentCode = -1;
   private lastSentPosition = -1;
   private lastSentLandmark = -1;
@@ -294,8 +298,14 @@ export class BleDevice implements DeviceService {
     this.lastSentLandmark = -1;
     this.lastSentTurn = -1;
     this.lastSentContact = -1;
+    this.lastSentOutside = null;
     this.lastSentNames = "";
-    this.unsubscribeStore = useStore.subscribe(() => this.queueWatchState());
+    const unsubMain = useStore.subscribe(() => this.queueWatchState());
+    const unsubZone = useZone.subscribe(() => this.queueWatchState());
+    this.unsubscribeStore = () => {
+      unsubMain();
+      unsubZone();
+    };
     await this.sendWatchState().catch(() => {});
 
     this.emit({ type: "connection", connected: true });
@@ -375,7 +385,10 @@ export class BleDevice implements DeviceService {
     const contact = contactId
       ? Math.max(0, s.familyContacts.findIndex((c) => c.id === contactId) + 1)
       : 0;
+    // Talk on the ESP32 asks "Shall I guide you home?" when outside.
+    const outside = useZone.getState().active;
     if (
+      outside === this.lastSentOutside &&
       contact === this.lastSentContact &&
       turn === this.lastSentTurn &&
       code === this.lastSentCode &&
@@ -389,10 +402,11 @@ export class BleDevice implements DeviceService {
     this.lastSentLandmark = landmark;
     this.lastSentTurn = turn;
     this.lastSentContact = contact;
+    this.lastSentOutside = outside;
     this.lastSentNames = names;
     await this.gatt(() =>
       watchState.writeValue(
-        watchStatePayload(code, position, landmark, names, turn, contact),
+        watchStatePayload(code, position, landmark, names, turn, contact, outside),
       ),
     );
   }

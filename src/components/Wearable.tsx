@@ -79,6 +79,12 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   // Talk is like a call with Momo: it listens by itself. 7 s of silence
   // (nobody speaking, Momo not talking) returns home to save battery.
   const [talkActivity, setTalkActivity] = useState(0);
+  // Talk opens with one question: outside the safe zone "Shall I guide you
+  // home?", otherwise "Want to chat with me?". "chat" = free conversation.
+  const [talkStage, setTalkStage] = useState<"ask" | "chat">("ask");
+  // First quiet spell: Momo asks "Are you still there?" once; the second
+  // one says goodbye and returns home.
+  const [talkNudged, setTalkNudged] = useState(false);
   const recRef = useRef<any>(null);
   const handoverRef = useRef({ go: false });
   const prevMode = useRef(s.mode);
@@ -369,6 +375,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const handleWearerLine = (said: string) => {
     const line = said.trim().slice(0, 60);
     if (!line) return;
+    setTalkNudged(false);
     // T2: "take me home" starts the guided walk (H1). Momo confirms out
     // loud, then hands over to the guidance screen once she has spoken —
     // the voice toggle (Care tools) makes the handover instant.
@@ -394,6 +401,21 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       }
       return;
     }
+    // The opening question ("Shall I guide you home?" / "Want to chat?").
+    if (talkStage === "ask") {
+      const yes = /\b(yes|yeah|yep|ok|okay|sure|please|guide|home|chat|talk)\b/i.test(line);
+      const no = /\b(no|nope|not now|later)\b/i.test(line);
+      // Outside the zone, "just chat" means chat, not "yes, guide me".
+      const chatWord = /\b(chat|talk)\b/i.test(line);
+      if (outsideZone && chatWord) {
+        answerTalkQuestion(false, line);
+        return;
+      }
+      if (yes || no) {
+        answerTalkQuestion(yes && !no, line);
+        return;
+      }
+    }
     const reply = momoReply(line);
     setChat({ you: line, momo: reply });
     setTalkActivity(Date.now());
@@ -408,8 +430,11 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     rec.lang = lang === "id" ? "id-ID" : "en-US";
     rec.interimResults = false;
     rec.maxAlternatives = 1;
+    // Always the latest handler: the answer depends on the current stage.
     rec.onresult = (event: any) =>
-      handleWearerLine(event.results?.[0]?.[0]?.transcript ?? "");
+      talkFns.current.handleWearerLine(
+        event.results?.[0]?.[0]?.transcript ?? "",
+      );
     rec.onend = () => setListening(false);
     rec.onerror = () => setListening(false);
     try {
@@ -420,6 +445,41 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       setListening(false);
     }
   }
+  const outsideZone = z.active;
+  const talkGreeting = outsideZone ? t("talkAskGuide") : t("talkAskChat");
+  // The wearer answered the opening question (voice or one of two buttons).
+  function answerTalkQuestion(yes: boolean, said?: string) {
+    setTalkNudged(false);
+    setTalkActivity(Date.now());
+    stopListening();
+    if (outsideZone && yes) {
+      // "Yes, guide me home" → the guided walk (H1), after Momo confirms.
+      const reply = t("talkGoHome");
+      setChat({ you: said ?? null, momo: reply });
+      handoverRef.current.go = true;
+      const startWalk = () => {
+        if (handoverRef.current.go) s.chooseAssistance("home");
+      };
+      if ("speechSynthesis" in window && s.settings.voice)
+        speakOut(reply, startWalk);
+      else window.setTimeout(startWalk, 1200);
+      return;
+    }
+    if (!outsideZone && !yes) {
+      // "Not now" → a kind goodbye, then home.
+      const reply = t("talkBye");
+      setChat({ you: said ?? null, momo: reply });
+      const leave = () => talkFns.current.closeTalk();
+      if ("speechSynthesis" in window && s.settings.voice) speakOut(reply, leave);
+      else window.setTimeout(leave, 1200);
+      return;
+    }
+    // "Yes, let's chat" / "Just chat" → free conversation.
+    setTalkStage("chat");
+    const reply = t("talkChatStart");
+    setChat({ you: said ?? null, momo: reply });
+    speakOut(reply, startListening);
+  }
   const closeTalk = () => {
     handoverRef.current.go = false;
     stopListening();
@@ -429,13 +489,22 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     else setTalk(null);
   };  // Opening Talk is like answering a call: Momo greets, then listens.
   const talkOpen = s.mode === "NORMAL" && talk !== null;
-  const talkFns = useRef({ startListening, closeTalk, speakOut });
-  talkFns.current = { startListening, closeTalk, speakOut };
+  const talkFns = useRef({
+    startListening,
+    closeTalk,
+    speakOut,
+    handleWearerLine,
+  });
+  talkFns.current = { startListening, closeTalk, speakOut, handleWearerLine };
   useEffect(() => {
     if (!talkOpen) return;
+    setTalkStage(experienceMode === "dialogue" ? "chat" : "ask");
+    setTalkNudged(false);
+    setChat({ you: null, momo: null });
     setTalkActivity(Date.now());
-    talkFns.current.speakOut(t("talkIntro"), () =>
-      talkFns.current.startListening(),
+    talkFns.current.speakOut(
+      experienceMode === "dialogue" ? t("talkChatStart") : talkGreeting,
+      () => talkFns.current.startListening(),
     );
     return () => {
       try {
@@ -454,12 +523,20 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       () => {
         if ("speechSynthesis" in window && window.speechSynthesis.speaking)
           setTalkActivity(Date.now());
-        else talkFns.current.closeTalk();
+        else if (!talkNudged) {
+          // First quiet spell: ask once, then keep listening.
+          setTalkNudged(true);
+          setChat({ you: null, momo: t("talkStillThere") });
+          setTalkActivity(Date.now());
+          talkFns.current.speakOut(t("talkStillThere"), () =>
+            talkFns.current.startListening(),
+          );
+        } else talkFns.current.closeTalk();
       },
       speaking ? 1000 : TALK_IDLE_MS,
     );
     return () => window.clearTimeout(timer);
-  }, [talkOpen, talkActivity, experienceMode]);
+  }, [talkOpen, talkActivity, experienceMode, talkNudged]);
 
 
   if (s.mode === "EMERGENCY_SIMULATED") {
@@ -1099,9 +1176,10 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     // T1: Momo's character + chat. Her face is the biggest thing, her line
     // is the one line on screen; the wearer just talks (no typing).
     screenKey = "talk-chat";
-    const reply = chat.momo ?? t("talkIntro");
+    const asking = talkStage === "ask" && experienceMode !== "dialogue";
+    const reply = chat.momo ?? (asking ? talkGreeting : t("talkChatStart"));
     screen = (
-      <div className="wos-talk">
+      <div className={`wos-talk ${asking ? "wos-talk-asking" : ""}`}>
         {experienceMode === "dialogue" && (
           <span className="wos-profile-label">DIALOGUE MODE</span>
         )}
@@ -1113,10 +1191,34 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         </p>
         {chat.you && <p className="wos-you-said">“{chat.you}”</p>}
         <div className="wos-chat-actions">
-          {/* No buttons to talk: Momo listens by herself (like a call). */}
+          {/* The opening question can be answered by voice or one big tap. */}
+          {asking && (
+            <div className="wos-talk-answers">
+              <button
+                className="watch-action wos-primary"
+                onClick={() => answerTalkQuestion(true)}
+              >
+                {outsideZone ? (
+                  <House size={18} aria-hidden="true" />
+                ) : (
+                  <MessageCircle size={18} aria-hidden="true" />
+                )}
+                {outsideZone ? t("talkYesGuide") : t("talkYesChat")}
+              </button>
+              <button
+                className="watch-action wos-secondary"
+                onClick={() => answerTalkQuestion(false)}
+              >
+                {outsideZone ? t("talkJustChat") : t("talkNotNow")}
+              </button>
+            </div>
+          )}
+          {/* No buttons to talk: Momo listens by herself (like a call).
+              While she asks her question the two answers take this row. */}
           <p
             className={`wos-listening ${listening ? "on" : ""}`}
             role="status"
+            hidden={asking}
           >
             <Mic size={18} aria-hidden="true" />
             {lang === "id" ? "Mendengarkan…" : "Listening…"}
