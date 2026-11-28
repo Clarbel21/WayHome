@@ -14,6 +14,7 @@ import {
 } from "../memory/MemoryLibrary";
 import { useCare } from "../care/store";
 import { useFind } from "../services/find";
+import { useTalkLog } from "./talkLog";
 import {
   useCaregiverPopups,
   type CaregiverPopup,
@@ -88,6 +89,7 @@ export function CaregiverPhone() {
   const lang = useLang((l) => l.lang);
   const t = useT();
   useCare((s) => s.receipts.length);
+  const talkLog = useTalkLog();
   const [view, setView] = useState<PhoneView>("today");
   const scrollArea = useRef<HTMLDivElement>(null);
   // The phone app is laid out once at its design size (a 274 px-wide
@@ -330,6 +332,46 @@ export function CaregiverPhone() {
                   </li>
                 ))}
               </ul>
+              <section
+                className="phone-talk-log cph-talk-log"
+                aria-label="Talk log"
+              >
+                <h4>Talk log</h4>
+                <p className="phone-talk-note">
+                  Text only — no audio is stored.
+                </p>
+                {talkLog.lines.length === 0 ? (
+                  <p className="phone-talk-empty">No Talk exchanges yet.</p>
+                ) : (
+                  <ul>
+                    {[...talkLog.lines].reverse().map((line) => (
+                      <li
+                        key={line.at}
+                        className={line.matters ? "matters" : ""}
+                      >
+                        <time>
+                          {new Date(line.at).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </time>
+                        <div>
+                          <strong>{line.you}</strong>
+                          <span>{line.momo}</span>
+                        </div>
+                        {line.matters && (
+                          <span
+                            className="phone-talk-flag"
+                            aria-label="Wants help or guidance"
+                          >
+                            !
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
               <CheckInHistory />
             </section>
           ) : null}
@@ -560,7 +602,9 @@ function DemoPoliceStation({
   const station = nearestDemoPoliceStation(position);
   return (
     <div className="cph-police">
-      <p className="cph-hero-sub">{t("demoPoliceAttribution", { companion })}</p>
+      <p className="cph-hero-sub">
+        {t("demoPoliceAttribution", { companion })}
+      </p>
       <h3 className="cph-hero-title">{t("demoPoliceQuestion")}</h3>
       <div className="cph-police-row">
         <p>
@@ -629,41 +673,46 @@ function PhoneToday() {
     takenOff && !isEmergency
       ? t("watchTakenOff")
       : zone.active && s.mode === "NORMAL"
-      ? t("zoneOutside")
-      : familyRequestDone
-        ? t("requestDoneTitle")
-        : lang === "id"
-          ? (statusId[status[s.mode]] ?? status[s.mode])
-          : status[s.mode];
+        ? t("zoneOutside")
+        : familyRequestDone
+          ? t("requestDoneTitle")
+          : lang === "id"
+            ? (statusId[status[s.mode]] ?? status[s.mode])
+            : status[s.mode];
   const subtitle = isEmergency
     ? t("sosSub")
     : offline
       ? t("offlineLastSeen", {
-          where:
-            shortLocation.charAt(0).toLowerCase() + shortLocation.slice(1),
+          where: shortLocation.charAt(0).toLowerCase() + shortLocation.slice(1),
         })
       : takenOff
         ? t("watchTakenOffDetail")
-      : zone.active && s.mode !== "GUIDED_RETURN"
-        ? t("zoneFor", {
-            min: Math.floor(zone.vmin),
-            km: (zone.distanceM / 1000).toFixed(2),
-          })
-        : s.mode === "GUIDED_RETURN"
-          ? t("walkingHome", { wearer: first })
-          : s.checkIn?.stage === "question"
-            ? t("waitingAnswer", { wearer: first })
-            : waiting
-              ? requestContact(s)
-                ? t("callWants", { wearer: first, name: requestContact(s)!.name })
-                : t("familySub")
-              : familyRequestDone
-                ? t("familyReplyDone", { caregiver: requestContact(s)?.name ?? s.settings.caregiver })
-                : arrivedHome
-                  ? t("arrivedSummary", { wearer: first })
-                  : s.mode === "NORMAL" && !findings.length
-                    ? t("calmSub")
-                    : t("changedSub");
+        : zone.active && s.mode !== "GUIDED_RETURN"
+          ? t("zoneFor", {
+              min: Math.floor(zone.vmin),
+              km: (zone.distanceM / 1000).toFixed(2),
+            })
+          : s.mode === "GUIDED_RETURN"
+            ? t("walkingHome", { wearer: first })
+            : s.checkIn?.stage === "question"
+              ? t("waitingAnswer", { wearer: first })
+              : waiting
+                ? requestContact(s)
+                  ? t("callWants", {
+                      wearer: first,
+                      name: requestContact(s)!.name,
+                    })
+                  : t("familySub")
+                : familyRequestDone
+                  ? t("familyReplyDone", {
+                      caregiver:
+                        requestContact(s)?.name ?? s.settings.caregiver,
+                    })
+                  : arrivedHome
+                    ? t("arrivedSummary", { wearer: first })
+                    : s.mode === "NORMAL" && !findings.length
+                      ? t("calmSub")
+                      : t("changedSub");
   const sendCheckIn = () => {
     s.event("CHECK");
     // A paired watch shows the same question; the simulated one renders below.
@@ -688,12 +737,16 @@ function PhoneToday() {
     s.incident?.stage === "active" &&
     emergency?.emergency?.kind === "sos" &&
     !emergency.emergency.policePromptDismissed
-      ? nearestDemoPoliceStation(emergency.emergency.routePosition ?? s.position)
+      ? nearestDemoPoliceStation(
+          emergency.emergency.routePosition ?? s.position,
+        )
       : null;
   const routeActive = s.mode === "GUIDED_RETURN" && approved.length > 0;
   const guiding = s.mode === "GUIDED_RETURN" && zone.guideStartM !== null;
   const missedStop =
-    !offline && !takenOff && s.mode === "REORIENTATION" ? s.missedLandmark : null;
+    !offline && !takenOff && s.mode === "REORIENTATION"
+      ? s.missedLandmark
+      : null;
   // Call lane C2: the wearer's call rings on this phone (demo, no real call).
   const ringingCall =
     s.mode === "CAREGIVER_HANDOVER" &&
@@ -746,14 +799,18 @@ function PhoneToday() {
         ) : (
           <>
             <h3 className="cph-hero-title">{heading}</h3>
-            <p className="cph-hero-sub">{offerPolice ? t("sosPoliceQuestion") : subtitle}</p>
+            <p className="cph-hero-sub">
+              {offerPolice ? t("sosPoliceQuestion") : subtitle}
+            </p>
           </>
         )}
         {offerPolice && emergency && (
           <div className="cph-sos-police" aria-label={t("sosPoliceDemo")}>
             <strong>{offerPolice.name}</strong>
             <p className="cph-hero-sub">
-              {t("demoPoliceDistance", { metres: Math.round(offerPolice.distance) })}
+              {t("demoPoliceDistance", {
+                metres: Math.round(offerPolice.distance),
+              })}
             </p>
             <p className="cph-hero-sub">{t("sosPoliceDemo")}</p>
             <div className="cph-sos-police-actions">
@@ -888,7 +945,9 @@ function PhoneToday() {
       )}
 
       {isEmergency ? (
-        <section className={`phone-action-card urgent cph-emergency ${offerPolice || policeStation ? "cph-emergency-compact" : ""}`}>
+        <section
+          className={`phone-action-card urgent cph-emergency ${offerPolice || policeStation ? "cph-emergency-compact" : ""}`}
+        >
           <h3>{t("attention")}</h3>
           <ol className="phone-timeline" aria-label={t("sosTimeline")}>
             <li className="done">

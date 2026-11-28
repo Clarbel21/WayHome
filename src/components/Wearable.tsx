@@ -24,6 +24,7 @@ import {
 import { activeLadderStep, useZone, legTarget } from "../zone/store";
 import { planRoute } from "../zone/route";
 import { useWatchUi } from "./watchUi";
+import { useTalkLog } from "./talkLog";
 import { MemoryGardenExperience } from "../memory/MemoryPlayer";
 import {
   useStore,
@@ -430,6 +431,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     const answer = (reply: string) => {
       setChat({ you: line, momo: reply });
       setTalkActivity(Date.now());
+      useTalkLog.getState().addLine(line, reply);
       speakOut(reply, startListening);
     };
     // T2: "take me home" starts the guided walk (H1). Momo confirms out
@@ -443,6 +445,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       const reply = lang === "id" ? "Oke, ayo pulang." : "Okay, let's go home.";
       setChat({ you: line, momo: reply });
       setTalkActivity(Date.now());
+      useTalkLog.getState().addLine(line, reply);
       // Voice on: hand over once the line has been spoken. Voice muted:
       // keep the confirmation readable for a moment, then start the walk.
       const epoch = ++talkEpoch.current;
@@ -477,6 +480,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             : `Calling ${contact.name}.`;
         setChat({ you: line, momo: reply });
         setTalkActivity(Date.now());
+        useTalkLog.getState().addLine(line, reply);
         speakOut(reply);
         s.callContact(contact.id);
         return;
@@ -503,7 +507,10 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     }
     // The opening question ("Shall I guide you home?" / "Want to chat?").
     if (talkStage === "ask") {
-      const yes = /\b(yes|yeah|yep|ok|okay|sure|please|guide|home|chat|talk)\b/i.test(line);
+      const yes =
+        /\b(yes|yeah|yep|ok|okay|sure|please|guide|home|chat|talk)\b/i.test(
+          line,
+        );
       const no = /\b(no|nope|not now|later)\b/i.test(line);
       // Outside the zone, "just chat" means chat, not "yes, guide me".
       const chatWord = /\b(chat|talk)\b/i.test(line);
@@ -564,6 +571,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       // "Yes, guide me home" → the guided walk (H1), after Momo confirms.
       const reply = t("talkGoHome");
       setChat({ you: said ?? null, momo: reply });
+      if (said) useTalkLog.getState().addLine(said, reply);
       const epoch = ++talkEpoch.current;
       const startWalk = () => {
         if (talkEpoch.current !== epoch) return;
@@ -579,8 +587,10 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       // "Not now" → a kind goodbye, then home.
       const reply = t("talkBye");
       setChat({ you: said ?? null, momo: reply });
+      if (said) useTalkLog.getState().addLine(said, reply);
       const leave = () => talkFns.current.closeTalk();
-      if ("speechSynthesis" in window && s.settings.voice) speakOut(reply, leave);
+      if ("speechSynthesis" in window && s.settings.voice)
+        speakOut(reply, leave);
       else window.setTimeout(leave, 1200);
       return;
     }
@@ -588,6 +598,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     setTalkStage("chat");
     const reply = t("talkChatStart");
     setChat({ you: said ?? null, momo: reply });
+    if (said) useTalkLog.getState().addLine(said, reply);
     speakOut(reply, startListening);
   }
   const closeTalk = () => {
