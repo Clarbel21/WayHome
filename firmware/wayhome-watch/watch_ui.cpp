@@ -42,6 +42,17 @@ lv_obj_t *scrHome = nullptr;
 lv_obj_t *scrTakenOff = nullptr;
 lv_obj_t *scrRoute = nullptr;
 lv_obj_t *scrCall = nullptr;
+lv_obj_t *scrCallPick = nullptr;  // Call → "Who to call?" (lane C1)
+lv_obj_t *lblCallTitle = nullptr;
+
+// Same people, order and colours as initialFamily in src/store.ts; the web
+// maps the 0x0B index back to its own list.
+struct CallContact {
+  const char *name;
+  uint32_t color;
+};
+const CallContact CALL_CONTACTS[3] = {
+    {"Jamie", PEACH}, {"Sam", MINT}, {"Mei", LAVENDER}};
 lv_obj_t *scrTalk = nullptr;
 lv_obj_t *scrMemories = nullptr;
 lv_obj_t *scrSettings = nullptr;
@@ -284,10 +295,8 @@ void tile_cb(lv_event_t *e) {
       load_screen(scrRoute);
       break;
     case 1:
-      // Same as the web "Call family": the caregiver phone gets the request.
-      ble::publishCheckIn(0x04, 1);
-      if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Waiting...");
-      load_screen(scrCall);
+      // Call → pick a face first, like the web watch (lane C1).
+      load_screen(scrCallPick);
       break;
     case 2:
       if (lblTalkReply != nullptr)
@@ -703,12 +712,55 @@ lv_obj_t *add_wrapped(lv_obj_t *parent, const char *text, const lv_font_t *font,
   return lbl;
 }
 
-// Call: the caregiver phone receives a family request (BLE 0x04, family).
+// Tap a face: the web asks that person (BLE 0x0B, byte1 = index).
+void call_pick_cb(lv_event_t *e) {
+  int i = (int)(intptr_t)lv_event_get_user_data(e);
+  if (i < 0 || i > 2) return;
+  USBSerial.printf("[UI] call %s\n", CALL_CONTACTS[i].name);
+  ble::publishCheckIn(0x0B, (uint8_t)i);
+  static char title[32];
+  snprintf(title, sizeof(title), "Calling %s", CALL_CONTACTS[i].name);
+  if (lblCallTitle != nullptr) lv_label_set_text(lblCallTitle, title);
+  if (lblCallStatus != nullptr) lv_label_set_text(lblCallStatus, "Waiting...");
+  load_screen(scrCall);
+}
+
+// "Who to call?": three big faces (initial in a coloured circle + name).
+void build_call_pick_screen() {
+  scrCallPick = new_screen(CREAM);
+  lv_obj_clear_flag(scrCallPick, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_t *title = add_label(scrCallPick, "Who to call?", &lv_font_montserrat_28, INK);
+  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 30);
+  for (int i = 0; i < 3; i++) {
+    lv_obj_t *btn = add_button(scrCallPick, 30, 78 + i * 92, 350, 82, PALE, 18);
+    lv_obj_set_style_pad_all(btn, 0, 0);
+    lv_obj_t *face = lv_obj_create(btn);
+    lv_obj_set_size(face, 56, 56);
+    lv_obj_align(face, LV_ALIGN_LEFT_MID, 16, 0);
+    lv_obj_set_style_radius(face, LV_RADIUS_CIRCLE, 0);
+    lv_obj_set_style_bg_color(face, lv_color_hex(CALL_CONTACTS[i].color), 0);
+    lv_obj_set_style_border_width(face, 0, 0);
+    lv_obj_set_style_pad_all(face, 0, 0);
+    lv_obj_clear_flag(face, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(face, LV_OBJ_FLAG_SCROLLABLE);
+    char initial[2] = {CALL_CONTACTS[i].name[0], '\0'};
+    lv_obj_t *ini = add_label(face, initial, &lv_font_montserrat_28, INK);
+    lv_obj_center(ini);
+    lv_obj_t *name = add_label(btn, CALL_CONTACTS[i].name, &lv_font_montserrat_30, FOREST);
+    lv_obj_align(name, LV_ALIGN_LEFT_MID, 90, 0);
+    lv_obj_t *icon = add_label(btn, LV_SYMBOL_CALL, &lv_font_montserrat_24, FOREST);
+    lv_obj_align(icon, LV_ALIGN_RIGHT_MID, -22, 0);
+    lv_obj_add_event_cb(btn, call_pick_cb, LV_EVENT_CLICKED, (void *)(intptr_t)i);
+  }
+  add_back(scrCallPick);
+}
+
+// Call: the caregiver phone receives a family request for the picked person.
 void build_call_screen() {
   scrCall = new_screen(CREAM);
   lv_obj_t *icon = add_label(scrCall, LV_SYMBOL_CALL, &lv_font_montserrat_42, PEACH_TEXT);
   lv_obj_align(icon, LV_ALIGN_TOP_MID, 0, 70);
-  add_wrapped(scrCall, "Calling family", &lv_font_montserrat_28, INK, 136);
+  lblCallTitle = add_wrapped(scrCall, "Calling family", &lv_font_montserrat_28, INK, 136);
   lblCallStatus = add_wrapped(scrCall, "Waiting...", &lv_font_montserrat_22, SAGE_TEXT, 186);
   add_wrapped(scrCall, "Demo - no real call.", &lv_font_montserrat_16, MUTED, 232);
   add_back(scrCall);
@@ -893,6 +945,7 @@ bool init() {
 
   build_route_screen();
   build_call_screen();
+  build_call_pick_screen();
   build_talk_screen();
   build_game_screen();
   build_settings_screen();

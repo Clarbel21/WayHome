@@ -41,7 +41,13 @@ import {
   MessageCircle,
   ChevronLeft,
 } from "lucide-react";
-import { status, useStore, simulatedLocation, navigable } from "../store";
+import {
+  status,
+  useStore,
+  simulatedLocation,
+  navigable,
+  requestContact,
+} from "../store";
 import { useLang, useT, timeAgo } from "../i18n";
 import { RADIUS_MAX, RADIUS_MIN, useZone } from "../zone/store";
 import { RouteHomeMap, ZoneLadder, ZoneMap } from "../zone/ZoneViews";
@@ -597,7 +603,9 @@ function PhoneToday() {
           : s.checkIn?.stage === "question"
             ? t("waitingAnswer", { wearer: first })
             : waiting
-              ? t("familySub")
+              ? requestContact(s)
+                ? t("callWants", { wearer: first, name: requestContact(s)!.name })
+                : t("familySub")
               : familyRequestDone
                 ? t("familyReplyDone", { caregiver: s.settings.caregiver })
                 : arrivedHome
