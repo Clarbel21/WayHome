@@ -62,6 +62,7 @@ export function watchScreenCode(s: {
   missedLandmark?: unknown;
   connected?: boolean;
   wearStatus?: string;
+  familyRequest?: { status: string; missedAt?: number } | null;
 }): number {
   if (
     s.mode === "EMERGENCY_SIMULATED" ||
@@ -76,6 +77,13 @@ export function watchScreenCode(s: {
   if (s.mode === "CHECK_IN") return 5;
   if (s.mode === "GUIDED_RETURN") return 3;
   if (s.mode === "REORIENTATION" && s.missedLandmark) return 7;
+  // Call lane C2: 17 ringing, 18 answered, 19 no answer (codes 9–16 are
+  // reserved for the paused demo steps 10 and 11).
+  if (s.mode === "CAREGIVER_HANDOVER" && s.familyRequest) {
+    if (s.familyRequest.status === "responded") return 18;
+    if (s.familyRequest.missedAt) return 19;
+    return 17;
+  }
   if (s.mode === "NORMAL") return 0;
   return 6;
 }
@@ -94,7 +102,8 @@ export function watchNames(wearer: string, companion: string) {
 
 /**
  * byte0 screen code, byte1 route position, byte2 = landmark stop (bits 0–3)
- * + turn (bits 4–5: 0 straight, 1 left, 2 right), bytes 3+ the names.
+ * + turn (bits 4–5: 0 straight, 1 left, 2 right) + contact being called
+ * (bits 6–7: 0 none, 1 Jamie, 2 Sam, 3 Mei), bytes 3+ the names.
  * Three header bytes + 17 name bytes = 20 total.
  */
 export function watchStatePayload(
@@ -103,12 +112,15 @@ export function watchStatePayload(
   landmark: number,
   names: string,
   turn: number = 0,
+  /** Call lane C2: 1-based family contact being called (0 = none). */
+  contact: number = 0,
 ) {
   const text = new TextEncoder().encode(names).slice(0, 17);
   const payload = new Uint8Array(3 + text.length);
   payload[0] = code;
   payload[1] = position;
-  payload[2] = (landmark & 0x0f) | ((turn & 0x03) << 4);
+  payload[2] =
+    (landmark & 0x0f) | ((turn & 0x03) << 4) | ((contact & 0x03) << 6);
   payload.set(text, 3);
   return payload;
 }
@@ -203,6 +215,7 @@ export class BleDevice implements DeviceService {
   // A store change that arrived while a write was in flight: send again after.
   private stateDirty = false;
   private lastSentTurn = -1;
+  private lastSentContact = -1;
   private lastSentCode = -1;
   private lastSentPosition = -1;
   private lastSentLandmark = -1;
@@ -280,6 +293,7 @@ export class BleDevice implements DeviceService {
     this.lastSentPosition = -1;
     this.lastSentLandmark = -1;
     this.lastSentTurn = -1;
+    this.lastSentContact = -1;
     this.lastSentNames = "";
     this.unsubscribeStore = useStore.subscribe(() => this.queueWatchState());
     await this.sendWatchState().catch(() => {});
@@ -356,7 +370,13 @@ export class BleDevice implements DeviceService {
     const legs = s.landmarks.filter(navigable).length;
     const t = planRoute(legs).turns[s.guideIndex] ?? "straight";
     const turn = t === "left" ? 1 : t === "right" ? 2 : 0;
+    // Who is being called (1-based, 0 = nobody) so the ESP32 shows the name.
+    const contactId = s.familyRequest?.contactId;
+    const contact = contactId
+      ? Math.max(0, s.familyContacts.findIndex((c) => c.id === contactId) + 1)
+      : 0;
     if (
+      contact === this.lastSentContact &&
       turn === this.lastSentTurn &&
       code === this.lastSentCode &&
       position === this.lastSentPosition &&
@@ -368,9 +388,12 @@ export class BleDevice implements DeviceService {
     this.lastSentPosition = position;
     this.lastSentLandmark = landmark;
     this.lastSentTurn = turn;
+    this.lastSentContact = contact;
     this.lastSentNames = names;
     await this.gatt(() =>
-      watchState.writeValue(watchStatePayload(code, position, landmark, names, turn)),
+      watchState.writeValue(
+        watchStatePayload(code, position, landmark, names, turn, contact),
+      ),
     );
   }
 

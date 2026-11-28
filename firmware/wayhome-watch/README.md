@@ -47,7 +47,7 @@ Device name **`Sprout Watch`**. Service and characteristic UUIDs must match
 | Wear motion | `5a9c1f2e-4a05-4c31-9a48-d1b7f30e6c21` | `uint8`: 0 unknown, 1 yes, 2 no | read, notify |
 | Attachment | `5a9c1f2e-4a06-4c31-9a48-d1b7f30e6c21` | string `wristwatch\|pendant\|clip` | read, write, notify |
 | Companion command | `5a9c1f2e-4a07-4c31-9a48-d1b7f30e6c21` | byte0: web→watch `0x01` show check-in; watch→web `0x02` "I'm okay", `0x03` "I'd like some help", `0x04` assistance (byte1: 0 home, 1 family, 2 confused), `0x05` back, `0x06` "Help me home", `0x07` "I see it" / walked a step (byte1: new step 0–6), `0x08` "Not yet", `0x09` "I see it now", `0x0A` "I know my way", `0x0B` call a family member (byte1: 0 Jamie, 1 Sam, 2 Mei) | read, write, notify |
-| Watch state mirror | `5a9c1f2e-4a08-4c31-9a48-d1b7f30e6c21` | byte0: web watch screen (0 home, 1 check-in question, 2 help options, 3 guided route, 4 emergency, 5 acknowledged, 6 other, 7 "Not yet" during guidance, 8 watch taken off); byte1: route position 0–6; byte2: landmark stop in bits 0–3 (0–3 select a built-in photo), turn in bits 4–5 (0 straight, 1 left, 2 right); bytes 3+: `Wearer\|Companion` first names (ASCII, ≤ 17 bytes) for the "Hi Amy! I'm Momo." greeting | read, write |
+| Watch state mirror | `5a9c1f2e-4a08-4c31-9a48-d1b7f30e6c21` | byte0: web watch screen (0 home, 1 check-in question, 2 help options, 3 guided route, 4 emergency, 5 acknowledged, 6 other, 7 "Not yet" during guidance, 8 watch taken off, 17 call ringing, 18 call answered, 19 no answer; 9–16 reserved); byte1: route position 0–6; byte2: landmark stop in bits 0–3 (0–3 select a built-in photo), turn in bits 4–5 (0 straight, 1 left, 2 right), person being called in bits 6–7 (0 none, 1 Jamie, 2 Sam, 3 Mei); bytes 3+: `Wearer\|Companion` first names (ASCII, ≤ 17 bytes) for the "Hi Amy! I'm Momo." greeting | read, write |
 | *(service)* | `5a9c1f2e-4a01-4c31-9a48-d1b7f30e6c21` | — | — |
 
 All payloads fit the default 20-byte ATT payload: 3 header bytes + 17 name bytes.
@@ -114,3 +114,12 @@ place name, and **I see it** / **Not yet** / **Back** buttons (text ≥ 15 px, b
 - If the picker shows nothing: turn Bluetooth on, use Chrome/Edge on desktop or Android,
   open the site over HTTPS (GitHub Pages) or `localhost`, and reset the board so it
   starts advertising again.
+
+## Speaker and call recordings (Call lane C2)
+
+The board has a speaker (ES8311 codec + NS4150B amplifier on GPIO46) and **no vibration
+motor**. `watch_audio.cpp` plays a phone ring while a call is ringing (code 17). When the
+call is answered (code 18) it plays `/call-0.wav` (Jamie), `/call-1.wav` (Sam) or
+`/call-2.wav` (Mei) from the 9.9 MB FAT partition: 16 kHz, 16-bit, mono PCM WAV. If the
+file is missing it plays a short chime. Serial Monitor shows `[AUDIO] ...` lines.
+Uploading the WAV files needs a FAT upload tool; we add it when the recordings exist.

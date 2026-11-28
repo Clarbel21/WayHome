@@ -1,5 +1,19 @@
 import { useEffect } from "react";
-import { useStore, requestContact } from "../store";
+import { useStore, requestContact, CALL_RING_MS } from "../store";
+
+// Call lane C2: a ringing call that nobody answers becomes "No answer".
+export function FamilyCallRuntime() {
+  const req = useStore((s) => s.familyRequest);
+  useEffect(() => {
+    if (!req || req.status === "responded" || req.missedAt) return;
+    const timer = window.setTimeout(
+      () => useStore.getState().missFamilyCall(),
+      Math.max(0, req.requestedAt + CALL_RING_MS - Date.now()),
+    );
+    return () => window.clearTimeout(timer);
+  }, [req]);
+  return null;
+}
 
 // One timer for the application, even when several wearable previews are visible.
 export function CheckInRuntime() {
