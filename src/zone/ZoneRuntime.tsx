@@ -216,10 +216,13 @@ export function ZoneRuntime() {
         const level = ladderLevel(vmin, z);
         if (level > z.level) {
           patch.level = level;
-          if (level >= 2 && z.level < 2)
+          if (level >= 2 && z.level < 2) {
             addAlert(
               `Push notification to ${s.settings.caregiver} — ${name} outside the safe zone for ${z.notifyPrimaryMin} min (simulated)`,
             );
+            // The wearer hears the same step the caregiver sees on the ladder.
+            patch.buzzAt = now;
+          }
           if (level >= 3 && z.level < 3) {
             addAlert(
               `SMS and call to ${s.settings.emergency} — ${name} still outside the safe zone (simulated, no real call)`,
@@ -243,7 +246,7 @@ export function ZoneRuntime() {
       if (buzzAt && buzzAt !== lastBuzz.current) {
         lastBuzz.current = buzzAt;
         navigator.vibrate?.([400, 150, 400]);
-        chime((patch.level ?? z.level) >= 3 || !!patch.prompt);
+        chime((patch.level ?? z.level) >= 2 || !!patch.prompt);
       }
       prevMode.current = s.mode;
     }, TICK_MS);

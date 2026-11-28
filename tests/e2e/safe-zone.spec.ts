@@ -50,9 +50,9 @@ test("leaving the safe zone buzzes the watch, escalates, then guides home landma
   await watch(page).getByRole("button", { name: "I'm okay here" }).click();
   await expect(watch(page).getByText("Go home?")).toHaveCount(0);
 
-  // The wearer can still choose to go home from the home screen.
+  // The wearer can still choose to go home from the escalation screen.
   await watch(page)
-    .getByRole("button", { name: "Help me home", exact: true })
+    .getByRole("button", { name: "Yes, go home", exact: true })
     .click();
   await expect(watch(page).getByText("Go straight ahead")).toBeVisible();
   await expect(

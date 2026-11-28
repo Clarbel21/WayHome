@@ -1421,3 +1421,59 @@ html
   grid-template-columns: minmax(0, 1fr);
   gap: 5px;
 }
+
+/* ---------------------------------------------- +8 min ladder on the watch
+   The wearer sees the same numbered step as the caregiver ladder. Step 1 is
+   the familiar "Go home?" prompt; step 2 arrives with a fresh buzz; step 3
+   offers "Call family?" after the caregiver has been alerted; step 4 hands
+   over to the existing SOS screen (chip added below). */
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-zone {
+  gap: 4px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-zone-step {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 2px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #f2e2c0;
+  color: #4d3305;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-zone-status {
+  display: block;
+  font-size: 15px;
+  line-height: 1.2;
+  font-weight: 650;
+  color: #4d3305;
+  margin: 0 0 2px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-zone-call {
+  gap: 3px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-zone-call .wos-zone-icon {
+  width: 46px;
+  height: 46px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-zone-call
+  .watch-action,
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-zone-call
+  .wos-ghost {
+  min-height: 44px;
+  font-size: 15px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-sos-step {
+  background: #f6dedb;
+  color: #6e1e26;
+  margin: 0 auto 3px;
+}

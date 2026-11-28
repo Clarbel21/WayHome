@@ -73,8 +73,8 @@ export function DemoStage() {
       id: "zone-ffwd",
       label: { en: "+8 min", id: "+8 mnt" },
       watch: {
-        en: "Fast-forwards time outside the zone so the next ladder step fires: notify, then call, then a simulated emergency.",
-        id: "Mempercepat waktu di luar zona agar tahap berikutnya berjalan: beri tahu, telepon, lalu darurat simulasi.",
+        en: "Moves the ladder on one step on both screens: the watch buzzes again, then offers “Call family?”, then alerts the caregiver.",
+        id: "Maju satu tahap di kedua layar: jam bergetar lagi, lalu menawarkan “Telepon keluarga?”, lalu memberi tahu pendamping.",
       },
       icon: FastForward,
       run: () => zone.fastForward(8),
