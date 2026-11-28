@@ -2405,3 +2405,25 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-type-row .wos-send {
   padding: 0;
   justify-content: center;
 }
+
+/* Talk: hands-free "call" with Momo — a calm listening line, no buttons. */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-listening {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #4f6658;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-listening.on svg {
+  color: #22a06b;
+  animation: wos-listen 1.2s ease-in-out infinite;
+}
+@keyframes wos-listen {
+  50% {
+    transform: scale(1.25);
+  }
+}

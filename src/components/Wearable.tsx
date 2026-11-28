@@ -15,8 +15,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Mic,
-  Keyboard,
-  Send,
   HandHelping,
   MapPin,
   SlidersHorizontal,
@@ -54,6 +52,9 @@ export { Photo } from "./Photo";
 
 type TalkReply = "intro" | "comfort" | "where" | "who" | "nice";
 
+/** Talk: no reply for this long → back to the home screen (saves battery). */
+export const TALK_IDLE_MS = 7000;
+
 // The wearer sees exactly one screen at a time, chosen from the safety mode.
 // Every action calls the existing store; this component holds no safety logic.
 export function Wearable({ compact = false }: { compact?: boolean }) {
@@ -73,9 +74,10 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const [chat, setChat] = useState<{ you: string | null; momo: string | null }>(
     { you: null, momo: null },
   );
-  const [typing, setTyping] = useState(false);
   const [listening, setListening] = useState(false);
-  const chatInputRef = useRef<HTMLInputElement>(null);
+  // Talk is like a call with Momo: it listens by itself. 7 s of silence
+  // (nobody speaking, Momo not talking) returns home to save battery.
+  const [talkActivity, setTalkActivity] = useState(0);
   const recRef = useRef<any>(null);
   const prevMode = useRef(s.mode);
   useEffect(() => {
@@ -332,11 +334,19 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     }
     setListening(false);
   };
-  const speakOut = (text: string) => {
-    if (!s.settings.voice || !("speechSynthesis" in window)) return;
+  // Momo speaks, then listens again (hands-free, like a phone call).
+  const speakOut = (text: string, then?: () => void) => {
+    if (!s.settings.voice || !("speechSynthesis" in window)) {
+      then?.();
+      return;
+    }
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang === "id" ? "id-ID" : "en-US";
+    utterance.onend = () => {
+      setTalkActivity(Date.now());
+      then?.();
+    };
     window.speechSynthesis.speak(utterance);
   };
   // Keyword replies reuse the established talk lines (rule 7 — the ESP32
@@ -358,9 +368,10 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     if (!line) return;
     const reply = momoReply(line);
     setChat({ you: line, momo: reply });
-    speakOut(reply);
+    setTalkActivity(Date.now());
+    speakOut(reply, startListening);
   };
-  const startListening = () => {
+  function startListening() {
     const Ctor =
       (window as any).SpeechRecognition ||
       (window as any).webkitSpeechRecognition;
@@ -380,15 +391,47 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     } catch {
       setListening(false);
     }
-  };
+  }
   const closeTalk = () => {
     stopListening();
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     setChat({ you: null, momo: null });
-    setTyping(false);
     if (experienceMode === "dialogue") s.chooseAssistance("home");
     else setTalk(null);
-  };
+  };  // Opening Talk is like answering a call: Momo greets, then listens.
+  const talkOpen = s.mode === "NORMAL" && talk !== null;
+  const talkFns = useRef({ startListening, closeTalk, speakOut });
+  talkFns.current = { startListening, closeTalk, speakOut };
+  useEffect(() => {
+    if (!talkOpen) return;
+    setTalkActivity(Date.now());
+    talkFns.current.speakOut(t("talkIntro"), () =>
+      talkFns.current.startListening(),
+    );
+    return () => {
+      try {
+        recRef.current?.stop();
+      } catch {
+        /* already stopped */
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [talkOpen]);
+  useEffect(() => {
+    if (!talkOpen || experienceMode === "dialogue") return;
+    const speaking =
+      "speechSynthesis" in window && window.speechSynthesis.speaking;
+    const timer = window.setTimeout(
+      () => {
+        if ("speechSynthesis" in window && window.speechSynthesis.speaking)
+          setTalkActivity(Date.now());
+        else talkFns.current.closeTalk();
+      },
+      speaking ? 1000 : TALK_IDLE_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [talkOpen, talkActivity, experienceMode]);
+
 
   if (s.mode === "EMERGENCY_SIMULATED") {
     screen = (
@@ -1016,7 +1059,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     );
   } else if (experienceMode === "dialogue" || talk) {
     // T1: Momo's character + chat. Her face is the biggest thing, her line
-    // is the one line on screen; the wearer answers by voice or by typing.
+    // is the one line on screen; the wearer just talks (no typing).
     screenKey = "talk-chat";
     const reply = chat.momo ?? t("talkIntro");
     screen = (
@@ -1032,73 +1075,14 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         </p>
         {chat.you && <p className="wos-you-said">“{chat.you}”</p>}
         <div className="wos-chat-actions">
-          {typing ? (
-            <form
-              className="wos-type-row"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const value = chatInputRef.current?.value ?? "";
-                handleWearerLine(value);
-                if (chatInputRef.current) chatInputRef.current.value = "";
-              }}
-            >
-              <input
-                ref={chatInputRef}
-                className="wos-input"
-                type="text"
-                aria-label={lang === "id" ? "Ketik ke Momo" : "Type to Momo"}
-                placeholder={lang === "id" ? "Ketik ke Momo" : "Type to Momo"}
-                autoComplete="off"
-                autoFocus
-              />
-              {/* Icon-only so the field keeps its width on the small watch. */}
-              <button
-                className="watch-action wos-send"
-                type="submit"
-                aria-label={lang === "id" ? "Kirim" : "Send"}
-              >
-                <Send size={20} aria-hidden="true" />
-              </button>
-            </form>
-          ) : (
-            <>
-              {speechSupported && (
-                <button
-                  className={`watch-action wos-mic ${listening ? "listening" : ""}`}
-                  aria-label={
-                    listening
-                      ? lang === "id"
-                        ? "Berhenti mendengarkan"
-                        : "Stop listening"
-                      : lang === "id"
-                        ? "Bicara ke Momo"
-                        : "Speak to Momo"
-                  }
-                  data-caregiver-action="Spoke to Momo"
-                  onClick={startListening}
-                >
-                  <Mic size={18} aria-hidden="true" />
-                  {listening
-                    ? lang === "id"
-                      ? "Mendengarkan…"
-                      : "Listening…"
-                    : lang === "id"
-                      ? "Bicara"
-                      : "Speak"}
-                </button>
-              )}
-              <button
-                className="watch-action"
-                onClick={() => {
-                  setTyping(true);
-                  stopListening();
-                }}
-              >
-                <Keyboard size={18} aria-hidden="true" />
-                {lang === "id" ? "Ketik" : "Type"}
-              </button>
-            </>
-          )}
+          {/* No buttons to talk: Momo listens by herself (like a call). */}
+          <p
+            className={`wos-listening ${listening ? "on" : ""}`}
+            role="status"
+          >
+            <Mic size={18} aria-hidden="true" />
+            {lang === "id" ? "Mendengarkan…" : "Listening…"}
+          </p>
           <button className="wos-back" onClick={closeTalk}>
             <ChevronLeft size={16} aria-hidden="true" />
             {experienceMode === "dialogue" ? t("focusHome") : t("backHome")}

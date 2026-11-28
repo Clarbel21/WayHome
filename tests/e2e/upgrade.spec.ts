@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { installFakeSpeech, sayToMomo } from "./helpers/fakeSpeech";
 
 test.beforeEach(async ({ page }) => {
+  await installFakeSpeech(page);
   await page.goto("/#/together");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
@@ -22,13 +24,8 @@ test("home screen offers four large actions plus SOS", async ({ page }) => {
     w.getByRole("button", { name: "SOS Hold for 3 seconds", exact: true }),
   ).toBeVisible();
   await w.getByRole("button", { name: "Let's talk", exact: true }).click();
-  // T1 talk: the wearer asks by voice or typing — the four fixed chips
-  // became free keyword chat, so this walks the typed path.
-  await w.getByRole("button", { name: "Type", exact: true }).click();
-  await w
-    .getByRole("textbox", { name: "Type to Momo" })
-    .fill("Who is my family?");
-  await w.getByRole("button", { name: "Send", exact: true }).click();
+  // Talk listens by itself (no typing): the wearer just asks.
+  await sayToMomo(page, "Who is my family?");
   await expect(w.getByText("Jamie Chen is one tap away.")).toBeVisible();
 });
 

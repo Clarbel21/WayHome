@@ -110,7 +110,6 @@ lv_obj_t *lblTalkReply = nullptr;
 lv_obj_t *lblGamePrompt = nullptr;
 lv_obj_t *lblGameStep = nullptr;
 lv_obj_t *lblCallStatus = nullptr;
-uint8_t gameIndex = 0;
 
 // Settings widgets
 lv_obj_t *btnAttachment[3] = {nullptr, nullptr, nullptr};
@@ -284,6 +283,10 @@ lv_obj_t *make_sprout_avatar(lv_obj_t *parent, int32_t x, int32_t y) {
 // ---- Event callbacks ----
 
 // Home tiles: 0 = Help me home (route), 1 = Call, 2 = Talk, 3 = Memories.
+void talk_start();
+void quiz_show();
+extern uint8_t quizRound;
+
 void tile_cb(lv_event_t *e) {
   if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
   int which = (int)(intptr_t)lv_event_get_user_data(e);
@@ -301,12 +304,11 @@ void tile_cb(lv_event_t *e) {
       load_screen(scrCallPick);
       break;
     case 2:
-      if (lblTalkReply != nullptr)
-        lv_label_set_text(lblTalkReply, "I'm here with you.");
-      load_screen(scrTalk);
+      talk_start();
       break;
     default:
-      gameIndex = 0;
+      quizRound = 0;
+      quiz_show();
       load_screen(scrMemories);
       break;
   }
@@ -405,41 +407,101 @@ void missed_call_cb(lv_event_t *e) {
   load_screen(scrCall);
 }
 
-// Talk topics: the same short replies as the web watch (src/i18n.ts).
-void talk_cb(lv_event_t *e) {
-  static const char *replies[4] = {
-      "Near home. I can guide you.",
-      "Your family is one tap away.",
-      "Take your time. I'm here.",
-      "I'm glad you're here.",
-  };
-  int which = (int)(intptr_t)lv_event_get_user_data(e);
-  if (lblTalkReply != nullptr) lv_label_set_text(lblTalkReply, replies[which & 3]);
+// Talk is like a call with Momo: no buttons to talk, just listen. With no
+// reply for 7 s the watch goes back home to save battery (same as the web).
+// (Speech recognition on the chip comes later; the mic is on the board.)
+constexpr uint32_t TALK_IDLE_MS = 7000;
+lv_timer_t *talkTimer = nullptr;
+
+void talk_idle_cb(lv_timer_t *timer) {
+  LV_UNUSED(timer);
+  talkTimer = nullptr;  // one-shot: LVGL deletes it after this call
+  if (lv_screen_active() == scrTalk) {
+    USBSerial.println("[UI] talk: 7 s quiet -> home");
+    load_screen(scrHome);
+  }
 }
 
-// Memory moments: one gentle prompt at a time, no scores.
-constexpr uint8_t GAME_COUNT = 5;
-const char *const gamePrompts[GAME_COUNT] = {
-    "Think of a happy place.",
-    "Hum a favourite song.",
-    "Picture a friendly face.",
-    "Remember a tasty meal.",
-    "Think of your garden.",
-};
-
-void game_show() {
-  static char step[12];
-  if (lblGamePrompt != nullptr)
-    lv_label_set_text(lblGamePrompt, gamePrompts[gameIndex % GAME_COUNT]);
-  snprintf(step, sizeof(step), "%u / %u", (unsigned)(gameIndex % GAME_COUNT) + 1,
-           (unsigned)GAME_COUNT);
-  if (lblGameStep != nullptr) lv_label_set_text(lblGameStep, step);
+void talk_start() {
+  if (lblTalkReply != nullptr) lv_label_set_text(lblTalkReply, "I'm here with you.");
+  if (talkTimer != nullptr) lv_timer_delete(talkTimer);
+  talkTimer = lv_timer_create(talk_idle_cb, TALK_IDLE_MS, nullptr);
+  lv_timer_set_repeat_count(talkTimer, 1);
+  load_screen(scrTalk);
 }
 
-void game_next_cb(lv_event_t *e) {
+// G1 Game: "Which place is this?" with the four built-in photos and two big
+// names, like the web watch (src/game/landmarks.ts). Never says "wrong".
+constexpr uint8_t QUIZ_ROUNDS = 4;
+const char *const QUIZ_NAMES[QUIZ_ROUNDS] = {"Garden", "Bakery", "Library", "Home"};
+const char *const QUIZ_LOWER[QUIZ_ROUNDS] = {"garden", "bakery", "library", "home"};
+uint8_t quizRound = 0;
+lv_obj_t *imgQuiz = nullptr;
+lv_obj_t *lblQuizLine = nullptr;
+lv_obj_t *btnQuiz[2] = {nullptr, nullptr};
+lv_obj_t *lblQuizChoice[2] = {nullptr, nullptr};
+lv_obj_t *btnQuizNext = nullptr;
+lv_obj_t *lblQuizDone = nullptr;
+
+// Correct name sits left on even rounds, right on odd ones (as on the web).
+uint8_t quiz_choice_id(uint8_t round, uint8_t side) {
+  uint8_t answer = round, other = (round + 1) % QUIZ_ROUNDS;
+  bool answerLeft = (round % 2) == 0;
+  return (side == 0) == answerLeft ? answer : other;
+}
+
+void quiz_show() {
+  static char roundText[20];
+  bool done = quizRound >= QUIZ_ROUNDS;
+  if (lblGameStep != nullptr) {
+    snprintf(roundText, sizeof(roundText), "Round %u of %u", quizRound + 1u,
+             (unsigned)QUIZ_ROUNDS);
+    lv_label_set_text(lblGameStep, done ? "" : roundText);
+  }
+  if (imgQuiz != nullptr) {
+    if (done) {
+      lv_obj_add_flag(imgQuiz, LV_OBJ_FLAG_HIDDEN);
+    } else {
+      lv_image_set_src(imgQuiz, whLandmarkImages[quizRound].image);
+      lv_obj_clear_flag(imgQuiz, LV_OBJ_FLAG_HIDDEN);
+    }
+  }
+  if (lblQuizLine != nullptr)
+    lv_label_set_text(lblQuizLine, done ? "" : "Which place is this?");
+  for (uint8_t i = 0; i < 2; i++) {
+    if (btnQuiz[i] == nullptr) continue;
+    if (done) {
+      lv_obj_add_flag(btnQuiz[i], LV_OBJ_FLAG_HIDDEN);
+    } else {
+      lv_label_set_text(lblQuizChoice[i], QUIZ_NAMES[quiz_choice_id(quizRound, i)]);
+      lv_obj_clear_flag(btnQuiz[i], LV_OBJ_FLAG_HIDDEN);
+    }
+  }
+  if (btnQuizNext != nullptr) lv_obj_add_flag(btnQuizNext, LV_OBJ_FLAG_HIDDEN);
+  if (lblQuizDone != nullptr) {
+    if (done) lv_obj_clear_flag(lblQuizDone, LV_OBJ_FLAG_HIDDEN);
+    else lv_obj_add_flag(lblQuizDone, LV_OBJ_FLAG_HIDDEN);
+  }
+}
+
+void quiz_choice_cb(lv_event_t *e) {
+  uint8_t side = (uint8_t)(intptr_t)lv_event_get_user_data(e);
+  if (quizRound >= QUIZ_ROUNDS) return;
+  bool right = quiz_choice_id(quizRound, side) == quizRound;
+  static char line[40];
+  snprintf(line, sizeof(line), right ? "Yes! That's the %s." : "That's the %s. Next one?",
+           QUIZ_LOWER[quizRound]);
+  USBSerial.printf("[UI] quiz round %u: %s\n", quizRound + 1u, right ? "right" : "gentle");
+  if (lblQuizLine != nullptr) lv_label_set_text(lblQuizLine, line);
+  for (lv_obj_t *b : btnQuiz)
+    if (b != nullptr) lv_obj_add_flag(b, LV_OBJ_FLAG_HIDDEN);
+  if (btnQuizNext != nullptr) lv_obj_clear_flag(btnQuizNext, LV_OBJ_FLAG_HIDDEN);
+}
+
+void quiz_next_cb(lv_event_t *e) {
   LV_UNUSED(e);
-  gameIndex = (uint8_t)((gameIndex + 1) % GAME_COUNT);
-  game_show();
+  quizRound++;
+  quiz_show();
 }
 
 void checkin_back_cb(lv_event_t *e) {
@@ -836,42 +898,43 @@ void build_call_screen() {
 // Talk: Sprout's reply on top, four big topics, Back.
 void build_talk_screen() {
   scrTalk = new_screen(CREAM);
-  make_sprout_avatar(scrTalk, 182, 20);
-  lblTalkReply = add_wrapped(scrTalk, "I'm here with you.", &lv_font_montserrat_22, INK, 76);
-  const char *topics[4] = {"Where am I?", "My family?", "Comfort me", "Something nice"};
-  for (int i = 0; i < 4; i++) {
-    int col = i % 2;
-    int row = i / 2;
-    lv_obj_t *btn = add_button(scrTalk, 20 + col * 190, 152 + row * 108, 180, 96, LAVENDER, 16);
-    lv_obj_t *text = add_label(btn, topics[i], &lv_font_montserrat_20, LAVENDER_TEXT);
-    lv_label_set_long_mode(text, LV_LABEL_LONG_WRAP);
-    lv_obj_set_width(text, 160);
-    lv_obj_set_style_text_align(text, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_center(text);
-    lv_obj_add_event_cb(btn, talk_cb, LV_EVENT_CLICKED, (void *)(intptr_t)i);
-  }
+  lv_obj_clear_flag(scrTalk, LV_OBJ_FLAG_SCROLLABLE);
+  make_sprout_avatar(scrTalk, 182, 60);
+  lblTalkReply = add_wrapped(scrTalk, "I'm here with you.", &lv_font_montserrat_26, INK, 150);
+  lv_obj_t *listen = add_label(scrTalk, LV_SYMBOL_AUDIO "  Listening...",
+                               &lv_font_montserrat_22, OK_GREEN);
+  lv_obj_align(listen, LV_ALIGN_TOP_MID, 0, 220);
   add_back(scrTalk);
 }
 
-// Game: gentle memory moments, one prompt at a time.
+// Game (G1): photo, "Which place is this?", two big names, then Next.
 void build_game_screen() {
   scrMemories = new_screen(CREAM);
-  lv_obj_t *title = add_label(scrMemories, "Memory Garden", &lv_font_montserrat_26, INK);
-  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 40);
-  lblGameStep = add_label(scrMemories, "1 / 5", &lv_font_montserrat_16, MUTED);
-  lv_obj_align(lblGameStep, LV_ALIGN_TOP_MID, 0, 82);
-  lblGamePrompt = add_wrapped(scrMemories, gamePrompts[0], &lv_font_montserrat_28, MINT_TEXT, 132);
-  lv_obj_t *next = add_button(scrMemories, 35, 290, 340, 72, FOREST, 17);
-  lv_obj_set_style_bg_grad_color(next, lv_color_hex(FOREST_LIGHT), 0);
-  lv_obj_set_style_bg_grad_dir(next, LV_GRAD_DIR_VER, 0);
-  lv_obj_t *nextText = add_label(next, "Next " LV_SYMBOL_RIGHT, &lv_font_montserrat_22, SURFACE);
+  lv_obj_clear_flag(scrMemories, LV_OBJ_FLAG_SCROLLABLE);
+  lblGameStep = add_label(scrMemories, "Round 1 of 4", &lv_font_montserrat_18, SAGE_TEXT);
+  lv_obj_align(lblGameStep, LV_ALIGN_TOP_MID, 0, 18);
+  // Bottom of the 360x200 photo: the building without its name plaque.
+  imgQuiz = lv_image_create(scrMemories);
+  lv_obj_set_pos(imgQuiz, 30, 46);
+  lv_obj_set_size(imgQuiz, 350, 140);
+  lv_image_set_inner_align(imgQuiz, LV_IMAGE_ALIGN_BOTTOM_MID);
+  lblQuizLine = add_wrapped(scrMemories, "Which place is this?", &lv_font_montserrat_22, INK, 196);
+  for (uint8_t i = 0; i < 2; i++) {
+    btnQuiz[i] = add_button(scrMemories, 30 + i * 179, 240, 171, 72, SURFACE, 16);
+    lv_obj_set_style_border_color(btnQuiz[i], lv_color_hex(0x9ec2a6), 0);
+    lv_obj_set_style_border_width(btnQuiz[i], 2, 0);
+    lblQuizChoice[i] = add_label(btnQuiz[i], QUIZ_NAMES[i], &lv_font_montserrat_24, FOREST);
+    lv_obj_center(lblQuizChoice[i]);
+    lv_obj_add_event_cb(btnQuiz[i], quiz_choice_cb, LV_EVENT_CLICKED, (void *)(intptr_t)i);
+  }
+  btnQuizNext = add_button(scrMemories, 30, 240, 350, 72, FOREST, 16);
+  lv_obj_t *nextText = add_label(btnQuizNext, "Next", &lv_font_montserrat_26, SURFACE);
   lv_obj_center(nextText);
-  lv_obj_add_event_cb(next, game_next_cb, LV_EVENT_CLICKED, nullptr);
+  lv_obj_add_event_cb(btnQuizNext, quiz_next_cb, LV_EVENT_CLICKED, nullptr);
+  lblQuizDone = add_label(scrMemories, LV_SYMBOL_OK "  Well done!", &lv_font_montserrat_34, FOREST);
+  lv_obj_align(lblQuizDone, LV_ALIGN_TOP_MID, 0, 170);
   add_back(scrMemories);
-  // Each visit starts at the first prompt.
-  lv_obj_add_event_cb(
-      scrMemories, [](lv_event_t *e) { LV_UNUSED(e); game_show(); },
-      LV_EVENT_SCREEN_LOAD_START, nullptr);
+  quiz_show();
 }
 
 void build_settings_screen() {
@@ -904,16 +967,12 @@ void build_settings_screen() {
 void build_sos_screen() {
   scrSos = new_screen(SOS_LIVE);
 
-  lv_obj_t *title = add_label(scrSos, "SOS sent", &lv_font_montserrat_40, SURFACE);
-  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 120);
+  // Same words as the web watch after S1: one calm line, then "Demo".
+  lv_obj_t *title = add_label(scrSos, "Help is coming.", &lv_font_montserrat_34, SURFACE);
+  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 150);
 
-  lv_obj_t *line1 = add_label(scrSos, "Stay where you are.",
-                              &lv_font_montserrat_22, SURFACE);
-  lv_obj_align(line1, LV_ALIGN_TOP_MID, 0, 192);
-
-  lv_obj_t *cap = add_label(scrSos, "Demo - no real call.",
-                            &lv_font_montserrat_16, 0xf3d9db);
-  lv_obj_align(cap, LV_ALIGN_TOP_MID, 0, 226);
+  lv_obj_t *cap = add_label(scrSos, "Demo", &lv_font_montserrat_18, 0xf3d9db);
+  lv_obj_align(cap, LV_ALIGN_TOP_MID, 0, 206);
 
   lv_obj_t *ok = add_button(scrSos, 35, 300, 340, 72, SURFACE, 17);
   lv_obj_t *okText = add_label(ok, "I'm okay now", &lv_font_montserrat_18, SOS_LIVE);
@@ -1022,6 +1081,16 @@ bool init() {
   build_mirror_screens();
   build_missed_screen();
   build_home_screen();
+
+  // SOS is always one hold away: every screen gets the SOS bar at the
+  // bottom (home and the guide screen already have their own).
+  static SosParts sosBars[16];
+  lv_obj_t *withSos[] = {scrCallPick, scrCall,     scrCallMissed, scrTalk,
+                         scrMemories, scrSettings, scrCheckQ,     scrCheckH,
+                         scrMissed,   scrTakenOff, scrThanks,     scrMirror};
+  uint8_t n = 0;
+  for (lv_obj_t *scr : withSos)
+    if (scr != nullptr && n < 16) make_sos(scr, 42, 446, 326, 46, &sosBars[n++], true);
 
   lv_timer_create(sos_hold_timer_cb, 50, nullptr);
   lv_timer_create(clock_timer_cb, 1000, nullptr);
