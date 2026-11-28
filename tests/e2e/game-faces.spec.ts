@@ -95,6 +95,7 @@ test("four face rounds use family names, two big choices and gentle words", asyn
   await expect(picker.locator(".wos-game-choice")).toHaveText([
     "Places",
     "Faces",
+    "Happy places",
   ]);
   await expectBigAndTappable(page);
   await expectOneFrame(page);

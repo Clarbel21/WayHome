@@ -16,9 +16,20 @@ export type GameTranslator = (
     | "gamePickTitle"
     | "gamePickPlaces"
     | "gamePickFaces"
+    | "gamePickHappy"
     | "gameWhichPerson"
     | "gameFaceAlt"
     | "gameYesPerson"
-    | "gameLearnPerson",
+    | "gameLearnPerson"
+    | "gameWhichHappyPlace"
+    | "gameHappyPhotoAlt"
+    | "gameNameBeach"
+    | "gameNameBench"
+    | "gameNameMarket"
+    | "gameNameKitchen"
+    | "gameMemoryBeach"
+    | "gameMemoryBench"
+    | "gameMemoryMarket"
+    | "gameMemoryKitchen",
   vars?: Record<string, string | number>,
 ) => string;

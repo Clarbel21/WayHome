@@ -1687,8 +1687,19 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-result {
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-result {
   min-height: 38px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-memory {
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.15;
+  color: #56705e;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-result-with-memory {
+  min-height: 50px;
 }
 /* Feedback carries a result line and two buttons as well as the photo. */
 html
@@ -1699,6 +1710,16 @@ html
   .wos-game-photo
   img {
   max-height: 140px;
+}
+/* G3 keeps the photo largest while giving the memory line room. */
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-game-feedback:has(.wos-game-memory)
+  .wos-game-photo
+  img {
+  max-height: 112px;
 }
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-choices {
   flex-shrink: 0;
@@ -1767,13 +1788,30 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-done-text {
    screens and 45px touch targets; only the photo and gaps get tighter. */
 @media (max-width: 900px) {
   html .watch-area .watch .watch-screen.wh-screen.wos .wos-game {
-    gap: 3px;
+    gap: 2px;
+    padding-bottom: 0;
   }
   html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-photo {
     min-height: 46px;
   }
   html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-result {
     min-height: 30px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-game-result-with-memory {
+    min-height: 40px;
+  }
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-game-feedback:has(.wos-game-memory)
+    .wos-game-photo
+    img {
+    max-height: 84px;
   }
   html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-choices {
     gap: 5px;
@@ -1786,8 +1824,24 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-done-text {
     min-height: 45px;
   }
 }
-/* Game picker (G1/G2): one question, two big deck choices. Reuses the quiz
-   choice and back buttons so touch targets stay identical on every screen. */
+/* Game picker (G1/G2/G3): one question, three big deck choices. The quiz
+   choice and back buttons keep touch targets identical on every screen. */
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-game-pick
+  .wos-game-choices {
+  grid-template-columns: minmax(0, 1fr);
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-game-pick
+  .wos-game-choice {
+  text-transform: none;
+}
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-pick-title {
   flex: 1 1 auto;
   min-height: 0;

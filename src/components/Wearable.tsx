@@ -38,6 +38,7 @@ import {
 import { PhotoQuiz } from "../game/PhotoQuiz";
 import { landmarkQuizDeck } from "../game/landmarks";
 import { familyQuizDeck } from "../game/faces";
+import { happyPlacesQuizDeck } from "../game/happyPlaces";
 import { LandmarkPhoto } from "./LandmarkPhoto";
 import { ResolveSOSButton } from "./ResolveSOSButton";
 import { SOSButton } from "./SOSButton";
@@ -834,8 +835,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       </div>
     );
   } else if (watchUi.gamePicker && s.mode === "NORMAL") {
-    // One screen, two big choices: G1 places and G2 faces. G3 can add a third
-    // deck later without changing the quiz shell or the home tile.
+    // One screen, three big choices: G1 places, G2 faces and G3 happy places.
     const quiet = { "data-caregiver-skip-notification": "true" } as const;
     screenKey = "game-pick";
     screen = (
@@ -861,6 +861,14 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
             >
               {t("gamePickFaces")}
             </button>
+            <button
+              type="button"
+              className="wos-game-choice"
+              onClick={() => watchUi.openGame("places")}
+              {...quiet}
+            >
+              {t("gamePickHappy")}
+            </button>
           </div>
           <button
             type="button"
@@ -878,13 +886,15 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     );
   } else if (watchUi.game && s.mode === "NORMAL") {
     // The Game lane is a data-driven quiz. G2 (faces) uses the family list
-    // from the store; G3 (happy places) only needs another deck builder.
+    // from the store; G3 (happy places) adds one illustrated memory deck.
     const deck =
       watchUi.game === "landmarks"
         ? landmarkQuizDeck(t)
         : watchUi.game === "faces"
           ? familyQuizDeck(t, s.familyContacts)
-          : null;
+          : watchUi.game === "places"
+            ? happyPlacesQuizDeck(t)
+            : null;
     screenKey = `game-${watchUi.game}`;
     screen = deck ? (
       <div className="wos-game-host">
