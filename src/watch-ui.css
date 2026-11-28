@@ -1698,7 +1698,11 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-memory {
   line-height: 1.15;
   color: #56705e;
 }
-html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-result-with-memory {
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-game-result-with-memory {
   min-height: 50px;
 }
 /* Feedback carries a result line and two buttons as well as the photo. */
@@ -2129,7 +2133,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
    ============================================================ */
 @media (min-width: 860px) and (max-width: 1023px) and (min-height: 640px) {
   /* Talk: Momo a little smaller, tighter rows, same floors. */
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2139,7 +2144,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     width: 34px;
     height: 32px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2148,7 +2154,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     padding: 3px 7px;
     font-size: 15px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2156,7 +2163,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     .wos-you-said {
     display: none;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2165,19 +2173,22 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     gap: 4px;
     margin-top: 0;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
     .wos-body[data-screen^="talk-"]
     .watch-action,
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
     .wos-body[data-screen^="talk-"]
     .wos-back,
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2187,14 +2198,16 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     font-size: 15px;
   }
   /* Mode picker: icon and hint sentences yield (rule 5). */
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
     .wos-body[data-screen="choose-experience-mode"]
     .wos-mode-picker
     > svg,
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2203,7 +2216,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     small {
     display: none;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2214,7 +2228,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     line-height: 1.05;
     margin: 0;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2222,7 +2237,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     .watch-controls {
     gap: 3px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2232,7 +2248,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     padding: 4px 6px;
     font-size: 15px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2242,13 +2259,15 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     font-size: 15px;
   }
   /* Help options: tighter grid rows, full way back at the floor. */
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
     .wos-body[data-screen="help-options"]
     .wos-speech,
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2256,7 +2275,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     .speech {
     display: none;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2264,7 +2284,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     .watch-controls {
     gap: 4px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2275,7 +2296,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     font-size: 15px;
     line-height: 1.1;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2285,7 +2307,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     font-size: 15px;
   }
   /* Feeling check-in: mascot and hint yield to note + answers. */
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2294,7 +2317,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     width: 22px;
     height: 20px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2302,7 +2326,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     .wos-kicker {
     display: none;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2311,7 +2336,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     padding: 2px 5px;
     font-size: 15px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2322,7 +2348,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     font-size: 15px;
   }
   /* Call handover: compact rows, floors unchanged. */
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2332,7 +2359,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     height: 26px;
     font-size: 15px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2342,7 +2370,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     padding: 2px 6px;
     font-size: 15px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2352,7 +2381,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     font-size: 15px;
   }
   /* Guided walk: direction row and photo compact; photo stays biggest. */
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2361,7 +2391,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     padding: 3px 8px;
     gap: 6px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2370,7 +2401,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     b {
     font-size: 15px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2379,7 +2411,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     .wos-leg-bar {
     display: none;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2387,7 +2420,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     .wos-photo2 {
     min-height: 30px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2395,7 +2429,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     .wos-place {
     font-size: 15px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2405,7 +2440,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     min-height: 44px;
     font-size: 15px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2416,7 +2452,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     font-size: 15px;
     padding: 4px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2426,7 +2463,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     min-height: 44px;
     font-size: 15px;
   }
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
@@ -2436,7 +2474,8 @@ html .watch-area .watch .watch-screen.wh-screen.wos .wos-primary {
     font-size: 15px;
   }
   /* SOS bar at the 44px floor on this stage. */
-  html body
+  html
+    body
     .watch-area
     .watch
     .watch-screen.wh-screen.wos
