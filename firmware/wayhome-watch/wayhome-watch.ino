@@ -226,8 +226,16 @@ uint32_t millis_cb(void) {
   return millis();
 }
 
+#ifdef DIRECT_RENDER_MODE
+// Rows LVGL changed since the last push; -1 = nothing to send.
+int32_t dirtyY1 = -1, dirtyY2 = -1;
+#endif
+
 void my_disp_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map) {
-#ifndef DIRECT_RENDER_MODE
+#ifdef DIRECT_RENDER_MODE
+  if (dirtyY1 < 0 || area->y1 < dirtyY1) dirtyY1 = area->y1;
+  if (area->y2 > dirtyY2) dirtyY2 = area->y2;
+#else
   uint32_t w = lv_area_get_width(area);
   uint32_t h = lv_area_get_height(area);
   gfx->draw16bitRGBBitmap(area->x1, area->y1, (uint16_t *)px_map, w, h);
@@ -363,7 +371,14 @@ void loop() {
   lv_task_handler();
 
 #ifdef DIRECT_RENDER_MODE
-  gfx->draw16bitRGBBitmap(0, 0, (uint16_t *)disp_draw_buf, screenWidth, screenHeight);
+  // Send only the rows that changed, and only when something changed.
+  // Pushing the whole 410x502 frame every loop made the watch lag.
+  if (dirtyY1 >= 0) {
+    int32_t y1 = dirtyY1, y2 = dirtyY2;
+    dirtyY1 = dirtyY2 = -1;
+    gfx->draw16bitRGBBitmap(0, y1, (uint16_t *)disp_draw_buf + y1 * screenWidth,
+                            screenWidth, y2 - y1 + 1);
+  }
 #endif
 
   static uint32_t lastImuMs = 0;
