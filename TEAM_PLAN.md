@@ -101,7 +101,7 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
 - [x] **G3 — My happy places.** Places with memories, with a short line from the family.
   *(WorkBuddy #46.)* Every Game card now shows a short memory under the answer
   ("Your favourite bakery. You love their muffins."). Web + ESP32.
-- [ ] **G4 — Caregiver edits the games and family on the phone.** Care tools → "Family &
+- [x] **G4 — Caregiver edits the games and family on the phone.** *(WorkBuddy #52)* Care tools → "Family &
   memories": edit each person's name, relation and memory line (Call + Faces), and each
   place's memory line (Places, Happy places); upload a photo per card (stored in the
   browser like the Memory library). The web watch uses them right away. ESP32 keeps the
@@ -117,6 +117,20 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
   with **Call police** and **Not now**. Call → "Calling … (demo, no real call)" and the
   alert log records it. The watch stays on "Help is coming." Reuse the existing simulated
   police notification in `EmergencyAssistance.tsx`; never imply real dispatch. Do after H2.
+
+- [ ] **S2 — "Police are coming" on the watch.** When the caregiver taps **Call police**
+  (S1), the watch's SOS screen changes to "Police are coming · Demo" (one line, calm). Web
+  first; then the ESP32 via a new mirror code.
+
+**Voice on the physical watch (ESP32)** — the board has a speaker (ES8311) and two mics
+(ES7210); the ESP32-S3 can recognise a fixed list of phrases offline (Espressif ESP-SR).
+Free conversation would need Wi-Fi + a cloud service, so it is not planned.
+- [ ] **V1 — Momo speaks on the watch.** Record (or generate with a PC text-to-speech voice)
+  one short WAV per fixed line — greetings, the Talk question, each guide step, "Calling
+  Jamie.", "Help is coming." — and play them on the speaker at the right screen.
+- [ ] **V2 — The watch hears a few phrases.** ESP-SR command words: yes, no, take me home,
+  call Jamie / Sam / Mei, I see it, not yet. Needs the ESP-SR partition layout, so pictures
+  may move to the SD card first (see the flash note).
 
 **ESP32 parity (firmware lane)** — after each web step merges, copy it to the physical
 watch and add its Bluetooth command/screen code to `src/services/ble.ts` and
