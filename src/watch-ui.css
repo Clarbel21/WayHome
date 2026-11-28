@@ -2592,3 +2592,70 @@ html
   padding-top: 0;
   padding-bottom: 0;
 }
+
+/* ---------------------------------------------- Momo's five faces
+   The SVGs carry the .sprout class so every existing mascot size rule
+   keeps working. These rules only add the state-specific presentation. */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-momo .momo {
+  display: block;
+  object-fit: contain;
+}
+/* The opening question has two answer buttons; keep the same smaller face
+   even when a wearer line is on screen, so the body never scrolls. */
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-body[data-screen^="talk-"]
+  .wos-talk-asking
+  .wos-momo
+  .sprout {
+  width: 40px;
+  height: 38px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-sos-icon {
+  width: 52px;
+  height: 48px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-sos-icon .momo {
+  display: block;
+  width: 52px;
+  height: 48px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-photo {
+  position: relative;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-game-feedback
+  .wos-game-photo
+  .wos-game-momo {
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  display: block;
+  width: 64px;
+  height: 60px;
+  min-height: 0;
+  max-height: none;
+  object-fit: contain;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+@media (max-width: 900px) {
+  html
+    .watch-area
+    .watch
+    .watch-screen.wh-screen.wos
+    .wos-game-feedback
+    .wos-game-photo
+    .wos-game-momo {
+    width: 46px;
+    height: 44px;
+    right: 3px;
+    bottom: 2px;
+  }
+}

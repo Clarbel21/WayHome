@@ -251,6 +251,16 @@ test("the paired watch receives mirror broadcasts on state changes", async () =>
   expect(bytes[2] & 0x0f).toBe(2); // landmark stop 2
   expect(bytes[2] >> 4).toBe(1); // stop 2 is a left turn on the shared route
   expect(lastCall[0].length).toBeGreaterThan(3);
+
+  state().event("POLICE", "Caregiver simulated calling after an SOS", "Demo station");
+  await new Promise((r) => setTimeout(r, 0));
+  expect(state().incident?.demoPoliceCalledAt).toEqual(expect.any(Number));
+  expect(chars.watchState.writeValue.mock.lastCall?.[0][0]).toBe(20);
+
+  applyDeviceEvent({ type: "sos" });
+  await new Promise((r) => setTimeout(r, 0));
+  expect(state().incident?.demoPoliceCalledAt).toBeUndefined();
+  expect(chars.watchState.writeValue.mock.lastCall?.[0][0]).toBe(4);
 });
 
 // --- BleDevice against a fake Web Bluetooth stack ---

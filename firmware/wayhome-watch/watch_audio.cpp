@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <ESP_I2S.h>
 #include <FFat.h>
+#include <SD.h>
+#include <SPI.h>
 #include <HWCDC.h>
 #include <Wire.h>
 #include <math.h>
@@ -14,15 +16,22 @@ namespace {
 constexpr uint8_t ES8311_ADDR = 0x18;
 constexpr int PIN_MCLK = 16, PIN_BCLK = 41, PIN_WS = 45, PIN_DOUT = 40;
 constexpr int PIN_PA = 46;
+// Micro-SD slot (SPI mode): own SPI bus so it never touches the display.
+constexpr int PIN_SD_SCK = 2, PIN_SD_MISO = 3, PIN_SD_MOSI = 1, PIN_SD_CS = 17;
+SPIClass sdSpi(HSPI);
+bool sdReady = false;
 constexpr uint32_t RATE = 16000;
 
 I2SClass i2s;
 bool ready = false;
 bool fsReady = false;
 
-enum class Job : uint8_t { Idle, Ring, Recording };
+enum class Job : uint8_t { Idle, Ring, Recording, Say };
 volatile Job job = Job::Idle;
 volatile uint8_t recordingIndex = 0;
+volatile bool ringAfterSay = false;
+char sayPath[48] = {0};
+volatile uint32_t sayToken = 0;  // bumps when a newer line replaces the old one
 TaskHandle_t task = nullptr;
 
 bool codecWrite(uint8_t reg, uint8_t val) {
@@ -100,7 +109,30 @@ void chime() {
   job = prev;
 }
 
+// Stream a 16 kHz mono 16-bit WAV while `keep` stays true.
+bool streamWav(fs::FS &fs, const char *path, Job keep, uint32_t token) {
+  File f = fs.open(path);
+  if (!f) return false;
+  f.seek(44);  // plain PCM WAV header (make_voice.sh writes exactly 44 bytes)
+  int16_t mono[128];
+  int16_t stereo[256];
+  while (job == keep && sayToken == token && f.available()) {
+    int got = f.read((uint8_t *)mono, sizeof(mono)) / 2;
+    for (int i = 0; i < got; i++) stereo[2 * i] = stereo[2 * i + 1] = mono[i];
+    i2s.write((uint8_t *)stereo, got * 4);
+  }
+  f.close();
+  return true;
+}
+
 void playFile(uint8_t index) {
+  static const char *const names[3] = {"jamie", "sam", "mei"};
+  char sdPath[40];
+  snprintf(sdPath, sizeof(sdPath), "/wayhome/calls/%s.wav", names[index % 3]);
+  if (sdReady && streamWav(SD, sdPath, Job::Recording, sayToken)) {
+    USBSerial.printf("[AUDIO] played %s\n", sdPath);
+    return;
+  }
   char path[20];
   snprintf(path, sizeof(path), "/call-%u.wav", (unsigned)index);
   File f = fsReady ? FFat.open(path) : File();
@@ -135,6 +167,17 @@ void audioTask(void *) {
       writeSilence(200);
       writeTone(400, 450, 400, 8000);
       writeSilence(2000);
+    } else if (j == Job::Say) {
+      uint32_t token = sayToken;
+      char path[48];
+      strncpy(path, sayPath, sizeof(path));
+      if (!sdReady || !streamWav(SD, path, Job::Say, token))
+        USBSerial.printf("[AUDIO] %s missing (SD card %s)\n", path,
+                         sdReady ? "ok" : "not found");
+      if (job == Job::Say && sayToken == token) {
+        job = ringAfterSay ? Job::Ring : Job::Idle;
+        ringAfterSay = false;
+      }
     } else {
       playFile(recordingIndex);
       if (job == Job::Recording) job = Job::Idle;
@@ -160,24 +203,43 @@ void begin() {
     return;
   }
   fsReady = FFat.begin(false);
-  USBSerial.printf("[AUDIO] ready (recordings %s)\n",
-                   fsReady ? "partition found" : "partition empty");
+  sdSpi.begin(PIN_SD_SCK, PIN_SD_MISO, PIN_SD_MOSI, PIN_SD_CS);
+  sdReady = SD.begin(PIN_SD_CS, sdSpi, 20000000);
+  USBSerial.printf("[AUDIO] ready (SD card %s, voice %s)\n",
+                   sdReady ? "found" : "not found",
+                   sdReady && SD.exists("/wayhome/voice/hello.wav") ? "found" : "missing");
   ready = true;
   xTaskCreatePinnedToCore(audioTask, "audio", 4096, nullptr, 1, &task, 0);
 }
 
 void ringStart() {
   if (!ready || job == Job::Ring) return;
+  if (job == Job::Say) {  // let Momo finish "Calling Jamie." first
+    ringAfterSay = true;
+    return;
+  }
   USBSerial.println("[AUDIO] ring");
   job = Job::Ring;
 }
 
 void ringStop() {
+  ringAfterSay = false;
   if (job == Job::Ring) job = Job::Idle;
+}
+
+void say(const char *name) {
+  if (!ready || name == nullptr) return;
+  snprintf(sayPath, sizeof(sayPath), "/wayhome/voice/%s.wav", name);
+  USBSerial.printf("[AUDIO] say %s\n", name);
+  ringAfterSay = false;
+  sayToken++;
+  job = Job::Say;
 }
 
 void playRecording(uint8_t index) {
   if (!ready) return;
+  ringAfterSay = false;
+  sayToken++;
   recordingIndex = index;
   job = Job::Recording;
 }

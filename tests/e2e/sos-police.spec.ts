@@ -19,10 +19,18 @@ test("SOS offers the nearest demo station and records a simulated call", async (
   await expect(phone.getByText("98 m away · simulated")).toBeVisible();
   await phone.getByRole("button", { name: "Call police", exact: true }).click();
   await expect(phone.getByText("Calling Garden District Police Station · Demo, no real call")).toBeVisible();
-  await expect(watch.getByText("Help is coming. · Demo", { exact: true })).toBeVisible();
+  const policeComing = watch.getByText("Police are coming · Demo", {
+    exact: true,
+  });
+  await expect(policeComing).toBeVisible();
   await expect(watch.locator(".wos-body")).toHaveText(
-    /^Help is coming\. · Demo\s*Help is here$/,
+    /^Police are coming · Demo\s*Help is here$/,
   );
+  await page.reload();
+  await expect(policeComing).toBeVisible();
+  await expect(
+    watch.getByRole("button", { name: "SOS Hold for 3 seconds" }),
+  ).toBeVisible();
   await phone.getByRole("button", { name: "Updates", exact: true }).click();
   await expect(phone.getByText("Simulated police notification · no police were contacted · Garden District Police Station")).toBeVisible();
 });

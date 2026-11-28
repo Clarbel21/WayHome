@@ -1,0 +1,29 @@
+voice/hello	Hi! I'm here with you.
+voice/talk-ask-guide	Hello! Shall I guide you home?
+voice/talk-ask-chat	Hi! Want to chat with me?
+voice/talk-chat-start	Lovely! What shall we talk about?
+voice/talk-still-there	Are you still there?
+voice/talk-bye	Okay. I'm here if you need me.
+voice/go-home	Okay, let's go home.
+voice/guide-0	Do you see the community garden? Go straight.
+voice/guide-1	Turn right at the community garden.
+voice/guide-2	Turn left at the bakery.
+voice/guide-3	Turn right at the library. Home is just ahead.
+voice/not-yet	That's okay. Your family is helping.
+voice/who-to-call	Who shall we call?
+voice/calling-jamie	Calling Jamie.
+voice/calling-sam	Calling Sam.
+voice/calling-mei	Calling Mei.
+voice/no-answer	No answer. Shall we try someone else?
+voice/sos	Help is coming. Stay where you are.
+voice/police	Police are coming. Stay where you are.
+voice/checkin	How are you feeling?
+voice/thanks	Thank you for telling me.
+voice/put-me-on	Please put me back on.
+voice/which-game	Which game shall we play?
+voice/game-right	Yes, that's right!
+voice/game-gentle	That's okay.
+voice/well-done	Well done!
+calls/jamie	Hi, it's Jamie. Stay where you are. I'm on my way.
+calls/sam	Hi, it's Sam. I'm coming to get you.
+calls/mei	Hi, it's Mei. Don't worry, I'm coming.

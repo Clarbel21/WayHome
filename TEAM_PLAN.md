@@ -118,16 +118,17 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
   alert log records it. The watch stays on "Help is coming." Reuse the existing simulated
   police notification in `EmergencyAssistance.tsx`; never imply real dispatch. Do after H2.
 
-- [ ] **S2 — "Police are coming" on the watch.** When the caregiver taps **Call police**
+- [x] **S2 — "Police are coming" on the watch.** *(Codex #56; ESP32 code 20 + voice by Claude)* When the caregiver taps **Call police**
   (S1), the watch's SOS screen changes to "Police are coming · Demo" (one line, calm). Web
   first; then the ESP32 via a new mirror code.
 
 **Voice on the physical watch (ESP32)** — the board has a speaker (ES8311) and two mics
 (ES7210); the ESP32-S3 can recognise a fixed list of phrases offline (Espressif ESP-SR).
 Free conversation would need Wi-Fi + a cloud service, so it is not planned.
-- [ ] **V1 — Momo speaks on the watch.** Record (or generate with a PC text-to-speech voice)
-  one short WAV per fixed line — greetings, the Talk question, each guide step, "Calling
-  Jamie.", "Help is coming." — and play them on the speaker at the right screen.
+- [x] **V1 — Momo speaks on the watch.** 26 clips + 3 placeholder call messages made with a
+  Piper text-to-speech voice (`firmware/voice/`), played from the **SD card**
+  (`wayhome/voice/*.wav`) on Talk, each guide stop, Not yet, Call, SOS, check-in, taken-off
+  and Game. Replace `wayhome/calls/*.wav` with the family's real recordings (C3).
 - [ ] **V2 — The watch hears a few phrases.** ESP-SR command words: yes, no, take me home,
   call Jamie / Sam / Mei, I see it, not yet. Needs the ESP-SR partition layout, so pictures
   may move to the SD card first (see the flash note).

@@ -10,7 +10,6 @@ import {
   Leaf,
   MessageCircle,
   Phone,
-  ShieldAlert,
   SlidersHorizontal,
   WifiOff,
   ChevronLeft,
@@ -51,6 +50,7 @@ import { LandmarkPhoto } from "./LandmarkPhoto";
 import { ResolveSOSButton } from "./ResolveSOSButton";
 import { SOSButton } from "./SOSButton";
 import { Sprout } from "./Sprout";
+import { Momo, talkMomoState } from "./Momo";
 import "../watch-ui.css";
 import { useLang, useT, modeMessage, noteText } from "../i18n";
 import {
@@ -107,6 +107,12 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     { you: null, momo: null },
   );
   const [listening, setListening] = useState(false);
+  // Speech callbacks can run before React re-renders, so the mic guard uses
+  // a ref; otherwise Momo's own voice could leave the mic off after a reply.
+  const listeningRef = useRef(false);
+  // Momo's Talk face follows her voice: speaking while a line plays, then
+  // listening once the mic is on again. No text or button is added.
+  const [momoSpeaking, setMomoSpeaking] = useState(false);
   // Talk is like a call with Momo: it listens by itself. 7 s of silence
   // (nobody speaking, Momo not talking) returns home to save battery.
   const [talkActivity, setTalkActivity] = useState(0);
@@ -122,6 +128,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   useEffect(() => {
     if (s.mode !== "NORMAL") {
       setTalk(null);
+      setMomoSpeaking(false);
       setPickCall(false);
       setShowModePicker(false);
       setArrived(false);
@@ -235,7 +242,13 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const name = s.settings.companionName;
   const watchMessage =
     s.mode === "EMERGENCY_SIMULATED"
-      ? t("sosHelpComing")
+      ? t(
+          s.incident &&
+            s.incident.stage !== "resolved" &&
+            s.incident.demoPoliceCalledAt !== undefined
+            ? "sosPoliceComing"
+            : "sosHelpComing",
+        )
       : missedStop
         ? t("familyIsHelping")
         : modeMessage(lang, s.mode, name);
@@ -372,23 +385,29 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     } catch {
       /* already stopped */
     }
+    listeningRef.current = false;
     setListening(false);
   };
   // Momo speaks, then listens again (hands-free, like a phone call).
   const speakOut = (text: string, then?: () => void) => {
     if (!s.settings.voice || !("speechSynthesis" in window)) {
+      setMomoSpeaking(false);
       then?.();
       return;
     }
     window.speechSynthesis.cancel();
+    setMomoSpeaking(true);
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang === "id" ? "id-ID" : "en-US";
     const epoch = talkEpoch.current;
-    utterance.onend = () => {
+    const finished = () => {
       if (talkEpoch.current !== epoch) return;
+      setMomoSpeaking(false);
       setTalkActivity(Date.now());
       then?.();
     };
+    utterance.onend = finished;
+    utterance.onerror = finished;
     window.speechSynthesis.speak(utterance);
   };
   // Keyword replies reuse the established talk lines (rule 7 — the ESP32
@@ -513,7 +532,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     const Ctor =
       (window as any).SpeechRecognition ||
       (window as any).webkitSpeechRecognition;
-    if (!Ctor || listening) return;
+    if (!Ctor || listeningRef.current) return;
     const rec = new Ctor();
     rec.lang = lang === "id" ? "id-ID" : "en-US";
     rec.interimResults = false;
@@ -523,13 +542,21 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
       talkFns.current.handleWearerLine(
         event.results?.[0]?.[0]?.transcript ?? "",
       );
-    rec.onend = () => setListening(false);
-    rec.onerror = () => setListening(false);
+    rec.onend = () => {
+      listeningRef.current = false;
+      setListening(false);
+    };
+    rec.onerror = () => {
+      listeningRef.current = false;
+      setListening(false);
+    };
     try {
       rec.start();
       recRef.current = rec;
+      listeningRef.current = true;
       setListening(true);
     } catch {
+      listeningRef.current = false;
       setListening(false);
     }
   }
@@ -577,6 +604,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   const closeTalk = () => {
     talkEpoch.current++;
     stopListening();
+    setMomoSpeaking(false);
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     setChat({ you: null, momo: null });
     if (experienceMode === "dialogue") s.chooseAssistance("home");
@@ -637,7 +665,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     screen = (
       <div className="wos-sos">
         <div className="wos-sos-icon" aria-hidden="true">
-          <ShieldAlert size={30} />
+          <Momo state="concerned" />
         </div>
         {speech(watchMessage)}
         <ResolveSOSButton short />
@@ -1266,13 +1294,14 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     screenKey = "talk-chat";
     const asking = talkStage === "ask" && experienceMode !== "dialogue";
     const reply = chat.momo ?? (asking ? talkGreeting : t("talkChatStart"));
+    const momoState = talkMomoState(listening, momoSpeaking);
     screen = (
       <div className={`wos-talk ${asking ? "wos-talk-asking" : ""}`}>
         {experienceMode === "dialogue" && (
           <span className="wos-profile-label">DIALOGUE MODE</span>
         )}
         <div className="wos-momo" aria-hidden="true">
-          <Sprout small />
+          <Momo state={momoState} />
         </div>
         <p className="wos-bubble" aria-live="polite">
           {reply}
