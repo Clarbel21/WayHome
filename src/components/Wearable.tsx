@@ -238,36 +238,46 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   };
   const guidanceBlocked =
     !s.connected || !s.worn || s.signals.gpsConfidence < 0.6;
+  // Use the same turn plan for the map, the watch arrow, and the spoken cue.
+  const turn = planRoute(approved.length).turns[s.guideIndex] ?? "straight";
+  const previous = approved[s.guideIndex - 1];
+  const guiding = s.mode === "GUIDED_RETURN";
+  const spokenStep = guiding ? landmark?.id : undefined;
+  let spokenLine = watchMessage;
+  if (guiding) {
+    if (guidanceBlocked || s.wearStatus !== "likely_worn") {
+      spokenLine = t("guidancePaused");
+    } else if (!landmark) {
+      spokenLine = t("noLandmarks");
+    } else if (turn === "straight" || !previous) {
+      spokenLine = t("voiceGuideStraight", { name: landmark.name });
+    } else {
+      spokenLine = `${t(turn === "left" ? "turnLeftAt" : "turnRightAt", {
+        name: previous.name,
+      })}.`;
+    }
+  }
+  const wasGuiding = useRef(guiding);
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(timer);
   }, []);
   useEffect(() => {
-    if (s.settings.voice && "speechSynthesis" in window) {
-      const speech = new SpeechSynthesisUtterance(
-        s.mode === "GUIDED_RETURN"
-          ? guidanceBlocked || s.wearStatus !== "likely_worn"
-            ? t("guidancePaused")
-            : landmark?.spokenCue || landmark?.instruction || t("noLandmarks")
-          : watchMessage,
-      );
-      speech.lang = lang === "id" ? "id-ID" : "en-US";
-      window.speechSynthesis.speak(speech);
-      return () => window.speechSynthesis.cancel();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    s.mode,
-    s.settings.voice,
-    watchMessage,
-    lang,
-    landmark?.id,
-    landmark?.spokenCue,
-    landmark?.instruction,
-    s.connected,
-    s.wearStatus,
-    s.signals.gpsConfidence,
-  ]);
+    const endedWalk = wasGuiding.current && s.mode === "NORMAL";
+    wasGuiding.current = guiding;
+    const synthesis = window.speechSynthesis;
+    if (
+      !s.settings.voice ||
+      endedWalk ||
+      !synthesis ||
+      typeof window.SpeechSynthesisUtterance !== "function"
+    )
+      return;
+    const utterance = new SpeechSynthesisUtterance(spokenLine);
+    utterance.lang = lang === "id" ? "id-ID" : "en-US";
+    synthesis.speak(utterance);
+    return () => synthesis.cancel();
+  }, [guiding, s.mode, s.settings.voice, spokenLine, spokenStep, lang]);
 
   const note =
     s.interactionNote && s.mode !== "EMERGENCY_SIMULATED" ? (
@@ -291,15 +301,6 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           legTarget(z.guideStartM ?? 0, s.guideIndex, approved.length),
       )
     : 0;
-  // Turn-by-turn text comes from the same route plan the caregiver map draws.
-  const turn = planRoute(approved.length).turns[s.guideIndex] ?? "straight";
-  const previous = approved[s.guideIndex - 1];
-  const directionText =
-    turn === "right" && previous
-      ? t("turnRightAt", { name: previous.name })
-      : turn === "left" && previous
-        ? t("turnLeftAt", { name: previous.name })
-        : t("goStraight");
   // The watch says only the turn; the photo shows where.
   const shortDirection =
     turn === "right"
