@@ -59,8 +59,9 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
   it", Momo tells the caregiver the nearest police station (simulated list, no real GPS)
   and asks "Call the police station?". Phone: name, distance, Call button (demo, no real
   call). Watch: one calm line, "Your family is helping."
-- [ ] **H3 — Voice guidance.** Momo speaks each step: "Do you see the community garden?
-  Go straight." Browser speech on the web watch; a Mute toggle in Care tools.
+- [x] **H3 — Voice guidance.** Momo speaks each step ("Do you see the community garden?
+  Go straight." / "Turn left at the bakery."), stops when the walk ends; the Care tools
+  voice setting mutes her. Web only. *(Codex #43)*
 
 **Call — call a family member**
 - [x] **C1 — Choose who to call.** Tap Call → 3 big faces (Jamie, Sam, Mei) → tap one;
@@ -88,8 +89,9 @@ firmware lane does that). Facts stay factual: no real calls, GPS or dispatch —
   copy by Claude: "Which game?" Places / Faces with the same drawings.)*
 - [ ] **G3 — My happy places.** Places with memories, with a short line from the family.
 - Caregiver adds the photos for G1–G3 on the phone (Care tools).
-- **ESP32 flash is at 75 %.** New pictures (G3, real family photos) go on the 9.9 MB FAT
-  partition and are read at run time, not compiled into the firmware.
+- **ESP32 flash is at 75 %.** Fine for now. Only if a new step no longer fits (G3, real
+  family photos, call recordings), add SD-card support: the board has a micro-SD slot,
+  so pictures/sounds load from `wayhome/` on the card with the built-in ones as fallback.
 
 **SOS — hold 3 seconds** (stays on every screen)
 - [x] **S1 — SOS asks the caregiver "Call the police?"** *(Codex #36; ESP32 shows "Help is
