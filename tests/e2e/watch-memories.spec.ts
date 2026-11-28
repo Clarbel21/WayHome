@@ -6,7 +6,9 @@ test("Memory Garden runs on the watch screen and steps aside for safety", async 
 }) => {
   await page.goto("/#/companion");
   const watch = page.locator(".watch-area .watch").first();
-  await watch.getByRole("button", { name: "My memories", exact: true }).click();
+  // The Game tile now opens the landmark quiz; /memories still opens the
+  // Memory Garden on the watch screen.
+  await page.goto("/#/memories");
   // Same page, inside the watch screen — no separate Memory Garden page.
   await expect(page).toHaveURL(/#\/companion$/);
   const screen = watch.locator(".wos-memories");

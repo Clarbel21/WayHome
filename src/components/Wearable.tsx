@@ -40,6 +40,8 @@ import {
   useFind,
   type FindRing,
 } from "../services/find";
+import { PhotoQuiz } from "../game/PhotoQuiz";
+import { landmarkQuizDeck } from "../game/landmarks";
 import { LandmarkPhoto } from "./LandmarkPhoto";
 import { ResolveSOSButton } from "./ResolveSOSButton";
 import { SOSButton } from "./SOSButton";
@@ -103,10 +105,17 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
   // Memory Garden so the alert or guidance owns the screen.
   useEffect(() => {
     // The activity itself is paused by the memory safety rules and can be
-    // resumed later; only the watch view is closed here.
-    if (s.mode !== "NORMAL" && useWatchUi.getState().memories)
-      useWatchUi.getState().closeMemories();
+    // resumed later; only the watch view is closed here. Safety screens also
+    // take over the Game lane before the wearer can answer a question.
+    const ui = useWatchUi.getState();
+    if (s.mode === "NORMAL") return;
+    if (ui.memories) ui.closeMemories();
+    if (ui.game) ui.closeGame();
   }, [s.mode]);
+  // G2/G3 will register their builders before their deck can be opened.
+  useEffect(() => {
+    if (watchUi.game && watchUi.game !== "landmarks") watchUi.closeGame();
+  }, [watchUi.game]);
   // Bring the watch into view when the Memory Garden opens on it.
   const watchRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -359,8 +368,10 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     );
   } else if (
     s.wearStatus === "not_worn" &&
-    !(s.mode === "CHECK_IN" &&
-      (s.checkIn?.stage === "question" || s.checkIn?.stage === "help_options"))
+    !(
+      s.mode === "CHECK_IN" &&
+      (s.checkIn?.stage === "question" || s.checkIn?.stage === "help_options")
+    )
   ) {
     screenKey = "watch-taken-off";
     screen = (
@@ -395,7 +406,9 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         <div className="wos-zone-icon" aria-hidden="true">
           {askingFamily ? <Phone size={28} /> : <MapPin size={28} />}
         </div>
-        <span className="wos-zone-step">{t("zoneStepOf", { n: zoneStep })}</span>
+        <span className="wos-zone-step">
+          {t("zoneStepOf", { n: zoneStep })}
+        </span>
         <strong className="wos-zone-title">{stepTitle}</strong>
         {askingFamily && (
           <span className="wos-zone-status">{t("zoneCaregiverAlerted")}</span>
@@ -556,7 +569,10 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         >
           <Phone size={17} /> {t("helpFamily")}
         </button>
-        <button className="wos-secondary cancel-guidance" onClick={s.backToHome}>
+        <button
+          className="wos-secondary cancel-guidance"
+          onClick={s.backToHome}
+        >
           {t("cancelGuidance")}
         </button>
       </div>
@@ -709,6 +725,23 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
         />
       </div>
     );
+  } else if (watchUi.game && s.mode === "NORMAL") {
+    // The Game lane is a data-driven quiz. G2 (faces) and G3 (happy places)
+    // only need another deck builder here; PhotoQuiz handles the screens.
+    const deck = watchUi.game === "landmarks" ? landmarkQuizDeck(t) : null;
+    screenKey = `game-${watchUi.game}`;
+    screen = deck ? (
+      <div className="wos-game-host">
+        <PhotoQuiz
+          key={watchUi.game}
+          deck={deck}
+          onExit={() => {
+            watchUi.closeGame();
+            s.dismissAcknowledgment();
+          }}
+        />
+      </div>
+    ) : null;
   } else if (acknowledged) {
     screenKey = "acknowledged";
     screen = (
@@ -836,7 +869,11 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
     screen = (
       <div className="wos-call-pick">
         <strong className="wos-call-title">{t("whoToCall")}</strong>
-        <div className="wos-call-faces" role="group" aria-label={t("whoToCall")}>
+        <div
+          className="wos-call-faces"
+          role="group"
+          aria-label={t("whoToCall")}
+        >
           {s.familyContacts.slice(0, 3).map((c) => (
             <button
               key={c.id}
@@ -961,8 +998,8 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
           </button>
           <button
             className="wos-emoji-tile"
-            aria-label={t("memories")}
-            onClick={watchUi.openMemories}
+            aria-label={t("game")}
+            onClick={() => watchUi.openGame("landmarks")}
           >
             <span className="wos-emoji-symbol" aria-hidden="true">
               🎮
@@ -1026,6 +1063,7 @@ export function Wearable({ compact = false }: { compact?: boolean }) {
                 activity screens keep the whole footer row for the SOS bar. */}
             {s.mode === "NORMAL" &&
               !watchUi.memories &&
+              !watchUi.game &&
               !showModePicker &&
               screenKey === "home" && (
                 <button

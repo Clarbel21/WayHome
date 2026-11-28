@@ -70,12 +70,7 @@ test("emoji home keeps the four tiles and SOS in the watch frame", async ({
   await page.setViewportSize({ width: 1280, height: 720 });
   const watch = page.locator(".watch-area .watch");
   const frame = await watch.boundingBox();
-  for (const name of [
-    "Help me home",
-    "Call family",
-    "Let's talk",
-    "My memories",
-  ]) {
+  for (const name of ["Help me home", "Call family", "Let's talk", "Game"]) {
     const tile = watch.getByRole("button", { name, exact: true });
     await expect(tile).toBeVisible();
     const box = await tile.boundingBox();

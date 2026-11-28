@@ -1453,7 +1453,12 @@ html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-zone-status {
 html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-zone-call {
   gap: 3px;
 }
-html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-zone-call .wos-zone-icon {
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos.wos.wos
+  .wos-zone-call
+  .wos-zone-icon {
   width: 46px;
   height: 46px;
 }
@@ -1478,6 +1483,168 @@ html .watch-area .watch .watch-screen.wh-screen.wos.wos.wos .wos-sos-step {
   margin: 0 auto 3px;
 }
 
+/* ------------------------------------------- Game lane: photo quiz (G1)
+   The quiz shell is shared with G2 (faces) and G3 (happy places). One card
+   owns the frame: photo, two big names, calm feedback, then a short finish.
+   The photo flexes to whatever height remains so nothing ever scrolls. */
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-host {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding-bottom: 4px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-round {
+  display: block;
+  flex-shrink: 0;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.2;
+  text-align: center;
+  color: #43594d;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-photo {
+  flex: 1 1 90px;
+  min-height: 58px;
+  max-height: 172px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  object-fit: contain;
+  background: #fff;
+  border: 2px solid #d8e2d0;
+  border-radius: 16px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-prompt,
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-result {
+  flex-shrink: 0;
+  margin: 0;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 750;
+  line-height: 1.2;
+  color: #274535;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-result {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Feedback carries a result line and two buttons as well as the photo. */
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-game-feedback
+  .wos-game-photo
+  img {
+  max-height: 140px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-choices {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+html
+  .watch-area
+  .watch
+  .watch-screen.wh-screen.wos
+  .wos-game-choices
+  .wos-game-choice,
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-next {
+  min-height: 46px;
+  font-size: 16px;
+  font-weight: 750;
+  line-height: 1.1;
+  text-transform: capitalize;
+  border-radius: 14px;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-choice {
+  background: #fff;
+  border: 2px solid #9ec2a6;
+  color: #264b35;
+  box-shadow: 0 2px 6px rgba(40, 72, 59, 0.08);
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-next {
+  background: var(--wh-forest, #2f4d3d);
+  color: #fff;
+  border: 0;
+  text-transform: none;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-back {
+  /* 45px leaves a pixel of slack for sub-pixel stage scaling. */
+  min-height: 45px;
+  font-size: 15px;
+  font-weight: 650;
+  text-transform: none;
+  background: transparent;
+  color: #2f4d3d;
+  box-shadow: inset 0 0 0 1.5px #cdd8c5;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-back-main {
+  min-height: 52px;
+  background: #eef5e8;
+  border: 2px solid #9ec2a6;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-badge {
+  flex: 1 1 auto;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+  line-height: 1;
+}
+html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-done-text {
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: #274535;
+}
+/* At the smallest stage the watch body is only ~208px tall. Keep the same
+   screens and 45px touch targets; only the photo and gaps get tighter. */
+@media (max-width: 900px) {
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-game {
+    gap: 3px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-photo {
+    min-height: 46px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-result {
+    min-height: 30px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-choices {
+    gap: 5px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-choice,
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-next {
+    min-height: 45px;
+  }
+  html .watch-area .watch .watch-screen.wh-screen.wos .wos-game-back {
+    min-height: 45px;
+  }
+}
 /* ---------------------------------------------- call: who to call? (C1) */
 /* Three big faces, one tap each; Back stays visible without scrolling. */
 html .watch-area .watch .watch-screen.wh-screen.wos .wos-call-pick {
