@@ -4,6 +4,7 @@
 #include "watch_hal.h"
 #include "ble_service.h"
 #include "landmark_images.h"
+#include "quiz_images.h"
 #include <HWCDC.h>
 
 extern HWCDC USBSerial;  // defined in wayhome-watch.ino
@@ -286,6 +287,7 @@ lv_obj_t *make_sprout_avatar(lv_obj_t *parent, int32_t x, int32_t y) {
 void talk_start();
 void quiz_show();
 extern uint8_t quizRound;
+extern lv_obj_t *scrGamePick;
 
 void tile_cb(lv_event_t *e) {
   if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
@@ -307,9 +309,7 @@ void tile_cb(lv_event_t *e) {
       talk_start();
       break;
     default:
-      quizRound = 0;
-      quiz_show();
-      load_screen(scrMemories);
+      load_screen(scrGamePick);  // "Which game?" Places / Faces
       break;
   }
 }
@@ -430,12 +430,21 @@ void talk_start() {
   load_screen(scrTalk);
 }
 
-// G1 Game: "Which place is this?" with the four built-in photos and two big
-// names, like the web watch (src/game/landmarks.ts). Never says "wrong".
+// Game (G1 places, G2 faces): a picture, a question, two big names, then a
+// kind line. Same cards and words as the web watch (src/game/*.ts); never
+// says "wrong".
 constexpr uint8_t QUIZ_ROUNDS = 4;
-const char *const QUIZ_NAMES[QUIZ_ROUNDS] = {"Garden", "Bakery", "Library", "Home"};
-const char *const QUIZ_LOWER[QUIZ_ROUNDS] = {"garden", "bakery", "library", "home"};
+enum QuizDeck : uint8_t { DECK_PLACES = 0, DECK_FACES = 1 };
+uint8_t quizDeck = DECK_PLACES;
+const char *const PLACE_NAMES[4] = {"Garden", "Bakery", "Library", "Home"};
+const char *const PLACE_LOWER[4] = {"garden", "bakery", "library", "home"};
+const lv_image_dsc_t *const PLACE_IMG[4] = {&wh_quiz_garden_img, &wh_quiz_bakery_img,
+                                            &wh_quiz_library_img, &wh_quiz_home_img};
+const char *const FACE_NAMES[3] = {"Jamie", "Sam", "Mei"};
+const lv_image_dsc_t *const FACE_IMG[3] = {&wh_quiz_face_jamie_img, &wh_quiz_face_sam_img,
+                                           &wh_quiz_face_mei_img};
 uint8_t quizRound = 0;
+lv_obj_t *scrGamePick = nullptr;
 lv_obj_t *imgQuiz = nullptr;
 lv_obj_t *lblQuizLine = nullptr;
 lv_obj_t *btnQuiz[2] = {nullptr, nullptr};
@@ -443,16 +452,34 @@ lv_obj_t *lblQuizChoice[2] = {nullptr, nullptr};
 lv_obj_t *btnQuizNext = nullptr;
 lv_obj_t *lblQuizDone = nullptr;
 
-// Correct name sits left on even rounds, right on odd ones (as on the web).
+// Answer and distractor for a round (indices into the deck's names).
+void quiz_card(uint8_t round, uint8_t &answer, uint8_t &other) {
+  if (quizDeck == DECK_PLACES) {
+    answer = round % 4;
+    other = (round + 1) % 4;
+  } else {  // faces: Jamie, Sam, Mei, then Jamie vs Mei (no pair twice)
+    answer = round % 3;
+    other = (round + 1 + round / 3) % 3;
+  }
+}
+
+// The correct name sits left on even rounds, right on odd ones.
 uint8_t quiz_choice_id(uint8_t round, uint8_t side) {
-  uint8_t answer = round, other = (round + 1) % QUIZ_ROUNDS;
+  uint8_t answer, other;
+  quiz_card(round, answer, other);
   bool answerLeft = (round % 2) == 0;
   return (side == 0) == answerLeft ? answer : other;
+}
+
+const char *quiz_name(uint8_t id) {
+  return quizDeck == DECK_PLACES ? PLACE_NAMES[id] : FACE_NAMES[id];
 }
 
 void quiz_show() {
   static char roundText[20];
   bool done = quizRound >= QUIZ_ROUNDS;
+  uint8_t answer = 0, other = 0;
+  if (!done) quiz_card(quizRound, answer, other);
   if (lblGameStep != nullptr) {
     snprintf(roundText, sizeof(roundText), "Round %u of %u", quizRound + 1u,
              (unsigned)QUIZ_ROUNDS);
@@ -462,18 +489,20 @@ void quiz_show() {
     if (done) {
       lv_obj_add_flag(imgQuiz, LV_OBJ_FLAG_HIDDEN);
     } else {
-      lv_image_set_src(imgQuiz, whLandmarkImages[quizRound].image);
+      lv_image_set_src(imgQuiz, quizDeck == DECK_PLACES ? PLACE_IMG[answer] : FACE_IMG[answer]);
       lv_obj_clear_flag(imgQuiz, LV_OBJ_FLAG_HIDDEN);
     }
   }
   if (lblQuizLine != nullptr)
-    lv_label_set_text(lblQuizLine, done ? "" : "Which place is this?");
+    lv_label_set_text(lblQuizLine, done ? ""
+                                   : quizDeck == DECK_PLACES ? "Which place is this?"
+                                                             : "Who is this?");
   for (uint8_t i = 0; i < 2; i++) {
     if (btnQuiz[i] == nullptr) continue;
     if (done) {
       lv_obj_add_flag(btnQuiz[i], LV_OBJ_FLAG_HIDDEN);
     } else {
-      lv_label_set_text(lblQuizChoice[i], QUIZ_NAMES[quiz_choice_id(quizRound, i)]);
+      lv_label_set_text(lblQuizChoice[i], quiz_name(quiz_choice_id(quizRound, i)));
       lv_obj_clear_flag(btnQuiz[i], LV_OBJ_FLAG_HIDDEN);
     }
   }
@@ -487,15 +516,30 @@ void quiz_show() {
 void quiz_choice_cb(lv_event_t *e) {
   uint8_t side = (uint8_t)(intptr_t)lv_event_get_user_data(e);
   if (quizRound >= QUIZ_ROUNDS) return;
-  bool right = quiz_choice_id(quizRound, side) == quizRound;
+  uint8_t answer, other;
+  quiz_card(quizRound, answer, other);
+  bool right = quiz_choice_id(quizRound, side) == answer;
   static char line[40];
-  snprintf(line, sizeof(line), right ? "Yes! That's the %s." : "That's the %s. Next one?",
-           QUIZ_LOWER[quizRound]);
-  USBSerial.printf("[UI] quiz round %u: %s\n", quizRound + 1u, right ? "right" : "gentle");
+  if (quizDeck == DECK_PLACES)
+    snprintf(line, sizeof(line), right ? "Yes! That's the %s." : "That's the %s. Next one?",
+             PLACE_LOWER[answer]);
+  else
+    snprintf(line, sizeof(line), right ? "Yes! That's %s." : "That's %s. Next one?",
+             FACE_NAMES[answer]);
+  USBSerial.printf("[UI] quiz %s round %u: %s\n", quizDeck == DECK_PLACES ? "places" : "faces",
+                   quizRound + 1u, right ? "right" : "gentle");
   if (lblQuizLine != nullptr) lv_label_set_text(lblQuizLine, line);
   for (lv_obj_t *b : btnQuiz)
     if (b != nullptr) lv_obj_add_flag(b, LV_OBJ_FLAG_HIDDEN);
   if (btnQuizNext != nullptr) lv_obj_clear_flag(btnQuizNext, LV_OBJ_FLAG_HIDDEN);
+}
+
+// "Which game?" → Places or Faces.
+void game_pick_cb(lv_event_t *e) {
+  quizDeck = (uint8_t)(intptr_t)lv_event_get_user_data(e);
+  quizRound = 0;
+  quiz_show();
+  load_screen(scrMemories);
 }
 
 void quiz_next_cb(lv_event_t *e) {
@@ -913,17 +957,16 @@ void build_game_screen() {
   lv_obj_clear_flag(scrMemories, LV_OBJ_FLAG_SCROLLABLE);
   lblGameStep = add_label(scrMemories, "Round 1 of 4", &lv_font_montserrat_18, SAGE_TEXT);
   lv_obj_align(lblGameStep, LV_ALIGN_TOP_MID, 0, 18);
-  // Bottom of the 360x200 photo: the building without its name plaque.
+  // 230x140 picture (places without name plaques, or a family face).
   imgQuiz = lv_image_create(scrMemories);
-  lv_obj_set_pos(imgQuiz, 30, 46);
-  lv_obj_set_size(imgQuiz, 350, 140);
-  lv_image_set_inner_align(imgQuiz, LV_IMAGE_ALIGN_BOTTOM_MID);
+  lv_obj_set_pos(imgQuiz, 90, 46);
+  lv_obj_set_size(imgQuiz, 230, 140);
   lblQuizLine = add_wrapped(scrMemories, "Which place is this?", &lv_font_montserrat_22, INK, 196);
   for (uint8_t i = 0; i < 2; i++) {
     btnQuiz[i] = add_button(scrMemories, 30 + i * 179, 240, 171, 72, SURFACE, 16);
     lv_obj_set_style_border_color(btnQuiz[i], lv_color_hex(0x9ec2a6), 0);
     lv_obj_set_style_border_width(btnQuiz[i], 2, 0);
-    lblQuizChoice[i] = add_label(btnQuiz[i], QUIZ_NAMES[i], &lv_font_montserrat_24, FOREST);
+    lblQuizChoice[i] = add_label(btnQuiz[i], PLACE_NAMES[i], &lv_font_montserrat_24, FOREST);
     lv_obj_center(lblQuizChoice[i]);
     lv_obj_add_event_cb(btnQuiz[i], quiz_choice_cb, LV_EVENT_CLICKED, (void *)(intptr_t)i);
   }
@@ -935,6 +978,22 @@ void build_game_screen() {
   lv_obj_align(lblQuizDone, LV_ALIGN_TOP_MID, 0, 170);
   add_back(scrMemories);
   quiz_show();
+
+  // "Which game?" picker, like the web watch (G2).
+  scrGamePick = new_screen(CREAM);
+  lv_obj_clear_flag(scrGamePick, LV_OBJ_FLAG_SCROLLABLE);
+  lv_obj_t *title = add_label(scrGamePick, "Which game?", &lv_font_montserrat_30, INK);
+  lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 90);
+  const char *decks[2] = {"Places", "Faces"};
+  for (uint8_t i = 0; i < 2; i++) {
+    lv_obj_t *b = add_button(scrGamePick, 30 + i * 179, 190, 171, 96, SURFACE, 18);
+    lv_obj_set_style_border_color(b, lv_color_hex(0x9ec2a6), 0);
+    lv_obj_set_style_border_width(b, 2, 0);
+    lv_obj_t *l = add_label(b, decks[i], &lv_font_montserrat_26, FOREST);
+    lv_obj_center(l);
+    lv_obj_add_event_cb(b, game_pick_cb, LV_EVENT_CLICKED, (void *)(intptr_t)i);
+  }
+  add_back(scrGamePick);
 }
 
 void build_settings_screen() {
@@ -1085,7 +1144,7 @@ bool init() {
   // SOS is always one hold away: every screen gets the SOS bar at the
   // bottom (home and the guide screen already have their own).
   static SosParts sosBars[16];
-  lv_obj_t *withSos[] = {scrCallPick, scrCall,     scrCallMissed, scrTalk,
+  lv_obj_t *withSos[] = {scrGamePick, scrCallPick, scrCall,     scrCallMissed, scrTalk,
                          scrMemories, scrSettings, scrCheckQ,     scrCheckH,
                          scrMissed,   scrTakenOff, scrThanks,     scrMirror};
   uint8_t n = 0;
